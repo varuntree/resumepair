@@ -34,3 +34,5 @@ Let's ship it, FAST ⚡️
 -   Make data-driven decisions
 
 ShipFast members get 30% OFF on all plans! 🎁
+
+![datafast](https://github.com/user-attachments/assets/2a9710f8-9a39-4593-b4bf-9ee933529870)
