@@ -1,11 +1,9 @@
 import Link from "next/link";
-import ButtonSupport from "@/components/ButtonSupport";
 
-// Simple 404 page with a button to go home and a button to contact support
-// Show a cute SVG with your primary color
+// Simple 404 page with a button to go home
 export default function Custom404() {
   return (
-    <section className="relative bg-base-100 text-base-content h-screen w-full flex flex-col justify-center gap-8 items-center p-10">
+    <section className="relative bg-gray-50 text-gray-900 h-screen w-full flex flex-col justify-center gap-8 items-center p-10">
       <div className="p-6 bg-white rounded-xl">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -100,12 +98,12 @@ export default function Custom404() {
       </p>
 
       <div className="flex flex-wrap gap-4 justify-center">
-        <Link href="/" className="btn btn-sm">
+        <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="w-5 h-5"
+            className="w-5 h-5 mr-2"
           >
             <path
               fillRule="evenodd"
@@ -115,8 +113,6 @@ export default function Custom404() {
           </svg>
           Home
         </Link>
-
-        <ButtonSupport />
       </div>
     </section>
   );

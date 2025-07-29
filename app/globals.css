@@ -2,21 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  scroll-behavior: smooth !important;
-}
+@layer base {
+  :root {
+    /* Color System - TweakCN Compatible */
+    --background: 204.0000 12.1951% 91.9608%;
+    --foreground: 0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 13.2143 73.0435% 54.9020%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220.0000 14.2857% 95.8824%;
+    --secondary-foreground: 215 13.7931% 34.1176%;
+    --muted: 210 20.0000% 98.0392%;
+    --muted-foreground: 220 8.9362% 46.0784%;
+    --accent: 207.6923 46.4286% 89.0196%;
+    --accent-foreground: 224.4444 64.2857% 32.9412%;
+    --destructive: 0 84.2365% 60.1961%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 9.3750% 87.4510%;
+    --input: 220 15.7895% 96.2745%;
+    --ring: 13.2143 73.0435% 54.9020%;
+    
+    /* Chart Colors */
+    --chart-1: 210 37.5000% 65.4902%;
+    --chart-2: 12.9032 73.2283% 75.0980%;
+    --chart-3: 213.1579 29.9213% 50.1961%;
+    --chart-4: 216.9231 35.7798% 42.7451%;
+    --chart-5: 221.0127 43.6464% 35.4902%;
+    
+    /* Sidebar Colors */
+    --sidebar: 216 7.9365% 87.6471%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 13.2143 73.0435% 54.9020%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 207.6923 46.4286% 89.0196%;
+    --sidebar-accent-foreground: 224.4444 64.2857% 32.9412%;
+    --sidebar-border: 220 13.0435% 90.9804%;
+    --sidebar-ring: 13.2143 73.0435% 54.9020%;
+    
+    /* Typography */
+    --font-sans: Inter, sans-serif;
+    --font-serif: Source Serif 4, serif;
+    --font-mono: JetBrains Mono, monospace;
+    
+    /* Border Radius */
+    --radius: 0.75rem;
+    
+    /* Shadows */
+    --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
+    
+    /* Spacing */
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
+  }
 
-/* It makes the HTML progress bar filling smooth when value change. */
-progress::-webkit-progress-value {
-  transition: 0.6s width ease-out;
+  .dark {
+    /* Dark Mode Color System */
+    --background: 219.1304 29.1139% 15.4902%;
+    --foreground: 0 0% 89.8039%;
+    --card: 223.6364 20.7547% 20.7843%;
+    --card-foreground: 0 0% 89.8039%;
+    --popover: 223.3333 19.1489% 18.4314%;
+    --popover-foreground: 0 0% 89.8039%;
+    --primary: 13.2143 73.0435% 54.9020%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 19.2308% 20.3922%;
+    --secondary-foreground: 0 0% 89.8039%;
+    --muted: 222 19.2308% 20.3922%;
+    --muted-foreground: 0 0% 63.9216%;
+    --accent: 223.6364 34.3750% 25.0980%;
+    --accent-foreground: 213.3333 96.9231% 87.2549%;
+    --destructive: 0 84.2365% 60.1961%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 224.3478 15.8621% 28.4314%;
+    --input: 224.3478 15.8621% 28.4314%;
+    --ring: 13.2143 73.0435% 54.9020%;
+    
+    /* Dark Mode Chart Colors */
+    --chart-1: 210 37.5000% 65.4902%;
+    --chart-2: 11.7241 63.5036% 73.1373%;
+    --chart-3: 213.1579 29.9213% 50.1961%;
+    --chart-4: 216.9231 35.7798% 42.7451%;
+    --chart-5: 221.0127 43.6464% 35.4902%;
+    
+    /* Dark Mode Sidebar Colors */
+    --sidebar: 222.8571 20.0000% 20.5882%;
+    --sidebar-foreground: 0 0% 89.8039%;
+    --sidebar-primary: 13.2143 73.0435% 54.9020%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 223.6364 34.3750% 25.0980%;
+    --sidebar-accent-foreground: 213.3333 96.9231% 87.2549%;
+    --sidebar-border: 224.3478 15.8621% 28.4314%;
+    --sidebar-ring: 13.2143 73.0435% 54.9020%;
+  }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    scroll-behavior: smooth !important;
+  }
+  
+  /* Custom gradient for legacy components */
   .btn-gradient {
-    @apply !bg-gradient !bg-[length:300%_300%] hover:saturate-[1.2] shadow duration-100 !border-0 !border-transparent !bg-transparent animate-shimmer disabled:!bg-none disabled:!bg-gray-500/30  !text-white;
+    @apply bg-gradient-to-r from-primary via-primary/80 to-primary/60 hover:saturate-125 shadow duration-100 border-0 border-transparent text-primary-foreground;
   }
+  
   .btn {
-    @apply !capitalize;
+    @apply capitalize;
   }
+}
+
+/* Progress bar styling */
+progress::-webkit-progress-value {
+  transition: 0.6s width ease-out;
 }

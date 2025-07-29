@@ -1,0 +1,30 @@
+{
+    "permissions": {
+      "allow": [
+        "Task",
+        "Bash",
+        "Edit",
+        "Glob",
+        "Grep", 
+        "LS",
+        "MultiEdit",
+        "NotebookEdit",
+        "NotebookRead",
+        "Read",
+        "TodoRead",
+        "TodoWrite",
+        "WebFetch",
+        "WebSearch",
+        "Write",
+        "mcp__puppeteer__*",
+        "mcp__puppeteer__puppeteer_navigate",
+        "mcp__puppeteer__puppeteer_screenshot",
+        "mcp__puppeteer__puppeteer_click",
+        "mcp__puppeteer__puppeteer_evaluate"
+      ]
+    },
+    "enableAllProjectMcpServers": true,
+    "enabledMcpjsonServers": [
+      "supabase"
+    ]
+  }

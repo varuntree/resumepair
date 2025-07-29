@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import ButtonSupport from "@/components/ButtonSupport";
 
 // A simple error boundary to show a nice error page if something goes wrong (Error Boundary)
 // Users can contanct support, go to the main page or try to reset/refresh to fix the error
@@ -137,12 +136,15 @@ export default function Error({
         <p className="text-red-500">{error?.message}</p>
 
         <div className="flex flex-wrap gap-4 justify-center">
-          <button className="btn btn-sm" onClick={reset}>
+          <button 
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" 
+            onClick={reset}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className="w-5 h-5"
+              className="w-5 h-5 mr-2"
             >
               <path
                 fillRule="evenodd"
@@ -152,13 +154,12 @@ export default function Error({
             </svg>
             Refresh
           </button>
-          <ButtonSupport />
-          <Link href="/" className="btn btn-sm">
+          <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className="w-5 h-5"
+              className="w-5 h-5 mr-2"
             >
               <path
                 fillRule="evenodd"
