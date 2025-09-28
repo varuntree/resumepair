@@ -6,9 +6,13 @@
           "-y",
           "@supabase/mcp-server-supabase@latest",
           "--access-token",
-          ""
+          "sbp_60f9651cfd31c7a21dd17618e84c09916a7eba30"
         ]
-      }
+      },
+      "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    }
     }
   }
 
