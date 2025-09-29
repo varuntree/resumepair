@@ -114,6 +114,13 @@ Before starting any phase, the orchestrator MUST:
 
 **Output location**: `/agents/phase_[N]/implementer_phase[N]_output.md`
 
+**Learning Capture**: During implementation, capture observations to `/agents/phase_[N]/learnings/observations.md` when encountering:
+- Errors or unexpected failures
+- Workarounds or alternative approaches
+- Better tools or libraries discovered
+- Assumptions that proved incorrect
+- Patterns that emerge repeatedly
+
 ### Phase 5: Code Review
 
 **Agent**: code-reviewer
@@ -181,8 +188,18 @@ Create `/agents/phase_[N]/phase_summary.md`:
 - Lessons learned
 - Ready for next phase confirmation
 
-### 3. Handoff Preparation
-- Update main project documentation if needed
+### 3. Learning System Pipeline
+After phase summary, trigger the learning pipeline:
+```markdown
+1. Create learnings folder: /agents/phase_[N]/learnings/
+2. Check for observations: /agents/phase_[N]/learnings/observations.md
+3. Execute learning analysis pipeline (see EXECUTION.md in /agents/learning_system/)
+4. Review generated proposal: /agents/learning_system/proposals/phase_[N]_proposal.md
+5. Apply approved learnings
+```
+
+### 4. Handoff Preparation
+- Update main project documentation if needed (via learning system)
 - Note any technical debt incurred
 - Document any new patterns established
 - Prepare context for next phase
@@ -228,6 +245,35 @@ Create `/agents/phase_[N]/phase_summary.md`:
 - No research needed (optimization)
 - Critical: Performance metrics
 - Watch for: Security audit findings
+
+## Learning System Setup
+
+**One-Time Setup** (before starting Phase 1):
+```bash
+# Verify folders exist
+ls /agents/learning_system/knowledge_base/patterns/
+ls /agents/learning_system/knowledge_base/anti_patterns/
+ls /agents/learning_system/knowledge_base/tool_discoveries/
+ls /agents/learning_system/knowledge_base/process_improvements/
+ls /agents/learning_system/proposals/
+```
+
+If folders don't exist, they have been created during project initialization. Review `/agents/learning_system/README.md` for system overview.
+
+## Learning System Integration
+
+The project includes an automated learning system that captures implementation insights and integrates them back into documentation. See `/agents/learning_system/README.md` for complete details.
+
+### During Implementation
+- **Capture observations** in `/agents/phase_[N]/learnings/observations.md`
+- **Document**: Errors, workarounds, discoveries, patterns
+- **Format**: Follow template in `/agents/learning_system/EXECUTION.md`
+
+### After Phase Completion
+Execute the 4-agent pipeline (see `/agents/learning_system/EXECUTION.md` and `/agents/learning_system/AGENTS.md`):
+1. Deploy general-purpose agent as Pattern Extractor → Knowledge Generalizer → Integration Mapper → Validation Orchestrator
+2. Review proposal: `/agents/learning_system/proposals/phase_[N]_proposal.md`
+3. Apply approved changes automatically
 
 ## Error Recovery
 

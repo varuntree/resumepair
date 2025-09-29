@@ -54,9 +54,14 @@ agents/
    - Context Gatherer → analyzes and documents
    - Systems Researcher → investigates solutions (if needed)
    - Planner Architect → creates implementation plan
-   - Implementer → executes the plan
+   - Implementer → executes the plan (captures observations)
    - Code Reviewer → validates the implementation
-4. **Orchestrator synthesis**: Combines outputs and prepares for next phase
+4. **Learning System Pipeline** (automatic after validation):
+   - Pattern Extractor → identifies recurring themes
+   - Knowledge Generalizer → creates reusable wisdom
+   - Integration Mapper → maps to documentation
+   - Validation Orchestrator → generates proposal
+5. **Orchestrator synthesis**: Reviews proposal and prepares for next phase
 
 ## Status Tracking
 
@@ -69,6 +74,31 @@ Each phase folder will contain an `index.md` with:
 - Blockers or issues
 - Next steps
 
+## Learning System Integration
+
+The project includes an automated learning system that captures and integrates implementation insights:
+
+### Location
+- **System Documentation**: `/agents/learning_system/`
+- **Phase Observations**: `/agents/phase_[N]/learnings/observations.md`
+- **Proposals**: `/agents/learning_system/proposals/`
+- **Knowledge Base**: `/agents/learning_system/knowledge_base/`
+
+### Process
+1. **During Implementation**: Observations captured automatically
+2. **After Validation**: Learning pipeline executes
+3. **Analysis**: Four specialized agents process learnings
+4. **Proposal Generation**: Single document for review
+5. **Integration**: Approved changes applied automatically
+
+### Benefits
+- No lessons learned twice
+- Continuous documentation improvement
+- Pattern recognition across phases
+- Automated knowledge capture
+
+For complete details, see `/agents/learning_system/README.md`
+
 ## Important Notes
 
 - Agents work sequentially, each building on previous outputs
@@ -76,7 +106,8 @@ Each phase folder will contain an `index.md` with:
 - The orchestrator manages context passing between agents
 - No direct modifications to root project files without orchestrator approval
 - Each agent output should be self-contained and clearly structured
+- Learning system runs transparently after each phase
 
 ---
-*Last Updated: Phase implementation beginning*
+*Last Updated: Learning System Integration Added*
 *Next Action: Awaiting orchestrator instructions for Phase 1*
