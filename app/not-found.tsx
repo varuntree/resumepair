@@ -3,8 +3,8 @@ import Link from "next/link";
 // Simple 404 page with a button to go home
 export default function Custom404() {
   return (
-    <section className="relative bg-gray-50 text-gray-900 h-screen w-full flex flex-col justify-center gap-8 items-center p-10">
-      <div className="p-6 bg-white rounded-xl">
+    <section className="relative bg-muted text-foreground h-screen w-full flex flex-col justify-center gap-8 items-center p-10">
+      <div className="p-6 bg-background rounded-xl border border-border">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-56 h-56"
@@ -98,7 +98,7 @@ export default function Custom404() {
       </p>
 
       <div className="flex flex-wrap gap-4 justify-center">
-        <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+        <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"

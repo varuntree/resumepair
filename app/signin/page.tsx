@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, FormEvent, MouseEvent } from "react";
 import { createClient } from "@/libs/supabase/client";
 import { Provider } from "@supabase/supabase-js";
 import toast from "react-hot-toast";
@@ -16,13 +16,13 @@ export default function Login() {
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
   const handleSignup = async (
-    e: any,
+    e: FormEvent | MouseEvent,
     options: {
       type: string;
       provider?: Provider;
     }
   ) => {
-    e?.preventDefault();
+    e.preventDefault();
 
     setIsLoading(true);
 
@@ -30,7 +30,7 @@ export default function Login() {
       const { type, provider } = options;
       const redirectURL = window.location.origin + "/api/auth/callback";
 
-      if (type === "oauth") {
+      if (type === "oauth" && provider) {
         await supabase.auth.signInWithOAuth({
           provider,
           options: {
@@ -57,9 +57,9 @@ export default function Login() {
   };
 
   return (
-    <main className="p-8 md:p-24 bg-gray-50 min-h-screen">
+    <main className="p-8 md:p-24 bg-muted min-h-screen">
       <div className="text-center mb-4">
-        <Link href="/" className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+        <Link href="/" className="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-muted transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -76,21 +76,21 @@ export default function Login() {
         </Link>
       </div>
       
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-center mb-8 text-gray-900">
+      <div className="max-w-md mx-auto bg-background rounded-lg shadow-md p-8 border border-border">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-center mb-8 text-foreground">
           Sign-in to {config.appName}
         </h1>
 
         <div className="space-y-6">
           <button
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center px-4 py-3 border border-border rounded-md shadow-sm text-sm font-medium text-foreground bg-background hover:bg-muted transition-colors disabled:opacity-50"
             onClick={(e) =>
               handleSignup(e, { type: "oauth", provider: "google" })
             }
             disabled={isLoading}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mr-2"></div>
+              <div className="w-5 h-5 border-2 border-muted border-t-muted-foreground rounded-full animate-spin mr-2"></div>
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -120,10 +120,10 @@ export default function Login() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">OR</span>
+              <span className="px-2 bg-background text-muted-foreground">OR</span>
             </div>
           </div>
 
@@ -137,12 +137,12 @@ export default function Login() {
               value={email}
               autoComplete="email"
               placeholder="tom@cruise.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-md shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               onChange={(e) => setEmail(e.target.value)}
             />
 
             <button
-              className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+              className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
               disabled={isLoading || isDisabled}
               type="submit"
             >

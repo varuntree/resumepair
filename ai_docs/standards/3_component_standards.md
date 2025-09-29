@@ -50,7 +50,7 @@ interface EditorExtension {
 ```typescript
 // 1. Imports (grouped by source)
 import { useState, useMemo } from 'react'        // React
-import { cn } from '@/lib/utils'                 // Utilities
+import { cn } from '@/libs/utils'                // Utilities
 import { Button } from '@/components/ui'         // Internal components
 import type { ComponentProps } from './types'    // Types
 

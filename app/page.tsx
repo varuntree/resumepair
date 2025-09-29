@@ -26,7 +26,7 @@ export default function Page() {
 
           <Button asChild size="lg">
             <a
-              href="https://shipfa.st/docs"
+              href="https://resumepair.com/docs"
               target="_blank"
               className="inline-flex items-center gap-2"
             >

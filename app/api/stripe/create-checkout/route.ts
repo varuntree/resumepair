@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: stripeSessionURL });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: e?.message }, { status: 500 });
+    const errorMessage = e instanceof Error ? e.message : "An unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

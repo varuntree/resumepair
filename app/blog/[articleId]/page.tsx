@@ -13,6 +13,14 @@ export async function generateMetadata({
 }) {
   const article = articles.find((article) => article.slug === params.articleId);
 
+  if (!article) {
+    return getSEOTags({
+      title: "Article Not Found",
+      description: "The requested article could not be found",
+      canonicalUrlRelative: "/blog",
+    });
+  }
+
   return getSEOTags({
     title: article.title,
     description: article.description,
@@ -42,6 +50,18 @@ export default async function Article({
   params: { articleId: string };
 }) {
   const article = articles.find((article) => article.slug === params.articleId);
+
+  if (!article) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold">Article not found</h1>
+        <Link href="/blog" className="text-primary hover:underline">
+          Back to blog
+        </Link>
+      </div>
+    );
+  }
+
   const articlesRelated = articles
     .filter(
       (a) =>

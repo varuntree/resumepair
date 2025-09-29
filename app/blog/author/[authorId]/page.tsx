@@ -11,6 +11,14 @@ export async function generateMetadata({
 }) {
   const author = authors.find((author) => author.slug === params.authorId);
 
+  if (!author) {
+    return getSEOTags({
+      title: "Author Not Found",
+      description: "The requested author could not be found",
+      canonicalUrlRelative: "/blog",
+    });
+  }
+
   return getSEOTags({
     title: `${author.name}, Author at ${config.appName}'s Blog`,
     description: `${author.name}, Author at ${config.appName}'s Blog`,
@@ -24,6 +32,15 @@ export default async function Author({
   params: { authorId: string };
 }) {
   const author = authors.find((author) => author.slug === params.authorId);
+
+  if (!author) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold">Author not found</h1>
+      </div>
+    );
+  }
+
   const articlesByAuthor = articles
     .filter((article) => article.author.slug === author.slug)
     .sort(
@@ -57,7 +74,7 @@ export default async function Author({
             className="rounded-box w-[12rem] md:w-[16rem] "
           />
 
-          {author.socials?.length > 0 && (
+          {author.socials && author.socials.length > 0 && (
             <div className="flex flex-col md:flex-row gap-4">
               {author.socials.map((social) => (
                 <a

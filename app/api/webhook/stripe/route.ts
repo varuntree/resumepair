@@ -5,36 +5,63 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-08-16",
-  typescript: true,
-});
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+function getStripeClient() {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not set");
+  }
+
+  return new Stripe(stripeSecretKey, {
+    apiVersion: "2023-08-16",
+    typescript: true,
+  });
+}
+
+function getWebhookSecret() {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error("STRIPE_WEBHOOK_SECRET is not set");
+  }
+  return webhookSecret;
+}
 
 // This is where we receive Stripe webhook events
 // It used to update the user data, send emails, etc...
 // By default, it'll store the user in the database
-// See more: https://shipfa.st/docs/features/payments
+// See more: https://resumepair.com/docs/features/payments
 export async function POST(req: NextRequest) {
   const body = await req.text();
 
   const signature = headers().get("stripe-signature");
 
+  if (!signature) {
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
+  }
+
   let eventType;
   let event;
 
   // Create a private supabase client using the secret service_role API key
-  const supabase = new SupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("Missing Supabase environment variables");
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+  }
+
+  const supabase = new SupabaseClient(supabaseUrl, supabaseServiceKey);
+
+  const stripe = getStripeClient();
+  const webhookSecret = getWebhookSecret();
 
   // verify Stripe event is legit
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
-    console.error(`Webhook signature verification failed. ${err.message}`);
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    const errorMessage = err instanceof Error ? err.message : "Webhook signature verification failed";
+    console.error(`Webhook signature verification failed. ${errorMessage}`);
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 
   eventType = event.type;
@@ -50,7 +77,7 @@ export async function POST(req: NextRequest) {
         const session = await findCheckoutSession(stripeObject.id);
 
         const customerId = session?.customer;
-        const priceId = session?.line_items?.data[0]?.price.id;
+        const priceId = session?.line_items?.data[0]?.price?.id;
         const userId = stripeObject.client_reference_id;
         const plan = configFile.stripe.plans.find((p) => p.priceId === priceId);
 
@@ -72,11 +99,13 @@ export async function POST(req: NextRequest) {
             user = profile;
           } else {
             // create a new user using supabase auth admin
-            const { data } = await supabase.auth.admin.createUser({
-              email: customer.email,
-            });
+            if (customer.email) {
+              const { data } = await supabase.auth.admin.createUser({
+                email: customer.email,
+              });
 
-            user = data?.user;
+              user = data?.user;
+            }
           }
         } else {
           // find user by ID
@@ -142,7 +171,7 @@ export async function POST(req: NextRequest) {
         // ✅ Grant access to the product
         const stripeObject: Stripe.Invoice = event.data
           .object as Stripe.Invoice;
-        const priceId = stripeObject.lines.data[0].price.id;
+        const priceId = stripeObject.lines.data[0]?.price?.id;
         const customerId = stripeObject.customer;
 
         // Find profile where customer_id equals the customerId (in table called 'profiles')
@@ -177,7 +206,8 @@ export async function POST(req: NextRequest) {
       // Unhandled event type
     }
   } catch (e) {
-    console.error("stripe error: ", e.message);
+    const errorMessage = e instanceof Error ? e.message : "Unknown error";
+    console.error("stripe error: ", errorMessage);
   }
 
   return NextResponse.json({});
