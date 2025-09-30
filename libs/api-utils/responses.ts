@@ -4,11 +4,19 @@ import { NextResponse } from "next/server";
  * Standard API response envelope
  * All API routes return this structure for consistency
  */
+export type ApiErrorObject = {
+  code: string;
+  message: string;
+  details?: unknown;
+};
+
 export type ApiResponse<T = unknown> = {
   success: boolean;
   data?: T;
-  error?: string;
+  // message: canonical user-facing text (clients should prefer this)
   message?: string;
+  // error: structured error details; keep backward compat with string
+  error?: string | ApiErrorObject;
 };
 
 /**
@@ -38,15 +46,36 @@ export function apiSuccess<T>(
 export function apiError(
   status: number,
   message: string,
-  error?: string
+  error?: string | Record<string, unknown>,
+  code?: string
 ): NextResponse<ApiResponse<never>> {
+  // Map common HTTP statuses to default codes if none provided
+  const defaultCode =
+    code ||
+    (status === 400
+      ? "VALIDATION_ERROR"
+      : status === 401
+      ? "UNAUTHORIZED"
+      : status === 403
+      ? "FORBIDDEN"
+      : status === 404
+      ? "NOT_FOUND"
+      : status === 429
+      ? "RATE_LIMITED"
+      : "INTERNAL_ERROR");
+
+  const details =
+    typeof error === "string" ? (error ? { info: error } : undefined) : error;
+
   return NextResponse.json(
     {
       success: false,
-      // message: Canonical user-facing text (clients should prefer this)
       message,
-      // error: Optional technical detail (useful for logging/debugging)
-      error,
+      error: {
+        code: defaultCode,
+        message,
+        ...(details ? { details } : {}),
+      } as ApiErrorObject,
     },
     { status }
   );

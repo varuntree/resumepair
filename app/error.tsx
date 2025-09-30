@@ -133,7 +133,11 @@ export default function Error({
           Something went wrong 🥲
         </p>
 
-        <p className="text-red-500">{error?.message}</p>
+        {process.env.NODE_ENV === 'development' ? (
+          <p className="text-red-500">{error?.message}</p>
+        ) : (
+          <p className="text-red-500">An unexpected error occurred. Please try again.</p>
+        )}
 
         <div className="flex flex-wrap gap-4 justify-center">
           <button

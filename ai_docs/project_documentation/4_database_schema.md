@@ -22,7 +22,7 @@
 | **documents**          | Canonical store for résumés & cover letters (JSONB). Soft delete via `deleted_at`.            |
 | **document_versions**  | Immutable history: snapshot of JSONB per version (for audit & restore).                       |
 | **scores** *(phase 2)* | Optional score history; latest score stays in `documents.score`.                              |
-| **storage.objects**    | Supabase Storage table; RLS policies enforce per‑user folders for `media` and `avatars`.      |
+| **storage.objects**    | Supabase Storage table; RLS policies enforce per‑user folders for `media`.                    |
 
 > All user‑owned rows are protected with **RLS**. Only the owner (`auth.uid()`) can read/write their rows. Supabase RLS requires **SELECT** policies even when you intend to only update, otherwise updates won’t work. ([Supabase][1])
 
@@ -68,7 +68,6 @@ create extension if not exists "pg_trgm";
 create table if not exists public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   full_name   text,
-  avatar_url  text,
   locale      text not null default 'en-US',
   date_format text not null default 'US',      -- US | ISO | EU
   page_size   text not null default 'Letter',  -- A4 | Letter
@@ -222,7 +221,6 @@ create policy "doc_versions_insert_own"
 ```sql
 -- Buckets (private by default)
 select storage.create_bucket('media', public := false);
-select storage.create_bucket('avatars', public := false);
 
 -- RLS: path-based ownership: all object names must start with '<user_id>/...'
 -- storage.objects has: bucket_id, name, owner, etc.
@@ -231,7 +229,7 @@ select storage.create_bucket('avatars', public := false);
 create policy "storage_read_own"
   on storage.objects for select
   using (
-    bucket_id in ('media','avatars')
+    bucket_id in ('media')
     and split_part(name, '/', 1) = auth.uid()::text
   );
 
@@ -239,7 +237,7 @@ create policy "storage_read_own"
 create policy "storage_insert_own"
   on storage.objects for insert
   with check (
-    bucket_id in ('media','avatars')
+    bucket_id in ('media')
     and split_part(name, '/', 1) = auth.uid()::text
   );
 
@@ -247,11 +245,11 @@ create policy "storage_insert_own"
 create policy "storage_update_own"
   on storage.objects for update
   using (
-    bucket_id in ('media','avatars')
+    bucket_id in ('media')
     and split_part(name, '/', 1) = auth.uid()::text
   )
   with check (
-    bucket_id in ('media','avatars')
+    bucket_id in ('media')
     and split_part(name, '/', 1) = auth.uid()::text
   );
 
@@ -259,7 +257,7 @@ create policy "storage_update_own"
 create policy "storage_delete_own"
   on storage.objects for delete
   using (
-    bucket_id in ('media','avatars')
+    bucket_id in ('media')
     and split_part(name, '/', 1) = auth.uid()::text
   );
 ```

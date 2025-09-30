@@ -1,17 +1,45 @@
-export const dynamic = "force-dynamic";
+import { redirect } from 'next/navigation'
+import { createClient } from '@/libs/supabase/server'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
-// This is a private page: It's protected by the layout.js component which ensures the user is authenticated.
-// It's a server compoment which means you can fetch data (like the user profile) before the page is rendered.
-// See https://resumepair.com/docs/tutorials/private-page
-export default async function Dashboard() {
+export default async function DashboardPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/signin')
+  }
+
+  // Extract first name from email or use 'there'
+  const firstName = user.email?.split('@')[0] || 'there'
+
   return (
-    <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-xl mx-auto space-y-8">
-        <div className="bg-background p-6 rounded-lg shadow-md border border-border">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">Welcome to Dashboard</h1>
-          <p className="text-muted-foreground">You are successfully logged in. This is your private dashboard area.</p>
-        </div>
-      </section>
-    </main>
-  );
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-4xl font-bold text-app-foreground">
+          Welcome back, {firstName}
+        </h1>
+        <p className="text-app-foreground/70 mt-2">
+          Ready to build your next resume?
+        </p>
+      </div>
+
+      {/* Empty State Card */}
+      <Card className="p-8 text-center">
+        <CardHeader>
+          <CardTitle>No resumes yet</CardTitle>
+          <CardDescription>
+            Create your first resume to get started
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <Button disabled className="bg-lime hover:bg-lime-hover text-navy-dark">
+            Create Resume (Coming in Phase 2)
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }

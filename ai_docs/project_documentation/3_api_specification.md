@@ -423,30 +423,6 @@ paths:
         "400": { $ref: '#/components/responses/BadRequest' }
         "401": { $ref: '#/components/responses/Unauthorized' }
 
-  /storage/upload:
-    post:
-      tags: [Storage]
-      summary: Upload a file to Supabase Storage (validated & proxied)
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [ file, bucket, path ]
-              properties:
-                file: { type: string, format: binary }
-                bucket: { type: string, enum: [ "media", "avatars" ] }
-                path: { type: string, description: "Key path within the bucket" }
-      responses:
-        "200":
-          description: Uploaded
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ApiResponseUploadResult' }
-        "400": { $ref: '#/components/responses/BadRequest' }
-        "401": { $ref: '#/components/responses/Unauthorized' }
 
   /templates/resume:
     get:
@@ -977,7 +953,7 @@ components:
 * **Edge vs Node**:
 
   * Edge: `/ai/*`, `/me` (fast auth/profile), optional `/score` (when rubric only).
-  * Node: `/import/pdf`, `/export/*`, `/storage/upload`, CRUD routes (DB access patterns are fine on Node).
+  * Node: `/import/pdf`, `/export/*`, CRUD routes (DB access patterns are fine on Node).
 * **Streaming**: For `?stream=true` AI endpoints, send SSE frames with JSON patches (or chunked partials) and a final `{type:"done"}` event.
 * **Rate limits**: Simple in-memory token bucket per user for now; return `429` with `Retry-After`.
 * **Errors**: Always wrap with `ApiResponse` envelope (`success:false`, `error:string`), and set precise HTTP status.

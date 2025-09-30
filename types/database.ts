@@ -10,7 +10,6 @@
 export type Profile = {
   id: string;
   full_name: string | null;
-  avatar_url: string | null;
   email: string | null;
   customer_id: string | null;
   locale: string;

@@ -84,7 +84,6 @@ app/
     resumes/           # CRUD for resumes
     cover-letters/     # CRUD for cover letters
     score/             # Resume/cover letter scoring
-    storage/upload/    # File uploads (Node)
 libs/
   api-utils/           # API wrappers (withApiHandler, withAuth, apiSuccess/apiError)
   repositories/        # Pure functions for DB access (server-only, DI with Supabase client)

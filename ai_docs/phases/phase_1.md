@@ -93,7 +93,7 @@ describe('Component: Header', () => {
   test('shows user menu when authenticated')
   test('shows sign in button when unauthenticated')
   test('handles mobile menu toggle')
-  test('displays user avatar correctly')
+  // avatar display removed from scope
 })
 
 describe('Component: Sidebar', () => {
@@ -123,7 +123,7 @@ describe('Repository: profileRepository', () => {
   test('creates user profile')
   test('updates user profile')
   test('deletes user data')
-  test('handles profile photo upload')
+  // profile photo upload removed from scope
 })
 
 describe('Utils: cn', () => {
@@ -235,8 +235,7 @@ Tables/Collections:
   - id: uuid (primary key, references auth.users)
   - email: text
   - full_name: text
-  - avatar_url: text
-  - phone: text
+  // avatar_url removed from scope
   - locale: text
   - date_format: text
   - created_at: timestamp
@@ -311,7 +310,7 @@ Settings:
 │   ├── SignInButton.tsx - Google sign in button
 │   ├── SignOutButton.tsx - Sign out button
 │   ├── AuthGuard.tsx - Protected route wrapper
-│   └── UserAvatar.tsx - User profile avatar
+│   └── (User avatar removed from scope)
 ├── layout/
 │   ├── Header.tsx - Main header with nav
 │   ├── Sidebar.tsx - Side navigation
@@ -340,7 +339,7 @@ Settings:
 ├── label.tsx - Form labels
 ├── skeleton.tsx - Loading skeletons
 ├── toast.tsx - Toast notifications
-└── avatar.tsx - User avatars
+└── avatar.tsx - Generic avatar UI component
 ```
 
 ### State Management

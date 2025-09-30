@@ -34,7 +34,7 @@ app/
       resumes/...
       cover-letters/...
       score/...
-      storage/...
+      templates/...
       templates/...
 libs/
   api-utils/            # handlers, responses, errors, middleware (auth)
@@ -118,7 +118,7 @@ AI_SDK_PROVIDER=google              # our internal switch, read by libs/ai/provi
 1. **Create project** in Supabase dashboard.
 2. **Auth → Providers → Google**: enable Google OAuth (use **Site URL** pointing to your app: local = `http://localhost:3000`, prod = your domain).
 3. **Copy** project URL & anon key → put in `.env.local`.
-4. **Storage**: create two **private** buckets: `media`, `avatars`.
+4. **Storage**: create a **private** bucket: `media` (avatars out of scope).
 5. **Run migrations** (file‑only step now; apply only after approval).
 6. **RLS**: Verify policies exist (from migration SQL above).
 7. **Test sign‑in** (Google) from local dev.
@@ -257,7 +257,7 @@ export async function extractResume(text: string) {
 ## 4.12 Production Checklist (minimal)
 
 * Set environment variables in hosting (Supabase URL/keys, Google AI key).
-* Ensure buckets `media` and `avatars` exist and are **private**.
+* Ensure bucket `media` exists and is **private**.
 * Confirm RLS policies exist and are enabled.
 * Confirm AI endpoints run on **Edge** and exports on **Node**.
 * Verify PDF export within SLA (< ~2.5s for 1–2 pages).

@@ -205,38 +205,9 @@ enum ApiErrorCode {
 
 ---
 
-## 6. File Upload Contract
+## 6. (Reserved)
 
-### Multipart Upload
-
-```typescript
-// POST /api/v1/storage/upload
-interface UploadRequest {
-  file: File
-  type: 'avatar' | 'resume' | 'signature'
-}
-
-interface UploadResponse {
-  url: string          // Public URL
-  path: string         // Storage path
-  size: number         // File size
-  mimeType: string     // Content type
-}
-
-// Implementation
-export const POST = withAuth(async (req, { user }) => {
-  const formData = await req.formData()
-  const file = formData.get('file') as File
-
-  // Validate
-  if (!file) return apiError('NO_FILE', 'No file provided')
-  if (file.size > MAX_FILE_SIZE) return apiError('FILE_TOO_LARGE')
-
-  // Upload
-  const result = await storageRepository.upload(file, user.id)
-  return apiSuccess(result)
-})
-```
+File uploads are out of scope for Phase 1. Add contracts when a concrete upload feature is introduced.
 
 ---
 

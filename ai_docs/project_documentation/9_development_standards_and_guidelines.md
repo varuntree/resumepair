@@ -173,7 +173,7 @@ export function applyDocTokens(node: HTMLElement, tokens: DocTokens) {
 
 ## 11. Storage Rules
 
-* Private buckets `media`, `avatars`.
+* Private bucket `media`. (avatars removed from scope)
 * Object keys must start with `userId/` (enforced by RLS).
 * Upload validation on type/size **before** upload.
 * Use signed URLs with short TTL for display; do not persist public URLs.

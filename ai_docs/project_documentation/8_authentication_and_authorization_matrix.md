@@ -63,7 +63,7 @@ export const withAuth = (handler) => async (req: NextRequest) => {
 | `documents`           | Delete (hard delete – optional) | user | `owner_id = auth.uid()`                                           |
 | `document_versions`   | Read / Insert                   | user | Exists doc with `d.owner_id = auth.uid()`                         |
 | `scores` *(optional)* | Read / Insert                   | user | Exists doc with `d.owner_id = auth.uid()`                         |
-| `storage.objects`     | Read / Insert / Update / Delete | user | bucket in (`media`,`avatars`) AND `name` begins with `auth.uid()` |
+| `storage.objects`     | Read / Insert / Update / Delete | user | bucket = `media` AND `name` begins with `auth.uid()` |
 
 ### 3.2 API Endpoints
 
@@ -78,7 +78,7 @@ export const withAuth = (handler) => async (req: NextRequest) => {
 | `POST /ai/draft/*`                      | ✔     | Uses Edge runtime; user required (rate‑limited)           |                           |
 | `POST /score/*`                         | ✔     | Owner only; optional LLM rubric                           |                           |
 | `POST /export/pdf                       | docx` | ✔                                                         | Owner only; server render |
-| `POST /storage/upload`                  | ✔     | Path must start with `userId/...`                         |                           |
+| (removed)                                |       |                                                           |                           |
 | `GET /templates/*`                      | ✔     | Non‑sensitive; still gated behind sign‑in for consistency |                           |
 
 **Public endpoints**: none with user data in v1.

@@ -187,7 +187,7 @@
 
 ### 4.9 Storage (Media)
 
-* **FR‑STOR‑1**: Image upload (avatar/signature) → client validates type/size; server writes to `media`/`avatars` under `userId/...`.
+* **FR‑STOR‑1**: (avatars removed from scope). Future image uploads, if any, write to `media` under `userId/...`.
 * **FR‑STOR‑2**: Client cropper; compression for large images.
 * **FR‑STOR‑3**: Signed URL with short TTL; never store public links by default.
 
