@@ -256,6 +256,47 @@ GET /api/v1/resumes?cursor=xyz&limit=20
 GET /api/v1/resumes?page=2&limit=20
 ```
 
+### Stable Cursor Pagination (Composite Cursor)
+
+When multiple rows share the same sort value (e.g., many records with identical `updated_at` seconds or the same `title`), naive cursors that only compare the primary sort column will skip or duplicate rows. To guarantee correctness, we standardize a composite cursor pattern:
+
+- Always sort by `(sortField, id)` – primary sort on `sortField` (asc/desc), secondary on `id` (asc).
+- Cursor must carry a deterministic tie-breaker: `{ v: sortValue, id }`.
+- Encode the cursor as an opaque string (e.g., base64(JSON.stringify({ v, id }))). Clients treat it as opaque.
+- Server pagination logic:
+  - Decode cursor → `{ v, id }`.
+  - Page N+1 = rows where:
+    - First, `sortField == v AND id > cursor.id` (tie-bucket remainder), ordered by `(sortField asc/desc, id asc)`
+    - If still under `limit`, append rows with `sortField > v` (asc) or `< v` (desc), ordered identically
+  - Truncate to `limit`, compute the next cursor from the last row `{ v: last[sortField], id: last.id }` and encode.
+- Legacy cursors (single value) MAY be accepted for backward compatibility, but all new cursors MUST be composite.
+
+Example: `updated_at DESC`
+```sql
+-- order by updated_at desc, id asc
+-- next page when cursor = { v: '2025-09-30T10:00:00Z', id: 'uuid-123' }
+-- 1) same-bucket remainder: updated_at = v AND id > cursor.id
+-- 2) then updated_at < v
+```
+
+Example: `title ASC`
+```sql
+-- order by title asc, id asc
+-- next page when cursor = { v: 'Untitled Resume', id: 'uuid-123' }
+-- 1) same-bucket remainder: title = v AND id > cursor.id
+-- 2) then title > v
+```
+
+Client requirements:
+- Treat `cursor` as opaque. Do not parse; simply persist and pass it back.
+- If `nextCursor` is null, you’re at the end.
+
+Server checklist for composite cursors:
+- [ ] Secondary stable sort on `id` is present for every list endpoint
+- [ ] Cursor encodes both `{ v, id }`
+- [ ] Filter includes the tie-bucket (`= v AND id > cursor.id`) and the strict comparison (`> v` or `< v`) based on direction
+- [ ] `nextCursor` derived from the last row `(sortField, id)`
+
 ---
 
 ## 9. Rate Limiting
@@ -381,6 +422,7 @@ Before implementing an API endpoint:
 - [ ] Respects rate limits
 - [ ] Returns proper HTTP status codes
 - [ ] Includes pagination for list endpoints
+- [ ] Cursor pagination uses composite cursor `(sortField, id)` and stable secondary sort on `id`
 - [ ] Documents expected request/response
 
 ---

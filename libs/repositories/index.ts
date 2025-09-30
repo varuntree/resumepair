@@ -18,3 +18,25 @@ export {
   type UserPreferences,
   type PreferencesUpdate
 } from './preferences'
+
+// Resume document operations
+export {
+  getResumes,
+  getResume,
+  createResume,
+  updateResume,
+  deleteResume,
+  restoreResume,
+  duplicateResume,
+  getDeletedResumes,
+  bulkDeleteResumes,
+  bulkArchiveResumes,
+} from './documents'
+
+// Resume version operations
+export {
+  getVersions,
+  getVersion,
+  restoreVersion,
+  pruneVersions,
+} from './versions'

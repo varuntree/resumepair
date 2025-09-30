@@ -1,45 +1,235 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/libs/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
+
+import * as React from 'react'
+import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { DocumentGrid } from '@/components/documents/DocumentGrid'
+import { DocumentSearch } from '@/components/documents/DocumentSearch'
+import { DocumentFilters } from '@/components/documents/DocumentFilters'
+import { DocumentSort } from '@/components/documents/DocumentSort'
+import { EmptyDocuments } from '@/components/documents/EmptyDocuments'
+import { CreateDocumentDialog } from '@/components/documents/CreateDocumentDialog'
+import { useDocumentListStore } from '@/stores/documentListStore'
 
-export default async function DashboardPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function DashboardPage(): React.ReactElement {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
 
-  if (!user) {
-    redirect('/signin')
+  const {
+    documents,
+    isLoading,
+    error,
+    filters,
+    sorting,
+    fetchDocuments,
+    searchDocuments,
+    setFilter,
+    setSorting,
+  } = useDocumentListStore()
+
+  // Load documents on mount
+  React.useEffect(() => {
+    fetchDocuments()
+    // Zustand functions are stable, only run once on mount
+    // Filters/sorting changes trigger fetchDocuments internally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Show error toast
+  React.useEffect(() => {
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message,
+      })
+    }
+  }, [error, toast])
+
+  const handleSearch = (query: string): void => {
+    searchDocuments(query)
   }
 
-  // Extract first name from email or use 'there'
-  const firstName = user.email?.split('@')[0] || 'there'
+  const handleStatusChange = (status: 'all' | 'draft' | 'active' | 'archived'): void => {
+    setFilter('status', status)
+  }
+
+  const handleSortChange = (field: 'updated_at' | 'created_at' | 'title'): void => {
+    setSorting(field, sorting.order)
+  }
+
+  const handleOrderToggle = (): void => {
+    setSorting(sorting.field, sorting.order === 'asc' ? 'desc' : 'asc')
+  }
+
+  const handleEdit = (id: string): void => {
+    router.push(`/editor/${id}`)
+  }
+
+  const handleDuplicate = async (id: string): Promise<void> => {
+    try {
+      const response = await fetch(`/api/v1/resumes/${id}/duplicate`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate document')
+      }
+
+      const result = await response.json()
+
+      toast({
+        title: 'Success',
+        description: 'Document duplicated successfully',
+      })
+
+      // Refresh list
+      await fetchDocuments()
+
+      // Navigate to the new document
+      if (result.data?.id) {
+        router.push(`/editor/${result.data.id}`)
+      }
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to duplicate document',
+      })
+    }
+  }
+
+  const handleDelete = async (id: string): Promise<void> => {
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/v1/resumes/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete document')
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Document deleted successfully',
+      })
+
+      // Refresh list
+      await fetchDocuments()
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete document',
+      })
+    }
+  }
+
+  const handleCreate = async (title: string): Promise<void> => {
+    try {
+      const response = await fetch('/api/v1/resumes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create document')
+      }
+
+      const result = await response.json()
+
+      toast({
+        title: 'Success',
+        description: 'Resume created successfully',
+      })
+
+      // Navigate to editor
+      if (result.data?.id) {
+        router.push(`/editor/${result.data.id}`)
+      }
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create resume',
+      })
+      throw err
+    }
+  }
+
+  const showEmpty = !isLoading && documents.length === 0 && !filters.search
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-app-foreground">
-          Welcome back, {firstName}
-        </h1>
-        <p className="text-app-foreground/70 mt-2">
-          Ready to build your next resume?
-        </p>
-      </div>
-
-      {/* Empty State Card */}
-      <Card className="p-8 text-center">
-        <CardHeader>
-          <CardTitle>No resumes yet</CardTitle>
-          <CardDescription>
-            Create your first resume to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <Button disabled className="bg-lime hover:bg-lime-hover text-navy-dark">
-            Create Resume (Coming in Phase 2)
+    <div className="min-h-screen bg-background">
+      <div className="container-ramp py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground">My Resumes</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage and edit your resume documents
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
+            <Plus className="h-5 w-5" />
+            New Resume
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Filters and Search */}
+        {!showEmpty && (
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="flex-1">
+              <DocumentSearch
+                onSearch={handleSearch}
+                defaultValue={filters.search || ''}
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <DocumentFilters
+                status={filters.status || 'all'}
+                onStatusChange={handleStatusChange}
+              />
+              <DocumentSort
+                sort={sorting.field}
+                order={sorting.order}
+                onSortChange={handleSortChange}
+                onOrderChange={handleOrderToggle}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Document Grid */}
+        {showEmpty ? (
+          <EmptyDocuments onCreateNew={() => setCreateDialogOpen(true)} />
+        ) : (
+          <DocumentGrid
+            documents={documents}
+            loading={isLoading}
+            onEdit={handleEdit}
+            onDuplicate={handleDuplicate}
+            onDelete={handleDelete}
+          />
+        )}
+
+        {/* Create Dialog */}
+        <CreateDocumentDialog
+          open={createDialogOpen}
+          onClose={() => setCreateDialogOpen(false)}
+          onCreate={handleCreate}
+        />
+      </div>
     </div>
   )
 }

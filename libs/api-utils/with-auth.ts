@@ -9,7 +9,8 @@ import { ApiResponse, apiError } from "./responses";
  */
 type AuthenticatedHandler<T = unknown> = (
   req: NextRequest,
-  user: User
+  user: User,
+  context?: any
 ) => Promise<NextResponse<ApiResponse<T>>>;
 
 /**
@@ -30,8 +31,8 @@ type AuthenticatedHandler<T = unknown> = (
  */
 export function withAuth<T = unknown>(
   handler: AuthenticatedHandler<T>
-): (req: NextRequest) => Promise<NextResponse<ApiResponse<T>>> {
-  return async (req: NextRequest): Promise<NextResponse<ApiResponse<T>>> => {
+): (req: NextRequest, context?: any) => Promise<NextResponse<ApiResponse<T>>> {
+  return async (req: NextRequest, context?: any): Promise<NextResponse<ApiResponse<T>>> => {
     try {
       const supabase = createClient();
 
@@ -48,7 +49,7 @@ export function withAuth<T = unknown>(
         );
       }
 
-      return await handler(req, user);
+      return await handler(req, user, context);
     } catch (error) {
       console.error("Auth Handler Error:", error);
 
