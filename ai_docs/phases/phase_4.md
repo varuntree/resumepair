@@ -4,13 +4,60 @@
 Integrate AI capabilities using Gemini 2.0 Flash via AI SDK to enable PDF import, intelligent resume generation, content enhancement, job description matching, and smart suggestions with streaming responses and comprehensive error handling.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 95 tests defined
-- [ ] Integration Test Suite: 42 tests defined
-- [ ] E2E Test Suite: 18 tests defined
-- [ ] Performance Benchmarks: AI response <1s first token, PDF parse <2s
-- [ ] Accessibility Audit: AI features keyboard accessible, status announced
-- [ ] Security Validation: API keys secure, input sanitization, rate limiting
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~25-35 minutes)
+- [ ] **PDF Import Playbook** (to be created in `ai_docs/testing/playbooks/phase_4_pdf_import.md`)
+  - PDF upload working (text layer + OCR fallback)
+  - Multi-page support (up to 10 pages)
+  - Progress indicators visible
+  - Error recovery options functional
+- [ ] **AI Parsing Playbook** (to be created in `ai_docs/testing/playbooks/phase_4_ai_parsing.md`)
+  - PDF to ResumeJson conversion accurate
+  - Field mapping with confidence scores
+  - Manual correction interface working
+  - Review & fix UI functional
+- [ ] **AI Drafting Playbook** (to be created in `ai_docs/testing/playbooks/phase_4_drafting.md`)
+  - "Start from scratch" AI generation
+  - Streaming response visible
+  - Job description context used
+  - Generated content quality acceptable
+- [ ] **Content Enhancement Playbook** (to be created in `ai_docs/testing/playbooks/phase_4_enhancement.md`)
+  - Bullet point improvement working
+  - Summary generation functional
+  - Keyword optimization suggestions
+  - Tone adjustments applied
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for AI features
+- [ ] **Mobile screenshots** (375px) for AI interfaces
+- [ ] All AI features meet visual quality standards:
+  - Loading states clear
+  - Streaming indicators visible
+  - Suggestion UI intuitive
+  - Error states helpful
+  - Design tokens used throughout
+
+### Performance Validation
+- [ ] AI response first token within 1 second
+- [ ] PDF parsing completes within 2 seconds
+- [ ] Streaming updates smooth (no blocking)
+- [ ] No performance regressions from Phase 3
+
+### Security Validation
+- [ ] API keys not exposed in client
+- [ ] Input sanitization working
+- [ ] Rate limiting enforced (3 req/s soft, 10 req/10s hard)
+- [ ] No PII logged
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_4/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

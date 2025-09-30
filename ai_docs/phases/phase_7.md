@@ -4,13 +4,60 @@
 Extend the platform to support cover letters with rich text editing, multiple templates, AI generation, resume data linking, job-specific customization, and comprehensive multi-document management capabilities.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 75 tests defined
-- [ ] Integration Test Suite: 35 tests defined
-- [ ] E2E Test Suite: 13 tests defined
-- [ ] Performance Benchmarks: Cover letter operations match resume performance
-- [ ] Accessibility Audit: Rich text editor accessible, document switcher navigable
-- [ ] Security Validation: Content sanitization, XSS prevention in rich text
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **Cover Letter CRUD Playbook** (to be created in `ai_docs/testing/playbooks/phase_7_cover_letters.md`)
+  - Create, read, update, delete cover letters
+  - Document listing with cover letters
+  - Link to resume functional
+  - Job posting reference working
+- [ ] **Rich Text Editor Playbook** (to be created in `ai_docs/testing/playbooks/phase_7_editor.md`)
+  - Bold, italic, underline formatting
+  - Bullet and numbered lists
+  - Paragraph spacing controls
+  - Undo/redo working
+- [ ] **Cover Letter Templates Playbook** (to be created in `ai_docs/testing/playbooks/phase_7_templates.md`)
+  - Multiple cover letter templates (3+)
+  - Template switching preserves content
+  - Preview matches final output
+  - Export to PDF/DOCX working
+- [ ] **AI Generation Playbook** (to be created in `ai_docs/testing/playbooks/phase_7_ai_generation.md`)
+  - "Generate from resume" working
+  - Job description context used
+  - Tone customization functional
+  - Streaming generation visible
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for cover letter features
+- [ ] **Mobile screenshots** (375px) for cover letter UI
+- [ ] All cover letter features meet visual quality standards:
+  - Rich text toolbar intuitive
+  - Cover letter templates professional
+  - Document switcher clear
+  - Preview layout accurate
+  - Design tokens used throughout
+
+### Performance Validation
+- [ ] Cover letter operations match resume performance
+- [ ] Rich text editing smooth (<100ms keystroke)
+- [ ] Template switching <200ms
+- [ ] No performance regressions from Phase 6
+
+### Security Validation
+- [ ] Rich text content sanitized (XSS prevention)
+- [ ] User isolation enforced (RLS)
+- [ ] No script injection in editor
+- [ ] Content validation working
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_7/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

@@ -408,7 +408,242 @@ const Dialog = ({ isOpen, onClose }) => {
 
 ---
 
-## Component Checklist
+## 10. Visual Quality Standards
+
+**Purpose**: Ensure all UI features meet design quality standards based on the Ramp-inspired design system.
+
+### Design Philosophy: Apple-Inspired Simplicity
+
+1. **Generous whitespace**: "Empty" space is design, not wasted space
+2. **Clear actions**: Primary action always obvious (one lime button per section)
+3. **Subtle details**: Smooth transitions (200ms), visible hover states
+4. **Consistency**: Same patterns everywhere (button styles, card layouts)
+5. **Restraint**: Remove unnecessary before adding new
+
+### Color Usage (Ramp Palette)
+
+**Reference**: `ai_docs/design-system.md` and `app/globals.css`
+
+**Rules**:
+```typescript
+// ✅ CORRECT: Minimal, purposeful color
+<button className="bg-lime text-navy-dark">  // Primary CTA
+<div className="bg-navy-dark text-white">     // Dark section
+<p className="text-gray-500">                // Secondary text
+
+// ❌ WRONG: Multiple competing accents
+<button className="bg-lime">Action 1</button>
+<button className="bg-lime">Action 2</button>  // Too many primary actions
+<div className="bg-blue-500">                 // Not in Ramp palette
+```
+
+**Standards**:
+- **Primary accent (lime)**: Use sparingly for CTAs and focus states only
+- **Navy dark/medium**: Backgrounds, containers, dark mode
+- **Gray scale**: Text hierarchy, borders, subtle elements
+- **White**: Clean backgrounds, cards in light mode
+
+**Examples**:
+- ✅ Single lime CTA button per screen section
+- ❌ Multiple lime elements competing for attention
+- ✅ Navy backgrounds with white text (9.8:1 contrast)
+- ❌ Gray text on navy (insufficient contrast)
+
+---
+
+### Spacing Rules (8px Grid)
+
+**Reference**: Design system spacing tokens (`--space-*`)
+
+**Standards**:
+- **Section padding**: Minimum 64px (`space-16`) mobile, 96px (`space-24`) desktop
+- **Card padding**: 24px (`space-6`) minimum
+- **Element gaps**: 16-24px (`space-4` to `space-6`) between major elements
+- **Form field spacing**: 16px (`space-4`) vertical spacing minimum
+
+**Cramped test**: If elements feel crowded, increase gap by +8px increment
+
+**Examples**:
+```typescript
+// ✅ CORRECT: Generous spacing
+<div className="grid gap-6">          // 24px gaps
+<Card className="p-6">                // 24px padding
+<section className="py-16 md:py-24"> // 64px/96px section padding
+
+// ❌ WRONG: Cramped spacing
+<div className="grid gap-2">          // 8px too tight
+<Card className="p-2">                // 8px too cramped
+<section className="py-4">            // 16px insufficient
+```
+
+---
+
+### Typography Hierarchy
+
+**Reference**: Design system typography scale
+
+**Standards**:
+- **Display headlines**: `text-6xl` (60px), bold, tight leading
+- **Section headings**: `text-4xl` (36px), bold
+- **Card titles**: `text-xl` (20px), semibold
+- **Body text**: `text-base` (16px), normal weight, 1.5 line height
+- **Labels**: `text-sm` (14px), semibold
+
+**Clear hierarchy test**: Can you tell primary/secondary/tertiary importance at a glance?
+
+**Examples**:
+```typescript
+// ✅ CORRECT: Clear hierarchy
+<h1 className="text-4xl font-bold">Page Title</h1>
+<h2 className="text-2xl font-bold">Section</h2>
+<h3 className="text-xl font-semibold">Card Title</h3>
+<p className="text-base">Body text</p>
+
+// ❌ WRONG: No hierarchy
+<h1 className="text-2xl">Page Title</h1>
+<h2 className="text-2xl">Section</h2>  // Same as h1
+<h3 className="text-2xl">Card</h3>     // Same as h1, h2
+```
+
+---
+
+### Component Composition Standards
+
+#### Buttons
+**Rules**:
+- **Primary**: Lime background, navy text, `px-6 py-3` minimum
+- **Secondary**: Gray-100 background, gray-900 text
+- **Ghost**: Transparent, visible hover state
+- **Prominence**: ONE primary button per viewport/section
+
+```typescript
+// ✅ CORRECT
+<Button variant="primary">Create Resume</Button>  // Only one
+<Button variant="secondary">Cancel</Button>
+
+// ❌ WRONG
+<Button variant="primary">Action 1</Button>
+<Button variant="primary">Action 2</Button>  // Multiple primary
+```
+
+#### Cards
+**Rules**:
+- `rounded-lg` (12px radius)
+- `shadow-sm` (subtle elevation)
+- `p-6` (24px padding) minimum
+- **Breathing room**: Never fill entire card with content
+
+```typescript
+// ✅ CORRECT
+<Card className="rounded-lg shadow-sm p-6 space-y-4">
+  <CardTitle>...</CardTitle>
+  <CardContent>...</CardContent>
+</Card>
+
+// ❌ WRONG
+<Card className="rounded-sm p-2">  // Too small, cramped
+```
+
+#### Forms
+**Rules**:
+- Input height: `h-12` (48px minimum for touch targets)
+- Labels above fields, `text-sm`, semibold
+- Error messages below fields, `text-sm`, red
+- **Clear focus states**: `ring-2 ring-lime` on focus
+
+```typescript
+// ✅ CORRECT
+<div className="space-y-2">
+  <Label className="text-sm font-semibold">Email</Label>
+  <Input className="h-12 focus:ring-2 focus:ring-lime" />
+  {error && <p className="text-sm text-destructive">{error}</p>}
+</div>
+
+// ❌ WRONG
+<Input className="h-8" />  // Too small for touch
+```
+
+---
+
+### Visual Quality Checklist (Mandatory)
+
+Before marking any UI feature complete, verify:
+
+**Spacing & Layout**:
+- [ ] Spacing feels generous, not cramped (minimum 16px gaps)
+- [ ] Section padding ≥64px mobile, ≥96px desktop
+- [ ] Card padding ≥24px
+- [ ] All spacing uses design tokens (no hardcoded px)
+
+**Typography**:
+- [ ] Clear visual hierarchy (can identify primary/secondary/tertiary)
+- [ ] Page title largest, body text smallest
+- [ ] Headings use bold or semibold (not medium)
+- [ ] Body text has 1.5 line height minimum
+
+**Color**:
+- [ ] Only ONE primary action (lime button) per screen section
+- [ ] Ramp palette used (navy, lime, grays) - no off-palette colors
+- [ ] Sufficient contrast (WCAG AA: 4.5:1 for body text)
+- [ ] No hardcoded #hex colors visible in code
+
+**Components**:
+- [ ] Buttons have clear primary/secondary distinction
+- [ ] Cards use rounded-lg + shadow-sm
+- [ ] Forms have visible focus states (ring on focus)
+- [ ] Touch targets ≥48px on mobile
+
+**Responsiveness**:
+- [ ] Desktop screenshot (1440px) taken
+- [ ] Mobile screenshot (375px) taken
+- [ ] No horizontal scroll on mobile
+- [ ] Text readable on small screens
+
+**Design System Compliance**:
+- [ ] Only design tokens used (--space-*, --text-*, etc.)
+- [ ] No inline style with hardcoded values
+- [ ] Follows existing design-system.md patterns
+- [ ] Matches Ramp aesthetic (dark navy + lime + generous space)
+
+---
+
+### Visual Verification Process
+
+**When to verify**: After implementing ANY UI feature
+
+**Steps**:
+1. Start dev server (`npm run dev`)
+2. Navigate to page
+3. Take desktop screenshot (1440px)
+4. Take mobile screenshot (375px)
+5. Check against Visual Quality Checklist
+6. Refine if needed
+7. Save screenshots to `ai_docs/progress/phase_N/screenshots/`
+
+**Reference**: See `ai_docs/standards/9_visual_verification_workflow.md` for detailed workflow
+
+---
+
+### Common Visual Issues & Fixes
+
+**Issue: Looks cramped**
+- **Fix**: Increase gaps (gap-4 → gap-6), add more padding (p-4 → p-6)
+
+**Issue**: No clear hierarchy**
+- **Fix**: Increase heading sizes, use bold weights, add more size differentiation
+
+**Issue: Too many primary actions**
+- **Fix**: Change secondary actions to variant="secondary" or variant="ghost"
+
+**Issue: Colors don't match Ramp aesthetic**
+- **Fix**: Replace with navy (bg-navy-dark), lime (bg-lime), or grays (bg-gray-*)
+
+**Issue: Hardcoded values**
+- **Fix**: Replace px values with space-* tokens, #hex with semantic color classes
+
+---
+
+## Component Checklist (Updated)
 
 Before creating a component, ask:
 
@@ -422,6 +657,8 @@ Before creating a component, ask:
 - [ ] Does it handle loading and error states?
 - [ ] Is it responsive across breakpoints?
 - [ ] Would another developer understand it immediately?
+- [ ] **Does it meet visual quality standards?** ← NEW
+- [ ] **Have screenshots been taken and reviewed?** ← NEW
 
 ---
 
@@ -434,5 +671,11 @@ Before creating a component, ask:
 **Priority**: Clarity > Flexibility > Performance > Maintenance
 
 ---
+
+**Related Documentation**:
+- Visual Verification Workflow: `ai_docs/standards/9_visual_verification_workflow.md`
+- Design System: `ai_docs/design-system.md`
+- Testing: `ai_docs/testing/README.md`
+- Code Review Standards: `ai_docs/standards/8_code_review_standards.md`
 
 **Next Document**: API Design Contracts (how frontend and backend communicate)

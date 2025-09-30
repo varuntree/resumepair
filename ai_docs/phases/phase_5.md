@@ -4,13 +4,62 @@
 Build a robust export system that generates high-quality PDF and DOCX documents from resume templates, with support for multiple page sizes, batch operations, ATS optimization, and reliable serverless PDF generation using Puppeteer.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 68 tests defined
-- [ ] Integration Test Suite: 32 tests defined
-- [ ] E2E Test Suite: 12 tests defined
-- [ ] Performance Benchmarks: PDF <2.5s (2 pages), DOCX <1.5s
-- [ ] Accessibility Audit: Download accessible, progress announced
-- [ ] Security Validation: File sanitization, path traversal prevention
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **PDF Export Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_pdf_export.md`)
+  - PDF generation working (Puppeteer + Chrome)
+  - High-quality print output (300 DPI)
+  - Font embedding correct
+  - Template rendering accurate
+  - Metadata embedded correctly
+- [ ] **DOCX Export Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_docx_export.md`)
+  - DOCX generation working (docx library)
+  - Template mapping to Word styles
+  - Formatting preserved
+  - ATS-friendly structure
+  - Editable in Microsoft Word
+- [ ] **Export Options Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_options.md`)
+  - Page sizes supported (Letter, A4)
+  - Margin controls working
+  - Color vs B&W options
+  - Compression settings functional
+- [ ] **Batch Export Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_batch.md`)
+  - Multi-document export working
+  - ZIP generation functional
+  - Progress tracking visible
+  - Error handling for failures
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for export UI
+- [ ] **Mobile screenshots** (375px) for export options
+- [ ] All export features meet visual quality standards:
+  - Export button clearly visible
+  - Progress indicators intuitive
+  - Download confirmation clear
+  - Error states helpful
+  - Design tokens used throughout
+
+### Performance Validation
+- [ ] PDF export completes within 2.5 seconds (2 pages)
+- [ ] DOCX export completes within 1.5 seconds
+- [ ] Batch export handles multiple documents efficiently
+- [ ] No performance regressions from Phase 4
+
+### Quality Validation
+- [ ] PDF output opens correctly in Adobe Reader, Chrome
+- [ ] DOCX output editable in Microsoft Word, Google Docs
+- [ ] ATS parsing test passes (copy-paste test)
+- [ ] Print quality acceptable (300 DPI)
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_5/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

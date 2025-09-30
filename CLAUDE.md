@@ -47,11 +47,37 @@ The entire app revolves around two canonical JSON schemas:
 
 These schemas power the editor, AI interactions, template renderers, and exports. Templates never modify the schema—they only read it.
 
-### Module Structure (Enforced)
+### Module Structure
+
+#### Current Pre-Phase 1 Structure (Exists Now)
 
 ```
 app/
-  api/v1/              # API routes (Edge/Node per spec)
+  api/v1/              # API routes (versioned)
+    stripe/            # Stripe payment routes (checkout, portal)
+config.ts              # App configuration (root)
+libs/
+  api.ts               # API client (axios wrapper)
+  design-tokens.ts     # Design token utilities
+  resend.ts            # Email service (Resend integration)
+  seo.tsx              # SEO utilities and components
+  stripe.ts            # Stripe integration
+  supabase/            # Supabase client setup
+    client.ts          # Browser client
+    server.ts          # Server component/route handler client
+    middleware.ts      # Middleware client with session refresh
+  utils.ts             # Utility functions (cn, etc.)
+types/
+  config.ts            # Type definitions for config
+  index.ts             # Shared type exports
+  next-auth.d.ts       # NextAuth type augmentations
+```
+
+#### Phase 1 Planned Additions (Will Be Added)
+
+```
+app/
+  api/v1/
     ai/draft/          # AI-powered drafting (Edge, SSE)
     export/            # PDF/DOCX generation (Node)
     import/            # PDF import & OCR (Node)
@@ -69,9 +95,10 @@ libs/
   preview/             # HTML paginated preview helpers
   i18n/                # Date/address/phone formatting
   validation/          # Zod validators for inputs
-  utils/               # Misc helpers (SSE, cn utility, etc.)
 migrations/            # SQL migration files (NEVER auto-apply)
 ```
+
+**Note:** Development standards, API design principles, and all architectural rules below apply to both current and planned structure.
 
 ### API Design
 - All API routes MUST use `withApiHandler` (public) or `withAuth` (protected)
@@ -99,10 +126,10 @@ migrations/            # SQL migration files (NEVER auto-apply)
 ### AI Integration
 - Use AI SDK's `generateObject` or `streamObject` with Zod schemas
 - All AI calls from server (Edge/Node); no client-side API keys
-- Prompts are modular and live in `libs/ai/prompts/*`
+- Prompts are modular and live in `libs/ai/prompts/*` (Phase 1)
 - On invalid JSON, retry once with repair prompt; if still invalid, return 422
 - Strict "no fabrication" policy enforced in prompts
-- Streaming: Use SSE helpers from `libs/utils/sse.ts` when `?stream=true`
+- Streaming: Use SSE helpers from `libs/utils/sse.ts` when `?stream=true` (Phase 1)
 
 ### State Management
 - Zustand stores with zundo middleware for undo/redo
@@ -133,8 +160,8 @@ migrations/            # SQL migration files (NEVER auto-apply)
 - Files/folders: kebab-case
 - Components: PascalCase with `ComponentNameProps` interface
 - Hooks: `useXxx`
-- Repositories: `{entity}.ts` (e.g., `documents.ts`)
-- Templates: `libs/templates/{type}/{slug}`
+- Repositories: `{entity}.ts` (e.g., `documents.ts`) — Phase 1
+- Templates: `libs/templates/{type}/{slug}` — Phase 1
 - Use path aliases from tsconfig: `@/libs/...` (no deep relative imports)
 
 ### Performance Budgets
@@ -168,18 +195,18 @@ migrations/            # SQL migration files (NEVER auto-apply)
 ## Adding New Features
 
 ### Add API Endpoint
-1. Define Zod request/response schemas in `libs/validation`
-2. Create route under `app/api/v1/...` with `withAuth` or `withApiHandler`
-3. Use repository functions; never inline SQL
-4. Return `apiSuccess(data)` or `apiError(status, message)`
+1. Define Zod request/response schemas in `libs/validation` (Phase 1)
+2. Create route under `app/api/v1/...` with `withAuth` or `withApiHandler` (Phase 1 wrappers)
+3. Use repository functions; never inline SQL (Phase 1 pattern)
+4. Return `apiSuccess(data)` or `apiError(status, message)` (Phase 1 helpers)
 
-### Add Template
+### Add Template (Phase 1)
 1. Create `libs/templates/{type}/{slug}` as pure React component
 2. Consume only `--doc-*` tokens (not `--app-*`)
 3. Handle pagination with `break-inside: avoid` for print
 4. Register in `libs/templates/index.ts`
 
-### Add Document Field
+### Add Document Field (Phase 1)
 1. Update runtime Zod schema and bump `schemaVersion`
 2. Update editor form and preview rendering
 3. Update exporter mappings (PDF/DOCX)
@@ -213,7 +240,9 @@ The project is organized in phases (see `/phases/` directory):
 - Each phase contains its own implementation plan and milestones
 - Follow phase documentation for context on current development stage
 
-## Common Workflows
+## Common Workflows (Phase 1)
+
+These workflows describe the target Phase 1 implementation. They document the intended architecture for document handling, AI drafting, PDF import, and scoring features.
 
 ### Working with Documents (Resume/Cover Letter)
 1. Load document via repository function with user-scoped Supabase client
@@ -246,9 +275,115 @@ The project is organized in phases (see `/phases/` directory):
    - Format Quality (15 pts)
    - Completeness (10 pts)
 
+## Testing & Visual Verification Standard
+
+**MANDATORY for all UI features**: Visual verification must be performed before marking any UI feature complete.
+
+### Testing Approach
+
+ResumePair uses **Puppeteer MCP-based manual testing** (no Playwright, no Vitest, no automated test suites).
+
+**Why this approach:**
+- Previous testing system (Playwright + Vitest) caused system freezes due to multiple watchers
+- Simplified testing reduces complexity while maintaining reliability
+- Manual playbooks with embedded MCP commands provide proof of functionality
+- Visual verification integrated directly into testing workflow
+
+### Testing Components
+
+1. **Playbooks** (`ai_docs/testing/playbooks/`)
+   - Markdown checklists with embedded Puppeteer MCP commands
+   - One playbook per phase (~20 total across 8 phases)
+   - Combines manual verification + automated checks
+   - Estimated 15-20 minutes per playbook
+
+2. **MCP Patterns** (`ai_docs/testing/mcp_patterns.md`)
+   - Reusable Puppeteer command library
+   - Copy-paste patterns for common scenarios
+   - Navigation, screenshots, element verification, API testing
+
+3. **Visual Verification** (`ai_docs/standards/9_visual_verification_workflow.md`)
+   - 11-step workflow for UI quality assurance
+   - Screenshot → Analyze → Refine → Document
+   - Desktop (1440px) + Mobile (375px) screenshots required
+   - Design system compliance checks
+
+### Visual Verification Workflow (Mandatory)
+
+**For EVERY UI feature, agents must:**
+
+1. **Build feature** with design tokens (no hardcoded values)
+2. **Start dev server** (`npm run dev`)
+3. **Navigate to feature page** using `mcp__puppeteer__puppeteer_navigate`
+4. **Capture screenshots**:
+   ```javascript
+   // Desktop
+   mcp__puppeteer__puppeteer_screenshot({
+     name: "feature_name_desktop",
+     width: 1440,
+     height: 900
+   })
+
+   // Mobile
+   mcp__puppeteer__puppeteer_screenshot({
+     name: "feature_name_mobile",
+     width: 375,
+     height: 667
+   })
+   ```
+5. **Analyze against Visual Quality Checklist**:
+   - [ ] Spacing generous (≥16px gaps, ≥24px card padding)
+   - [ ] Clear typography hierarchy
+   - [ ] One primary action (lime button) per section
+   - [ ] Design tokens used (no hardcoded values)
+   - [ ] Responsive (no horizontal scroll on mobile)
+   - [ ] Ramp palette only (navy, lime, grays)
+6. **Refine if needed** (increase spacing, fix hierarchy, etc.)
+7. **Document results** in `ai_docs/progress/phase_N/visual_review.md`
+8. **Save screenshots** to `ai_docs/progress/phase_N/screenshots/`
+
+### Phase Gate Requirements
+
+**Before proceeding to next phase:**
+- [ ] All playbook tests passed (✅)
+- [ ] Visual verification completed for all UI features
+- [ ] Screenshots saved and documented
+- [ ] No critical issues remaining
+
+**Time estimate**: 20-30 minutes per phase gate
+
+### Key Rules
+
+- **No watch mode** - All testing is on-demand execution only
+- **No test code** - Agents execute playbooks, they don't write tests
+- **Visual proof required** - Screenshots are mandatory for UI features
+- **Design system compliance** - All UI must use `--app-*` and `--doc-*` tokens
+- **One tool only** - Use Puppeteer MCP exclusively (no mixing tools)
+
+### Visual Quality Standards
+
+See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual standards.
+
+**Quick reference:**
+- **Spacing**: 8px grid, generous padding (space-6 for cards)
+- **Colors**: Navy (dark/medium), lime accent, gray scale only
+- **Typography**: Clear hierarchy, Inter font, text-4xl → text-xl → text-base
+- **Primary actions**: One lime button per section (not multiple)
+- **Components**: shadcn/ui only, follow composition patterns
+
+### Reference Documentation
+
+- **Testing README**: `ai_docs/testing/README.md`
+- **MCP Patterns**: `ai_docs/testing/mcp_patterns.md`
+- **Visual Verification Workflow**: `ai_docs/standards/9_visual_verification_workflow.md`
+- **Component Standards**: `ai_docs/standards/3_component_standards.md` (Section 10)
+- **Code Review Standards**: `ai_docs/standards/8_code_review_standards.md` (Section 9)
+- **Playbook Template**: `ai_docs/testing/playbooks/playbook_template.md`
+
 ## Important Notes
 
-- **No CI/CD or automated testing** in v1 (explicitly omitted)
+- **Manual testing with MCP** replaces automated testing (no Playwright/Vitest)
+- **Visual verification mandatory** for all UI features
 - **No analytics** per design decisions (only error/performance logging)
 - Migrations are **file-only** until explicitly approved
 - Templates must be **pure React** and schema-agnostic

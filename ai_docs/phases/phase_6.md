@@ -4,13 +4,60 @@
 Implement a comprehensive scoring system that evaluates resumes across multiple dimensions (ATS readiness, keywords, content, format, completeness), provides actionable improvement suggestions, tracks progress, and helps users optimize their resumes for better job application success.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 82 tests defined
-- [ ] Integration Test Suite: 38 tests defined
-- [ ] E2E Test Suite: 14 tests defined
-- [ ] Performance Benchmarks: Score calculation <200ms, Real-time updates <100ms
-- [ ] Accessibility Audit: Score display readable, suggestions keyboard navigable
-- [ ] Security Validation: No data leaks in suggestions, sanitized JD input
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **Scoring System Playbook** (to be created in `ai_docs/testing/playbooks/phase_6_scoring.md`)
+  - Multi-dimensional scoring functional (ATS, Keywords, Content, Format, Completeness)
+  - Overall score calculation accurate (0-100)
+  - Score confidence level displayed
+  - Industry benchmarking working
+- [ ] **ATS Analysis Playbook** (to be created in `ai_docs/testing/playbooks/phase_6_ats.md`)
+  - Text layer verification working
+  - Font compatibility check functional
+  - Table/column detection accurate
+  - Image/graphic warnings shown
+- [ ] **Keyword Matching Playbook** (to be created in `ai_docs/testing/playbooks/phase_6_keywords.md`)
+  - Job description parsing working
+  - Keyword extraction accurate
+  - Match highlighting functional
+  - Density calculations correct
+- [ ] **Suggestions Playbook** (to be created in `ai_docs/testing/playbooks/phase_6_suggestions.md`)
+  - Actionable suggestions provided
+  - Priority levels clear
+  - One-click improvements working
+  - Progress tracking visible
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for scoring UI
+- [ ] **Mobile screenshots** (375px) for score display
+- [ ] All scoring features meet visual quality standards:
+  - Score visualization clear (charts/gauges)
+  - Suggestions UI intuitive
+  - Keyword highlighting readable
+  - Progress indicators visible
+  - Design tokens used throughout
+
+### Performance Validation
+- [ ] Score calculation completes within 200ms (deterministic)
+- [ ] Real-time updates within 100ms
+- [ ] LLM scoring (optional) completes within 1.2 seconds
+- [ ] No performance regressions from Phase 5
+
+### Accuracy Validation
+- [ ] ATS scoring matches manual review
+- [ ] Keyword extraction ≥90% accurate
+- [ ] Suggestions are actionable and relevant
+- [ ] No false positives in warnings
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_6/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

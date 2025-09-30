@@ -378,20 +378,145 @@ Before approving any code:
 
 ---
 
+## 9. Visual Quality Review
+
+**For UI Features Only**
+
+### When to Apply Visual Review
+
+Apply this section when reviewing PRs that include:
+- New UI components
+- Changes to existing layouts
+- Template modifications
+- Responsive design updates
+- Any user-facing interface changes
+
+### Visual Review Checklist
+
+Before approving any PR with UI changes:
+
+#### Screenshots Required
+- [ ] Desktop screenshot (1440px) provided
+- [ ] Mobile screenshot (375px) provided
+- [ ] Screenshots saved to `ai_docs/progress/phase_N/screenshots/`
+
+#### Visual Quality Standards
+
+**Reference**: See `3_component_standards.md` Section 10 for complete details.
+
+**Quick checks**:
+- [ ] **Spacing generous** - Minimum 16px gaps between major elements
+- [ ] **Clear typography hierarchy** - Page title largest, descending sizes
+- [ ] **One primary action per section** - Single lime button, not multiple CTAs
+- [ ] **Design tokens used** - No hardcoded hex colors or px values
+- [ ] **Responsive layout works** - No horizontal scroll on mobile
+- [ ] **Ramp palette only** - Navy (dark/medium), lime accent, gray scale
+
+#### Visual Verification Process
+
+- [ ] Agent executed visual verification workflow
+- [ ] `visual_review.md` document updated with results
+- [ ] All mandatory checklist items passed
+- [ ] Refinement cycle completed if issues found
+
+**Reference**: `ai_docs/standards/9_visual_verification_workflow.md`
+
+### Visual Quality Review Feedback Levels
+
+- **🔴 MUST FIX Visual Issues**:
+  - Multiple primary actions competing for attention
+  - Hardcoded colors/spacing (not using design tokens)
+  - Broken responsive layout (horizontal scroll)
+  - Missing screenshots
+  - Cramped spacing (< 16px gaps)
+
+- **🟡 CONSIDER Visual Improvements**:
+  - Typography hierarchy could be clearer
+  - Touch targets < 48px on mobile
+  - Minor color palette deviations
+  - Spacing feels generous but not optimal
+
+- **💭 THOUGHT Visual Enhancements**:
+  - Alternative layout approaches
+  - Animation/transition suggestions
+  - Accessibility improvements beyond basics
+
+### Common Visual Issues
+
+**Cramped Spacing**:
+```tsx
+// ❌ BAD: Too tight
+<div className="p-2 space-y-1">
+
+// ✅ GOOD: Generous spacing
+<div className="p-6 space-y-4">
+```
+
+**Multiple Primary Actions**:
+```tsx
+// ❌ BAD: Too many CTAs competing
+<Button variant="primary">Action 1</Button>
+<Button variant="primary">Action 2</Button>
+
+// ✅ GOOD: Clear hierarchy
+<Button variant="primary">Primary Action</Button>
+<Button variant="secondary">Secondary Action</Button>
+```
+
+**Hardcoded Values**:
+```tsx
+// ❌ BAD: Magic numbers and hex codes
+<div style={{ padding: '24px', color: '#CDFF00' }}>
+
+// ✅ GOOD: Design tokens
+<div className="p-6 text-lime">
+```
+
+### Visual Review Decision Tree
+
+```
+Are screenshots provided (desktop + mobile)?
+  No → 🔴 MUST FIX (cannot approve without visual proof)
+  Yes → Continue
+
+Do screenshots show hardcoded values (not design tokens)?
+  Yes → 🔴 MUST FIX (violates design system)
+  No → Continue
+
+Are there multiple primary actions (lime buttons) per section?
+  Yes → 🔴 MUST FIX (violates visual hierarchy)
+  No → Continue
+
+Is spacing generous (≥16px gaps, ≥24px card padding)?
+  No → 🔴 MUST FIX (violates spacing standards)
+  Yes → Continue
+
+Is mobile layout responsive (no horizontal scroll)?
+  No → 🔴 MUST FIX (violates responsive standards)
+  Yes → Continue
+
+Is visual verification workflow documented?
+  No → 🟡 CONSIDER (request documentation)
+  Yes → ✅ APPROVE VISUAL QUALITY
+```
+
+---
+
 **Remember**: The goal isn't perfect code - it's code that's good enough, safe enough, and maintainable enough. Ship it!
 
 ---
 
 **Standards Documentation Complete!**
 
-We now have a comprehensive set of 8 standards documents that cover:
+We now have a comprehensive set of standards documents that cover:
 1. Architecture Principles
 2. Data Flow Patterns
-3. Component Standards
+3. Component Standards (including Visual Quality Standards)
 4. API Design Contracts
 5. Error Handling Strategy
 6. Security Checklist
 7. Performance Guidelines
-8. Code Review Standards
+8. Code Review Standards (including Visual Quality Review)
+9. Visual Verification Workflow
 
 These form the foundation for all development on ResumePair.

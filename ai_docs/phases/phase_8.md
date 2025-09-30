@@ -4,14 +4,82 @@
 Prepare the application for production launch by optimizing performance, implementing monitoring, completing accessibility requirements, ensuring security, setting up deployment infrastructure, and creating a smooth onboarding experience for new users.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: All previous tests still passing
-- [ ] Integration Test Suite: All previous tests still passing
-- [ ] E2E Test Suite: 20 new tests for production scenarios
-- [ ] Performance Benchmarks: Core Web Vitals passing
-- [ ] Accessibility Audit: WCAG AA compliant
-- [ ] Security Validation: Production security checklist complete
-- [ ] Deployment: Successfully deployed to production
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~30-40 minutes)
+- [ ] **Performance Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_performance.md`)
+  - Core Web Vitals passing (LCP, FID, CLS)
+  - Code splitting working
+  - Lazy loading functional
+  - Bundle size within budget
+  - CDN caching working
+- [ ] **Monitoring Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_monitoring.md`)
+  - Error boundaries catching errors
+  - Performance logging functional
+  - User feedback mechanism working
+  - Health check endpoints responding
+- [ ] **Accessibility Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_accessibility.md`)
+  - Keyboard navigation working
+  - Screen reader compatibility verified
+  - ARIA labels present
+  - Focus management correct
+  - Color contrast WCAG AA compliant
+- [ ] **Security Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_security.md`)
+  - RLS policies enforced
+  - Rate limiting active
+  - CORS configured correctly
+  - Content Security Policy set
+  - No secrets exposed
+- [ ] **Onboarding Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_onboarding.md`)
+  - Welcome flow smooth
+  - Tutorial functional
+  - Sample data generation working
+  - First-time user experience intuitive
+- [ ] **Deployment Playbook** (to be created in `ai_docs/testing/playbooks/phase_8_deployment.md`)
+  - Production deployment successful
+  - Environment variables configured
+  - Database migrations applied
+  - Production health checks passing
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for onboarding and polish
+- [ ] **Mobile screenshots** (375px) for production features
+- [ ] All production features meet visual quality standards:
+  - Loading states polished
+  - Error states helpful
+  - Empty states intuitive
+  - Onboarding flow smooth
+  - Design tokens used throughout
+
+### Performance Validation
+- [ ] Lighthouse score ≥90 (Performance, Accessibility, Best Practices, SEO)
+- [ ] Core Web Vitals passing:
+  - LCP <2.5s
+  - FID <100ms
+  - CLS <0.1
+- [ ] All phase performance budgets maintained
+
+### Regression Testing
+- [ ] All Phase 1-7 playbooks re-executed successfully
+- [ ] No critical issues introduced
+- [ ] All previous features still working
+
+### Production Readiness
+- [ ] Successfully deployed to production environment
+- [ ] Domain configured and SSL active
+- [ ] Database backups configured
+- [ ] Monitoring active
+- [ ] Error tracking functional
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_8/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] Production deployment notes documented
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

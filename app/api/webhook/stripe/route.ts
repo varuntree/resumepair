@@ -127,12 +127,7 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", user?.id);
 
-        // Extra: send email with user link, product page, etc...
-        // try {
-        //   await sendEmail(...);
-        // } catch (e) {
-        //   console.error("Email issue:" + e?.message);
-        // }
+        // Extra: send email with user link, product page, etc. (implementation in Phase 1)
 
         break;
       }

@@ -6,9 +6,13 @@ import NextTopLoader from "nextjs-toploader";
 import config from "@/config";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+interface LayoutClientProps {
+  children: ReactNode;
+}
+
 // This component wraps the app with client-side providers and components
 // It includes toast notifications, loading bar, theme provider, and other client features
-const ClientLayout = ({ children }: { children: ReactNode }) => {
+const ClientLayout = ({ children }: LayoutClientProps) => {
   return (
     <ThemeProvider
       attribute="class"

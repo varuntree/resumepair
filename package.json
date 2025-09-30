@@ -1,5 +1,5 @@
 {
-  "name": "ship-fast-code",
+  "name": "resumepair",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,8 @@
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tree": "node scripts/tree.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",

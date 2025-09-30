@@ -1,7 +1,19 @@
+# ARCHIVED - Old Testing Strategy
+
+**Status**: Replaced by simplified Puppeteer MCP + manual playbook approach
+
+**Reason**: Original strategy caused system freeze (multiple watchers), excessive complexity (600+ tests across 8 phases), and high agent overhead (writing test code vs. features)
+
+**New approach**: See `ai_docs/testing/README.md` and `ai_docs/standards/9_visual_verification_workflow.md`
+
+**Date archived**: 2025-01-15
+
+---
+
 # 11) Testing Strategy & Playbook (Agent‑Oriented, Low‑Friction)
 
 **Purpose**
-Give our long‑running AI agent one clear way to test the app end‑to‑end—fast to set up, cheap to run, and hard to misuse. This playbook intentionally **overrides** the earlier “no testing” stance by introducing a **small**, **agent‑friendly** testing layer that you can run locally. There is **no CI/CD** and **no 3rd‑party services** required.
+Give our long‑running AI agent one clear way to test the app end‑to‑end—fast to set up, cheap to run, and hard to misuse. This playbook intentionally **overrides** the earlier "no testing" stance by introducing a **small**, **agent‑friendly** testing layer that you can run locally. There is **no CI/CD** and **no 3rd‑party services** required.
 
 **Design principles**
 
@@ -16,7 +28,7 @@ Give our long‑running AI agent one clear way to test the app end‑to‑end—
 
 ---
 
-## 1. What we test (and what we don’t)
+## 1. What we test (and what we don't)
 
 ### In scope (v1)
 
@@ -37,7 +49,7 @@ Give our long‑running AI agent one clear way to test the app end‑to‑end—
    * Storage upload validates path prefix `userId/...`
 3. **RLS & AuthZ**:
 
-   * User A cannot read/update/delete User B’s document (API returns 404)
+   * User A cannot read/update/delete User B's document (API returns 404)
 4. **Accessibility (a11y)**:
 
    * Key pages pass **axe** checks (dashboard, editor, import review, export dialog)
@@ -49,7 +61,7 @@ Give our long‑running AI agent one clear way to test the app end‑to‑end—
 ### Out of scope (v1)
 
 * Full unit test coverage of every function
-* Visual regression at scale (we do small snapshot checks where they’re stable)
+* Visual regression at scale (we do small snapshot checks where they're stable)
 * Load tests / distributed perf tests
 * CI/CD integration
 
@@ -176,7 +188,7 @@ tests/
 **auth.spec.ts (test‑mode)**
 
 * `POST /api/test-utils/sessions` with `{email}` returns 204 and sets cookies
-* Visiting `/documents` shows empty state → “Create Document” visible
+* Visiting `/documents` shows empty state → "Create Document" visible
 
 **documents.spec.ts**
 
@@ -203,7 +215,7 @@ tests/
 **export.spec.ts**
 
 * Export PDF: returns `application/pdf`; use `pdf-parse` to assert the name & headline text exist and text layer is present
-* Export DOCX: content type correct; unzip and assert `document.xml` contains user’s name string
+* Export DOCX: content type correct; unzip and assert `document.xml` contains user's name string
 
 **mobile.spec.ts**
 
@@ -240,7 +252,7 @@ tests/
 **rls.spec.ts**
 
 * Two sessions (A & B) → A creates doc; B `GET /resumes/{id}` → 404
-* B cannot `PUT/DELETE` A’s doc → 404 or 403 depending on surface
+* B cannot `PUT/DELETE` A's doc → 404 or 403 depending on surface
 
 ---
 
@@ -314,7 +326,7 @@ test('pdf export returns selectable text', async () => {
 ## 9. Flakiness Controls
 
 * Use **deterministic fixtures** (Fake AI).
-* Add **soft assertions** for timing (warn on exceed, don’t fail) to keep runs stable on laptops.
+* Add **soft assertions** for timing (warn on exceed, don't fail) to keep runs stable on laptops.
 * Limit parallelism for OCR/Export tests to `--workers=2`.
 * Disable animations in tests (set `prefers-reduced-motion` and CSS).
 
@@ -345,7 +357,7 @@ test('pdf export returns selectable text', async () => {
 
 ---
 
-## 13. Exit Criteria (v1 “Done”)
+## 13. Exit Criteria (v1 "Done")
 
 * [ ] All E2E happy paths pass with **Fake AI**
 * [ ] Contract suite green (CRUD, export, score, RLS)
@@ -364,4 +376,4 @@ This testing plan gives the agent **one simple path** to reliable checks:
 * **Fake AI** to keep runs fast and deterministic,
 * **Test‑mode auth** to bypass brittle Google flows—while keeping RLS and real app boundaries intact.
 
-It’s minimal, fast, and aligned with our architecture—and it will keep us shipping confidently without burying the project in test complexity.
+It's minimal, fast, and aligned with our architecture—and it will keep us shipping confidently without burying the project in test complexity.

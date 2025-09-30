@@ -1,38 +1,75 @@
-# ShipFast — Typescript
+# ResumePair
 
-Hey maker 👋 it's Marc from [ShipFast](https://shipfa.st/docs). Let's get your startup off the ground, FAST ⚡️
+ResumePair is an AI-assisted resume and cover letter builder designed for speed, simplicity, and ATS compatibility. Built with Next.js 14 (App Router), Supabase, and Google Gemini AI.
 
-<sub>**Watch/Star the repo to be notified when updates are pushed**</sub>
+## Quick Start
 
-## Get Started
+```bash
+# Install dependencies
+npm install
 
-1. Follow the [Get Started Tutorial](https://shipfa.st/docs) to clone the repo and run your local server 💻
+# Set up environment variables
+cp .env.example .env.local
+# Add your Supabase and Google AI credentials
 
-<sub>**Looking for the /pages router version?** Use this [documentation](https://shipfa.st/docs-old) instead</sub>
+# Run development server
+npm run dev
+```
 
-2. Follow the [Ship In 5 Minutes Tutorial](https://shipfa.st/docs/tutorials/ship-in-5-minutes) to learn the foundation and ship your app quickly ⚡️
+Visit `http://localhost:3000` to see the application.
 
-## Links
+## Tech Stack
 
--   [📚 Documentation](https://shipfa.st/docs)
--   [📣 Updates](https://shipfast.beehiiv.com/)
--   [🧑‍💻 Discord](https://shipfa.st/dashboard)
--   [🥇 Leaderboard](https://shipfa.st/leaderboard)
+- **Framework**: Next.js 14 (App Router), React 18, TypeScript
+- **Auth & Data**: Supabase (Auth, Postgres, Storage)
+- **AI**: Google Gemini 2.0 Flash via Vercel AI SDK
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Payments**: Stripe
+- **Exports**: PDF (Puppeteer) + DOCX
+
+## Key Features
+
+- AI-powered resume and cover letter drafting
+- Live preview with multiple professional templates
+- ATS-optimized exports (PDF/DOCX)
+- Resume scoring with actionable suggestions
+- PDF import with OCR support
+- Simple pricing with Google OAuth authentication
+
+## Project Structure
+
+```
+app/                # Next.js App Router pages and API routes
+├── api/v1/        # Versioned API endpoints
+components/         # React components
+libs/              # Core libraries (AI, DB, exporters, templates)
+├── ai/            # AI SDK integration
+├── templates/     # Document templates
+├── repositories/  # Database access layer
+public/            # Static assets
+ai_docs/           # Project documentation and planning
+```
+
+## Development
+
+```bash
+npm run dev         # Start development server
+npm run build       # Build for production
+npm run start       # Start production server
+npm run lint        # Run ESLint
+```
+
+## Documentation
+
+For detailed information about architecture, API design, and development standards, see:
+- `CLAUDE.md` - Development guidelines and architecture
+- `ai_docs/project_documentation/` - Comprehensive project documentation
+- `ai_docs/standards/` - Development standards and patterns
 
 ## Support
 
-Reach out at hello@shipfa.st
+For questions or issues, please open a GitHub issue.
 
-Let's ship it, FAST ⚡️
+---
 
-\_
-
-**📈 Grow your startup with [DataFast](https://datafa.st?ref=shipfast_readme)**
-
--   Analyze your traffic
--   Get insights on your customers
--   Make data-driven decisions
-
-ShipFast members get 30% OFF on all plans! 🎁
-
-![datafast](https://github.com/user-attachments/assets/2a9710f8-9a39-4593-b4bf-9ee933529870)
+Built with a focus on clean architecture, maintainability, and production-ready code.

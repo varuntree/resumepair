@@ -4,13 +4,48 @@
 Build a complete document management system with CRUD operations, basic form-based resume editor, auto-save functionality, version history, and state management using Zustand/zundo for undo/redo capabilities.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 62 tests defined
-- [ ] Integration Test Suite: 28 tests defined
-- [ ] E2E Test Suite: 12 tests defined
-- [ ] Performance Benchmarks: Auto-save <100ms, List load <500ms
-- [ ] Accessibility Audit: Form navigation and screen readers
-- [ ] Security Validation: Data validation and user isolation
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **Document CRUD Playbook** (to be created in `ai_docs/testing/playbooks/phase_2_documents.md`)
+  - Create, read, update, delete operations working
+  - Document listing with search/filter/sort
+  - Soft delete and restore from trash
+  - Duplicate documents working
+- [ ] **Editor Playbook** (to be created in `ai_docs/testing/playbooks/phase_2_editor.md`)
+  - Basic form editor functional
+  - Add/remove/reorder sections
+  - Field validation working
+  - Character counters visible
+- [ ] **Auto-save Playbook** (to be created in `ai_docs/testing/playbooks/phase_2_autosave.md`)
+  - Auto-save triggers after edits
+  - Manual save button works
+  - Version history tracking
+  - Undo/redo functionality
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for document list, editor, version history
+- [ ] **Mobile screenshots** (375px) for responsive layouts
+- [ ] All UI features meet visual quality standards:
+  - Form inputs have clear labels and focus states
+  - Document cards use generous padding
+  - Primary actions clearly identified
+  - Design tokens used throughout
+  - Auto-save indicator visible
+
+### Performance Validation
+- [ ] Auto-save triggers within 2 seconds of last edit
+- [ ] Document list loads in <500ms
+- [ ] No performance regressions from Phase 1
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_2/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

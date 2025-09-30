@@ -212,6 +212,10 @@ type ApiResponse<T> = {
 }
 ```
 
+Guidance:
+- `message` is the canonical user-facing text. Clients should display this when present.
+- `error` is optional technical detail intended for logging/debugging. Do not rely on it for user toasts when `message` exists.
+
 ---
 
 ## 📁 File Storage Pattern

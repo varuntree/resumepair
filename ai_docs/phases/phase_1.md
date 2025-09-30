@@ -4,13 +4,38 @@
 Establish a complete, production-ready foundation with authentication, database connectivity, navigation, routing, and all supporting infrastructure that future phases will build upon.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 45 tests defined
-- [ ] Integration Test Suite: 20 tests defined
-- [ ] E2E Test Suite: 8 tests defined
-- [ ] Performance Benchmarks: All metrics met
-- [ ] Accessibility Audit: WCAG AA compliance for foundation
-- [ ] Security Validation: Auth and data protection verified
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **Authentication Playbook** (`ai_docs/testing/playbooks/phase_1_auth.md`)
+  - Google OAuth flow working
+  - Session management verified
+  - Protected routes redirect correctly
+  - Sign out functionality working
+- [ ] **Navigation Playbook** (`ai_docs/testing/playbooks/phase_1_navigation.md`)
+  - Header navigation functional
+  - Navigation links working
+  - Mobile menu responsive
+  - Breadcrumbs present (if applicable)
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) captured and documented
+- [ ] **Mobile screenshots** (375px) captured and documented
+- [ ] All UI features meet visual quality standards:
+  - Spacing generous (≥16px gaps, ≥24px card padding)
+  - Clear typography hierarchy
+  - One primary action per section
+  - Design tokens used (no hardcoded values)
+  - Responsive layouts work
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_1/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

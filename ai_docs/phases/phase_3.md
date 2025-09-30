@@ -4,13 +4,48 @@
 Implement a comprehensive template system with multiple professional designs, real-time live preview, extensive customization options, and smooth template switching while maintaining data integrity and performance.
 
 ## Phase Validation Gate
-**This phase is complete only when ALL of the following tests pass:**
-- [ ] Unit Test Suite: 78 tests defined
-- [ ] Integration Test Suite: 35 tests defined
-- [ ] E2E Test Suite: 15 tests defined
-- [ ] Performance Benchmarks: Preview update <120ms, Template switch <200ms
-- [ ] Accessibility Audit: Preview readable, controls accessible
-- [ ] Security Validation: Template sandboxing, XSS prevention
+
+**This phase is complete only when ALL of the following are verified:**
+
+### Playbook Execution (~20-30 minutes)
+- [ ] **Template System Playbook** (to be created in `ai_docs/testing/playbooks/phase_3_templates.md`)
+  - All 6+ templates render correctly
+  - Template metadata and thumbnails display
+  - Category organization working
+  - Template versioning functional
+- [ ] **Live Preview Playbook** (to be created in `ai_docs/testing/playbooks/phase_3_preview.md`)
+  - Real-time preview updates on edit
+  - Preview accuracy matches templates
+  - Page breaks handled correctly
+  - Zoom controls working
+- [ ] **Template Switching Playbook** (to be created in `ai_docs/testing/playbooks/phase_3_switching.md`)
+  - Switch between templates smoothly
+  - Data integrity maintained
+  - Customization options persist
+  - No layout breaks after switch
+
+### Visual Verification (~10 minutes)
+- [ ] **Desktop screenshots** (1440px) for all 6 templates
+- [ ] **Mobile screenshots** (375px) for template selector
+- [ ] All templates meet visual quality standards:
+  - Professional design standards
+  - Print-ready formatting
+  - Consistent typography hierarchy
+  - ATS-friendly layouts
+  - Design tokens used in customization UI
+
+### Performance Validation
+- [ ] Preview updates within 120ms of keystroke
+- [ ] Template switch completes within 200ms
+- [ ] No performance regressions from Phase 2
+
+### Documentation
+- [ ] Screenshots saved to `ai_docs/progress/phase_3/screenshots/`
+- [ ] `visual_review.md` completed
+- [ ] `playbook_results.md` completed
+- [ ] All critical issues resolved
+
+**Reference**: See `ai_docs/testing/README.md` for complete testing workflow
 
 ## Comprehensive Scope
 

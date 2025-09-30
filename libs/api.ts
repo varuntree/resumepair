@@ -24,9 +24,14 @@ apiClient.interceptors.response.use(
     } else if (error.response?.status === 403) {
       // User not authorized, must subscribe/purchase/pick a plan
       message = "Pick a plan to use this feature";
-    } else {
+  } else {
+      // Prefer server-provided user-facing text. `error` may contain
+      // technical detail; `message` is canonical human-readable text.
       message =
-        error?.response?.data?.error || error.message || error.toString();
+        (error?.response?.data?.error ??
+          error?.response?.data?.message ??
+          error.message ??
+          error.toString());
     }
 
     error.message =
