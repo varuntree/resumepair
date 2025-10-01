@@ -308,6 +308,12 @@ Create `/ai_docs/progress/phase_[N]/visual_review.md` with:
 
 **Sub-agent selection**: Use general-purpose agent (has Puppeteer MCP access)
 
+**Multiple Sub-Agents for Large UI Phases**:
+When a phase has extensive UI features requiring verification, deploy 2-3 sub-agents to handle different areas. **CRITICAL**: Sub-agents MUST run sequentially, NOT in parallel. Each sub-agent completes its verification before the next begins.
+
+**Authentication Enforcement for Sub-Agents**:
+All sub-agents testing authenticated pages MUST use email/password authentication with test credentials (test@gmail.com / Test@123). DO NOT use Google OAuth. This is mandatory and non-negotiable.
+
 ## Orchestrator Decision Points
 
 ### 1. Research Agent Invocation
@@ -331,6 +337,9 @@ If code-reviewer identifies 🔴 MUST FIX issues:
 1. Send issues back to implementer with specific fixes
 2. Re-run relevant parts of implementation
 3. Re-review only the changed sections
+
+### 4. Token/Context Overload Management
+If a phase risks token or context overload, split it into sub-phases (e.g., Phase 5a, 5b) and deploy sub-agents for each sub-phase.
 
 ## Phase Completion Protocol
 
