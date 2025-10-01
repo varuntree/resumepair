@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="450" viewBox="0 0 360 450">
+  <rect width="360" height="450" fill="#FFFFFF"/>
+  <rect x="30" y="30" width="300" height="24" fill="#0B0F1E" rx="2"/>
+  <rect x="30" y="66" width="180" height="10" fill="#3A3F52" rx="2"/>
+  <rect x="30" y="96" width="80" height="10" fill="#0B0F1E" rx="2"/>
+  <rect x="30" y="114" width="300" height="1" fill="#E1E6EB"/>
+  <rect x="30" y="130" width="300" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="146" width="280" height="8" fill="#E1E6EB" rx="3"/>
+  <text x="30" y="430" font-size="10" fill="#6C757D" font-family="Georgia, 'Source Serif 4', serif">Classic Template</text>
+</svg>

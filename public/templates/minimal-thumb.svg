@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="450" viewBox="0 0 360 450">
+  <rect width="360" height="450" fill="#F5F7FA"/>
+  <rect x="30" y="30" width="300" height="24" fill="#0B0F1E" rx="4"/>
+  <rect x="30" y="66" width="220" height="12" fill="#A3ACB6" rx="3"/>
+  <rect x="30" y="100" width="60" height="12" fill="#0B0F1E" rx="3"/>
+  <rect x="30" y="120" width="300" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="136" width="280" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="152" width="290" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="190" width="80" height="12" fill="#0B0F1E" rx="3"/>
+  <rect x="30" y="210" width="300" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="226" width="270" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="242" width="260" height="8" fill="#E1E6EB" rx="3"/>
+  <text x="30" y="430" font-size="10" fill="#6C757D" font-family="Inter, Arial, sans-serif">Minimal Template</text>
+</svg>

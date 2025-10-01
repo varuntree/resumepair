@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -5,7 +6,7 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 
 export interface DocumentSearchProps {
-  onSearch: (query: string) => void
+  onSearch: (value: string) => void
   defaultValue?: string
 }
 

@@ -88,3 +88,27 @@ This file defines the FIXED decisions for all SaaS applications built using this
 - **2024**: Migrated from DaisyUI to shadcn/ui for better design system flexibility
 - **Design System**: Introduced CSS Variables-based design tokens for centralized theming
 - **Component Library**: shadcn/ui is now the primary component library
+## Decision: Edge-Safe Middleware for Supabase Sessions (2025-10-01)
+
+Context:
+- Next.js middleware runs on the Edge Runtime where Node APIs are unavailable.
+- The previous middleware imported Supabase SSR helpers which transitively referenced Node APIs, causing build warnings.
+
+Decision:
+- Use an edge-safe pass-through middleware (`libs/supabase/middleware.ts`) that forwards the request and preserves cookies without invoking Supabase.
+- Handle session refresh in server routes/components using `createServerClient` (Node runtime) and on the client where appropriate.
+
+Rationale:
+- Eliminates Edge runtime warnings without changing authentication behavior.
+- Keeps concerns separated: middleware is transport-only; auth/session logic resides in Node/server and client layers.
+
+Implementation:
+- `middleware.ts` calls `updateSession()` which now returns `NextResponse.next({ request })`.
+- Server code continues to use `libs/supabase/server.ts#createClient()` for authenticated operations.
+
+Impact:
+- No functional changes to auth flows.
+- Reduced middleware bundle size and cleaner builds.
+
+Follow-up:
+- If future middleware logic requires Supabase, route those requests through Node runtime handlers instead of Edge.

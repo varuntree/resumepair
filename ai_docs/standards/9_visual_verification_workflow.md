@@ -14,6 +14,22 @@ This workflow ensures all UI features meet visual quality standards before being
 **Standards**: `ai_docs/standards/3_component_standards.md` (Visual Quality Standards)
 **Time**: 5-10 minutes per feature
 
+**IMPORTANT**: Screenshots are taken for analysis ONLY. Do NOT store or save screenshots to disk. View and analyze them in-browser, then document findings in markdown.
+
+---
+
+## Test Credentials
+
+**CRITICAL**: Use EMAIL/PASSWORD authentication ONLY. DO NOT use Google OAuth.
+
+For authenticated pages (dashboard, editor, templates):
+
+**Authentication Method**: Email/Password (NOT Google OAuth)
+**Email**: test@gmail.com
+**Password**: Test@123
+
+See `/ai_docs/testing/test_credentials.md` for details.
+
 ---
 
 ## Complete Workflow
@@ -22,19 +38,56 @@ This workflow ensures all UI features meet visual quality standards before being
 
 **Before starting**:
 - [ ] Feature code is complete
-- [ ] Dev server can start (`npm run dev`)
+- [ ] Dev server running on port 3000 (user maintains it)
 - [ ] No TypeScript/ESLint errors
 - [ ] Design tokens used (no hardcoded values in code)
+- [ ] Test credentials available (if testing authenticated pages)
 
 ---
 
-### Step 2: Start Development Server
+### Step 2: Authenticate (If Required)
 
-```bash
-npm run dev
+**CRITICAL**: Use email/password form ONLY. DO NOT click "Continue with Google" button.
+
+**For authenticated pages only** (dashboard, editor, templates):
+
+```javascript
+// Navigate to sign-in page
+mcp__puppeteer__puppeteer_navigate({
+  url: "http://localhost:3000/signin"
+})
+
+// Fill email
+mcp__puppeteer__puppeteer_fill({
+  selector: 'input[type="email"]',
+  value: "test@gmail.com"
+})
+
+// Fill password
+mcp__puppeteer__puppeteer_fill({
+  selector: 'input[type="password"]',
+  value: "Test@123"
+})
+
+// Click sign-in button
+mcp__puppeteer__puppeteer_click({
+  selector: 'button[type="submit"]'
+})
+
+// Wait for redirect to dashboard
+mcp__puppeteer__puppeteer_evaluate({
+  script: `
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('Authentication complete');
+        resolve(true);
+      }, 2000);
+    });
+  `
+})
 ```
 
-**Verify**: Server starts successfully, navigate to http://localhost:3000
+**Skip this step** for public pages (home, templates gallery if public).
 
 ---
 
@@ -48,8 +101,9 @@ mcp__puppeteer__puppeteer_navigate({
 
 **Examples**:
 - Dashboard: `http://localhost:3000/dashboard`
-- Settings: `http://localhost:3000/settings`
-- New feature: `http://localhost:3000/your-new-page`
+- Editor: `http://localhost:3000/editor/new`
+- Templates: `http://localhost:3000/templates`
+- Customization: Navigate to editor, then click Customize tab
 
 ---
 
@@ -182,21 +236,15 @@ mcp__puppeteer__puppeteer_screenshot({
 
 ---
 
-### Step 9: Save Screenshots
+### Step 9: Document Results (NO SAVING SCREENSHOTS)
 
-**Create directories** (if not exist):
-```bash
-mkdir -p ai_docs/progress/phase_N/screenshots/desktop
-mkdir -p ai_docs/progress/phase_N/screenshots/mobile
-```
+**CRITICAL**: Do NOT save screenshots to disk. All findings must be documented in markdown only.
 
-**Save screenshots**:
-- Desktop: `ai_docs/progress/phase_N/screenshots/desktop/{feature}_desktop.png`
-- Mobile: `ai_docs/progress/phase_N/screenshots/mobile/{feature}_mobile.png`
+**Why**: Screenshots are ephemeral analysis tools, not artifacts. Documentation captures what matters.
 
 ---
 
-### Step 10: Document Results
+### Step 10: Create Visual Review Document
 
 **Create/update**: `ai_docs/progress/phase_N/visual_review.md`
 

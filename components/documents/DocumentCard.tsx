@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -17,9 +18,9 @@ import type { Resume } from '@/types/resume'
 
 export interface DocumentCardProps {
   document: Resume
-  onEdit: (documentId: string) => void
-  onDuplicate: (documentId: string) => void
-  onDelete: (documentId: string) => void
+  onEdit: (value: string) => void
+  onDuplicate: (value: string) => void
+  onDelete: (value: string) => void
 }
 
 export function DocumentCard({

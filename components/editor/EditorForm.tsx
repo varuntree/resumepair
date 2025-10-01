@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -10,7 +11,7 @@ export interface EditorFormProps {
   documentId: string
   document: ResumeJson
   onSubmit: () => void
-  onChange?: (data: ResumeJson) => void
+  onChange?: (value: ResumeJson) => void
   children: React.ReactNode
 }
 

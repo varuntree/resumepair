@@ -11,6 +11,7 @@ import { PasswordStepForm } from '@/components/auth/PasswordStepForm';
 import { AuthDivider } from '@/components/auth/AuthDivider';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
 import type { EmailPasswordSignIn, EmailPasswordSignUp } from '@/libs/validation/auth';
+import { useRouter } from 'next/navigation';
 
 interface EmailCheckResult {
   exists: boolean
@@ -21,10 +22,11 @@ interface EmailCheckResult {
 }
 
 export default function SignInPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [step, setStep] = useState<'email' | 'password'>('email');
   const [email, setEmail] = useState('');
-  const [emailCheck, setEmailCheck] = useState<EmailCheckResult | null>(null);
+  const [, setEmailCheck] = useState<EmailCheckResult | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
@@ -145,10 +147,11 @@ export default function SignInPage() {
         throw new Error(error.message);
       }
 
-      // Success - redirect will be handled by auth callback
+      router.push('/dashboard');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
       setError(message);
+    } finally {
       setIsEmailLoading(false);
     }
   };
@@ -164,7 +167,7 @@ export default function SignInPage() {
       const supabase = createClient();
 
       // SIGN UP FLOW - WITH DUPLICATE PREVENTION
-      const { error } = await supabase.auth.signUp({
+      const { data: signupData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
       });
@@ -183,10 +186,15 @@ export default function SignInPage() {
         throw new Error(error.message);
       }
 
-      // Success - redirect will be handled by auth callback
+      if (!signupData?.session) {
+        throw new Error('Account created, but no session was returned. Please try signing in.');
+      }
+
+      router.push('/dashboard');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
       setError(message);
+    } finally {
       setIsEmailLoading(false);
     }
   };

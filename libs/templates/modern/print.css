@@ -1,0 +1,58 @@
+/**
+ * Modern Template Print Styles
+ */
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.5in;
+  }
+
+  .modern-template {
+    padding: 0;
+    max-width: none;
+    font-size: 10pt;
+  }
+
+  .doc-header {
+    background: white !important;
+    color: black !important;
+    border: 1px solid hsl(210 16% 93%);
+    padding: 16px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc-name,
+  .doc-headline {
+    color: black !important;
+  }
+
+  .doc-contact-item {
+    color: black !important;
+  }
+
+  .doc-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-work-item,
+  .doc-education-item,
+  .doc-project-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-tech-tag,
+  .doc-skill-tag {
+    border: 1px solid hsl(210 16% 93%);
+    background: white !important;
+    color: black !important;
+  }
+
+  .modern-template {
+    orphans: 3;
+    widows: 3;
+  }
+}

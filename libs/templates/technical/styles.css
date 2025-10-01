@@ -1,0 +1,486 @@
+/**
+ * Technical Template Styles
+ *
+ * Code-focused design with monospace accents and technical aesthetics.
+ * Uses ONLY --doc-* tokens (no hardcoded values).
+ */
+
+/* Container */
+.technical-template {
+  font-family: var(--doc-font-family, 'Inter');
+  font-size: calc(10.5pt * var(--doc-font-size-scale, 1));
+  line-height: var(--doc-line-height, 1.5);
+  color: var(--doc-text, hsl(210 11% 15%));
+  background: var(--doc-background, hsl(0 0% 100%));
+  padding: var(--doc-page-padding, 48px);
+  max-width: 8.5in;
+  margin: 0 auto;
+}
+
+/* Header */
+.tech-header {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.2);
+  padding-bottom: calc(var(--doc-section-gap, 24px) * 0.5);
+  border-bottom: 2px solid var(--doc-border, hsl(210 16% 93%));
+}
+
+.tech-header-top {
+  margin-bottom: var(--doc-item-gap, 14px);
+}
+
+.tech-name {
+  font-size: calc(22pt * var(--doc-font-size-scale, 1));
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin: 0 0 6px 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  letter-spacing: -0.01em;
+}
+
+.tech-name-prefix {
+  color: var(--doc-accent, hsl(73 100% 50%));
+  margin-right: 8px;
+  font-weight: 900;
+}
+
+.tech-headline {
+  font-size: calc(12pt * var(--doc-font-size-scale, 1));
+  color: var(--doc-muted, hsl(210 11% 46%));
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.tech-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--doc-item-gap, 14px) calc(var(--doc-item-gap, 14px) * 1.333);
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+  color: var(--doc-text, hsl(210 11% 15%));
+}
+
+.tech-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-contact-item .doc-icon {
+  color: var(--doc-accent, hsl(73 100% 50%));
+}
+
+.tech-contact-item a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--doc-muted, hsl(210 11% 46%));
+  transition: all 0.2s;
+}
+
+.tech-contact-item a:hover {
+  color: var(--doc-accent, hsl(73 100% 50%));
+  border-bottom-style: solid;
+}
+
+/* Sections */
+.tech-section {
+  margin-bottom: var(--doc-section-gap, 24px);
+}
+
+.tech-section .doc-section-title {
+  font-size: calc(15pt * var(--doc-font-size-scale, 1));
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin: 0 0 14px 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  padding-left: 12px;
+}
+
+.tech-section .doc-section-title::before {
+  content: '//';
+  position: absolute;
+  left: -4px;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-weight: 900;
+}
+
+.tech-section .doc-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--doc-item-gap, 14px);
+}
+
+/* Summary */
+.tech-summary {
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  line-height: 1.6;
+  color: var(--doc-text, hsl(210 11% 15%));
+  margin: 0;
+  padding: var(--doc-item-gap, 14px);
+  background: var(--doc-background-secondary, hsl(210 16% 98%));
+  border-left: 3px solid var(--doc-accent, hsl(73 100% 50%));
+}
+
+/* Skills */
+.tech-skills-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tech-skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tech-skill-category {
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  font-weight: 600;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tech-skill-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--doc-background-secondary, hsl(210 16% 98%));
+  color: var(--doc-text, hsl(210 11% 15%));
+  border: 1px solid var(--doc-border, hsl(210 16% 93%));
+  border-radius: 4px;
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 500;
+}
+
+/* Work Experience */
+.tech-work-item {
+  margin-bottom: var(--doc-item-gap, 14px);
+  padding: var(--doc-item-gap, 14px);
+  background: var(--doc-background-secondary, hsl(210 16% 98%));
+  border: 1px solid var(--doc-border, hsl(210 16% 93%));
+  border-radius: 4px;
+}
+
+.tech-work-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: calc(var(--doc-item-gap, 14px) * 0.66);
+  margin-bottom: calc(var(--doc-item-gap, 14px) * 0.71);
+}
+
+.tech-work-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tech-work-role {
+  font-size: calc(13pt * var(--doc-font-size-scale, 1));
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-work-company {
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  font-weight: 600;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-work-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-meta-separator {
+  color: var(--doc-border, hsl(210 16% 93%));
+  font-weight: 300;
+}
+
+.tech-work-bullets,
+.tech-work-achievements {
+  margin: calc(var(--doc-item-gap, 14px) * 0.71) 0 0 20px;
+  padding: 0;
+  list-style-type: none;
+}
+
+.tech-work-bullets li {
+  margin-bottom: calc(var(--doc-item-gap, 14px) * 0.42);
+  line-height: 1.6;
+  color: var(--doc-text, hsl(210 11% 15%));
+  position: relative;
+  padding-left: var(--doc-item-gap, 14px);
+}
+
+.tech-work-bullets li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-weight: 700;
+}
+
+.tech-work-achievements li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+  color: var(--doc-text, hsl(210 11% 15%));
+  display: flex;
+  gap: 8px;
+}
+
+.tech-achievement-bullet {
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-weight: 700;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+.tech-stack-block {
+  margin-top: 10px;
+  padding: 8px;
+  background: var(--doc-background, hsl(0 0% 100%));
+  border: 1px solid var(--doc-border, hsl(210 16% 93%));
+  border-radius: 4px;
+}
+
+.tech-stack-label {
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  font-weight: 600;
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.tech-stack-code {
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  color: var(--doc-text, hsl(210 11% 15%));
+  display: block;
+}
+
+/* Projects */
+.tech-project-item {
+  margin-bottom: var(--doc-item-gap, 14px);
+}
+
+.tech-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tech-project-name {
+  font-size: calc(12pt * var(--doc-font-size-scale, 1));
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-project-bracket {
+  color: var(--doc-accent, hsl(73 100% 50%));
+  margin: 0 4px;
+}
+
+.tech-project-link {
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  color: var(--doc-accent, hsl(73 100% 50%));
+  text-decoration: none;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  border-bottom: 1px dotted currentColor;
+}
+
+.tech-project-link:hover {
+  border-bottom-style: solid;
+}
+
+.tech-project-summary {
+  margin: 0 0 10px 0;
+  line-height: 1.6;
+}
+
+.tech-project-bullets {
+  margin: 10px 0 0 20px;
+  padding: 0;
+  list-style-type: none;
+}
+
+.tech-project-bullets li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+  position: relative;
+  padding-left: 12px;
+}
+
+.tech-project-bullets li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-weight: 700;
+}
+
+/* Education */
+.tech-education-item {
+  margin-bottom: var(--doc-item-gap, 14px);
+}
+
+.tech-education-header {
+  margin-bottom: 4px;
+}
+
+.tech-education-degree {
+  font-size: calc(12pt * var(--doc-font-size-scale, 1));
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin: 0 0 4px 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-education-school {
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  font-weight: 600;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-education-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+  color: var(--doc-muted, hsl(210 11% 46%));
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-education-details {
+  margin: 8px 0 0 20px;
+  padding: 0;
+  list-style-type: disc;
+}
+
+.tech-education-details li {
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+/* Certifications */
+.tech-cert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.tech-certification-item {
+  padding: 10px;
+  background: var(--doc-background-secondary, hsl(210 16% 98%));
+  border: 1px solid var(--doc-border, hsl(210 16% 93%));
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tech-certification-name {
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+}
+
+.tech-certification-issuer {
+  color: var(--doc-text, hsl(210 11% 15%));
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-certification-date {
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-size: calc(9pt * var(--doc-font-size-scale, 1));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* Awards */
+.tech-award-item {
+  margin-bottom: 10px;
+}
+
+.tech-award-header {
+  margin-bottom: 4px;
+}
+
+.tech-award-name {
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-award-org {
+  color: var(--doc-text, hsl(210 11% 15%));
+}
+
+.tech-award-date {
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-award-summary {
+  margin: 4px 0 0 0;
+  line-height: 1.6;
+}
+
+/* Languages */
+.tech-languages {
+  line-height: 1.6;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.tech-language-item {
+  color: var(--doc-text, hsl(210 11% 15%));
+}
+
+.tech-language-level {
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-size: calc(10pt * var(--doc-font-size-scale, 1));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .technical-template {
+    padding: var(--space-6, 24px);
+  }
+
+  .tech-work-header,
+  .tech-project-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tech-cert-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label'
 
 export interface DocumentFiltersProps {
   status: 'all' | 'draft' | 'active' | 'archived'
-  onStatusChange: (newStatus: 'all' | 'draft' | 'active' | 'archived') => void
+  onStatusChange: (value: 'all' | 'draft' | 'active' | 'archived') => void
 }
 
 export function DocumentFilters({

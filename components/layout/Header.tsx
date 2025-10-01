@@ -30,6 +30,17 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <Link
+            href="/templates"
+            className={cn(
+              'text-sm font-medium transition-colors hover:text-app-foreground',
+              isActive('/templates')
+                ? 'text-app-foreground'
+                : 'text-app-foreground/60'
+            )}
+          >
+            Templates
+          </Link>
+          <Link
             href="/dashboard"
             className={cn(
               'text-sm font-medium transition-colors hover:text-app-foreground',

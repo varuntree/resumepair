@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -12,7 +13,7 @@ export type SaveStatus = 'saved' | 'saving' | 'error'
 
 export interface EditorHeaderProps {
   title: string
-  onTitleChange: (newTitle: string) => void
+  onTitleChange: (value: string) => void
   saveStatus: SaveStatus
   lastSaved?: Date | null
   onSave?: () => void

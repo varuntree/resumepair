@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -13,7 +14,7 @@ export interface SectionItem {
 export interface EditorSidebarProps {
   sections: SectionItem[]
   activeSection?: string
-  onSectionClick: (selectedSectionId: string) => void
+  onSectionClick: (value: string) => void
 }
 
 export function EditorSidebar({

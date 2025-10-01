@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="450" viewBox="0 0 360 450">
+  <rect width="360" height="450" fill="#FFFFFF"/>
+  <rect x="24" y="24" width="312" height="2" fill="#E1E6EB"/>
+  <text x="24" y="52" font-size="18" fill="#0B0F1E" font-family="'JetBrains Mono', monospace">&lt;name /&gt;</text>
+  <text x="24" y="72" font-size="12" fill="#6C757D" font-family="'JetBrains Mono', monospace">// headline</text>
+  <rect x="24" y="96" width="312" height="1" fill="#E1E6EB"/>
+  <rect x="24" y="112" width="280" height="8" fill="#E1E6EB" rx="2"/>
+  <rect x="24" y="128" width="240" height="8" fill="#E1E6EB" rx="2"/>
+  <text x="24" y="430" font-size="10" fill="#6C757D" font-family="'JetBrains Mono', monospace">Technical Template</text>
+</svg>

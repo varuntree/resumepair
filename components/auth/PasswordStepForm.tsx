@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable no-unused-vars */
 
 import { useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label'
 
 interface PasswordStepFormProps {
   email: string
-  onSubmit: (password: string) => Promise<void>
+  onSubmit: (value: string) => Promise<void>
   onBack: () => void
   isLoading: boolean
   error?: string | null

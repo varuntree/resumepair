@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -20,7 +21,7 @@ export interface VersionHistoryProps {
   resumeId: string
   open: boolean
   onClose: () => void
-  onRestore: (selectedVersionNumber: number) => Promise<void>
+  onRestore: (value: number) => Promise<void>
 }
 
 export function VersionHistory({
@@ -145,7 +146,7 @@ export function VersionHistory({
 
 interface VersionItemProps {
   version: ResumeVersion
-  onRestore: (selectedVersionNumber: number) => Promise<void>
+  onRestore: (value: number) => Promise<void>
   restoring: boolean
 }
 

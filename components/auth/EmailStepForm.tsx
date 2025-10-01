@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable no-unused-vars */
 
 import { useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface EmailStepFormProps {
-  onSubmit: (email: string) => Promise<void>
+  onSubmit: (value: string) => Promise<void>
   isLoading: boolean
   error?: string | null
 }

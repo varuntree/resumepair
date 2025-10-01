@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use client'
 
 import * as React from 'react'
@@ -15,7 +16,7 @@ import { Label } from '@/components/ui/label'
 export interface DocumentSortProps {
   sort: 'updated_at' | 'created_at' | 'title'
   order: 'asc' | 'desc'
-  onSortChange: (newSort: 'updated_at' | 'created_at' | 'title') => void
+  onSortChange: (value: 'updated_at' | 'created_at' | 'title') => void
   onOrderChange: () => void
 }
 

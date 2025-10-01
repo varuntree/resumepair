@@ -13,7 +13,9 @@ import {
   Trophy,
   Languages,
   Plus,
-  History
+  History,
+  Eye,
+  Palette
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { EditorLayout } from '@/components/editor/EditorLayout'
@@ -22,6 +24,10 @@ import { EditorSidebar } from '@/components/editor/EditorSidebar'
 import { EditorForm } from '@/components/editor/EditorForm'
 import { VersionHistory } from '@/components/editor/VersionHistory'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { LivePreview } from '@/components/preview'
+import { PreviewControls } from '@/components/preview/PreviewControls'
+import { CustomizationPanel } from '@/components/customization/CustomizationPanel'
 import { useDocumentStore, useTemporalStore } from '@/stores/documentStore'
 import type { ResumeJson } from '@/types/resume'
 import type { SaveStatus } from '@/components/editor/EditorHeader'
@@ -44,11 +50,12 @@ export default function EditorPage(): React.ReactElement {
   const { toast } = useToast()
   const [versionHistoryOpen, setVersionHistoryOpen] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState('profile')
+  const [activeTab, setActiveTab] = React.useState<'edit' | 'preview' | 'customize'>('edit')
 
   const {
     document: resumeDocument,
     documentId,
-    documentVersion,
+    // documentVersion,
     documentTitle,
     isLoading,
     isSaving,
@@ -192,43 +199,73 @@ export default function EditorPage(): React.ReactElement {
         </div>
       }
     >
-      <EditorForm
-        documentId={documentId!}
-        document={resumeDocument!}
-        onSubmit={handleSubmit}
-        onChange={handleChange}
-      >
-        <div id="section-profile">
-          <ProfileSection />
-        </div>
-        <div id="section-summary">
-          <SummarySection />
-        </div>
-        <div id="section-work">
-          <WorkSection />
-        </div>
-        <div id="section-education">
-          <EducationSection />
-        </div>
-        <div id="section-projects">
-          <ProjectsSection />
-        </div>
-        <div id="section-skills">
-          <SkillsSection />
-        </div>
-        <div id="section-certifications">
-          <CertificationsSection />
-        </div>
-        <div id="section-awards">
-          <AwardsSection />
-        </div>
-        <div id="section-languages">
-          <LanguagesSection />
-        </div>
-        <div id="section-extras">
-          <ExtrasSection />
-        </div>
-      </EditorForm>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'edit' | 'preview' | 'customize')} className="h-full flex flex-col">
+        <TabsList className="w-full rounded-none border-b">
+          <TabsTrigger value="edit" className="flex-1">
+            <FileText className="h-4 w-4 mr-2" />
+            Edit
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex-1">
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </TabsTrigger>
+          <TabsTrigger value="customize" className="flex-1">
+            <Palette className="h-4 w-4 mr-2" />
+            Customize
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="edit" className="flex-1 mt-0 overflow-auto">
+          <EditorForm
+            documentId={documentId!}
+            document={resumeDocument!}
+            onSubmit={handleSubmit}
+            onChange={handleChange}
+          >
+            <div id="section-profile">
+              <ProfileSection />
+            </div>
+            <div id="section-summary">
+              <SummarySection />
+            </div>
+            <div id="section-work">
+              <WorkSection />
+            </div>
+            <div id="section-education">
+              <EducationSection />
+            </div>
+            <div id="section-projects">
+              <ProjectsSection />
+            </div>
+            <div id="section-skills">
+              <SkillsSection />
+            </div>
+            <div id="section-certifications">
+              <CertificationsSection />
+            </div>
+            <div id="section-awards">
+              <AwardsSection />
+            </div>
+            <div id="section-languages">
+              <LanguagesSection />
+            </div>
+            <div id="section-extras">
+              <ExtrasSection />
+            </div>
+          </EditorForm>
+        </TabsContent>
+
+        <TabsContent value="preview" className="flex-1 mt-0 h-full">
+          <div className="border-b">
+            <PreviewControls />
+          </div>
+          <LivePreview documentId={resumeId} showControls={false} />
+        </TabsContent>
+
+        <TabsContent value="customize" className="flex-1 mt-0 h-full">
+          <CustomizationPanel />
+        </TabsContent>
+      </Tabs>
 
       <VersionHistory
         resumeId={resumeId}

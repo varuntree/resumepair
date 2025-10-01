@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="450" viewBox="0 0 360 450">
+  <rect width="360" height="450" fill="#FFFFFF"/>
+  <rect x="30" y="28" width="300" height="24" fill="#0B0F1E" rx="4"/>
+  <rect x="30" y="64" width="140" height="10" fill="#3A3F52" rx="3"/>
+  <rect x="30" y="92" width="300" height="1" fill="#E1E6EB"/>
+  <rect x="30" y="110" width="300" height="8" fill="#E1E6EB" rx="3"/>
+  <rect x="30" y="126" width="260" height="8" fill="#E1E6EB" rx="3"/>
+  <text x="30" y="430" font-size="10" fill="#6C757D" font-family="'Source Serif 4', Georgia, serif">Executive Template</text>
+</svg>

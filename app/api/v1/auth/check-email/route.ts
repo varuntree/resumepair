@@ -109,10 +109,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       })
     }
 
-    // User exists - check which providers they have
-    const identities = user.identities || []
-    const hasPassword = identities.some(i => i.provider === 'email')
-    const hasGoogle = identities.some(i => i.provider === 'google')
+    // User exists - check which providers they have. Supabase can expose
+    // providers either through the identities array or app_metadata.providers
+    // depending on the login method, so we normalize both sources.
+    const identityProviders = (user.identities || []).map(identity => identity.provider)
+    const metadataProviders = Array.isArray(user.app_metadata?.providers)
+      ? user.app_metadata.providers
+      : []
+
+    const providerSet = new Set(
+      [...identityProviders, ...metadataProviders].map(provider => provider?.toLowerCase())
+    )
+
+    const hasPassword = providerSet.has('email')
+    const hasGoogle = providerSet.has('google')
 
     return NextResponse.json({
       success: true,

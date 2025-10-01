@@ -219,6 +219,95 @@ Before starting any phase, the orchestrator MUST:
 - 🟡 SHOULD FIX (important improvements)
 - 🟢 CONSIDER (nice to have)
 
+### Phase 6: Visual Verification (For UI Features)
+
+**Agent**: general-purpose (with Puppeteer MCP access)
+**Agent Capability**: Visual quality assurance using Puppeteer MCP for screenshot analysis
+**When to invoke**: After implementing any UI feature (pages, components, layouts)
+
+**CRITICAL RULES**:
+1. **Authentication Method**: ALWAYS use email/password authentication ONLY. DO NOT use Google OAuth.
+2. **Test Credentials**: Email: test@gmail.com, Password: Test@123 (use these exact credentials for all authenticated pages)
+3. **No Screenshot Storage**: Take screenshots for analysis only, DO NOT save to disk
+4. **Documentation Only**: Document findings in markdown, not files
+5. **Dev Server**: User maintains dev server on port 3000 - never start/stop it
+6. **Follow Workflow**: Strictly follow `/ai_docs/standards/9_visual_verification_workflow.md`
+
+**Context to provide to sub-agent**:
+```markdown
+You are performing visual verification for **[Feature Name]** in **Phase [N]**.
+
+## What Was Implemented
+[Provide clear summary of what was built - copy from implementer output]
+
+Examples:
+- "6 resume templates with live preview"
+- "Customization panel with 4 tabs (Template, Colors, Typography, Spacing)"
+- "Template gallery page with grid layout"
+
+## What You Should Test
+[List specific UI elements to verify]
+
+Examples:
+- Template gallery displays all 6 templates in 3-column grid
+- Customization panel tabs are clickable and show correct content
+- Live preview updates when customizations change
+- Mobile layout stacks to single column
+
+## Phase Context
+- **Phase Number**: [N]
+- **Phase Name**: [e.g., "Template System & Live Preview"]
+- **Implementation Documentation**: Read `/agents/phase_[N]/implementer_phase[N]_output.md` for full context
+- **Phase Requirements**: Read `/ai_docs/phases/phase_[N].md` for original specifications
+
+## Test Credentials
+**CRITICAL**: Use EMAIL/PASSWORD authentication ONLY. DO NOT use Google OAuth.
+
+**For authenticated pages** (dashboard, editor, templates):
+- **Authentication Method**: Email/Password (NOT Google OAuth)
+- **Email**: test@gmail.com
+- **Password**: Test@123
+
+See `/ai_docs/testing/test_credentials.md` for details.
+
+## Visual Verification Workflow
+**MUST FOLLOW**: `/ai_docs/standards/9_visual_verification_workflow.md`
+
+Key steps:
+1. Authenticate using email/password (test@gmail.com / Test@123) - DO NOT use Google OAuth
+2. Navigate to feature page
+3. Take desktop screenshot (1440px) - analyze, don't save
+4. Take mobile screenshot (375px) - analyze, don't save
+5. Check against visual quality checklist
+6. Document findings in markdown only (no saved screenshots)
+
+## Visual Quality Checklist
+From `/ai_docs/standards/3_component_standards.md`:
+- [ ] Spacing generous (≥16px gaps, ≥24px card padding)
+- [ ] Clear typography hierarchy
+- [ ] One primary action (lime button) per section
+- [ ] Design tokens used (no hardcoded values)
+- [ ] Responsive (no horizontal scroll on mobile)
+- [ ] Ramp palette only (navy, lime, grays)
+
+## Output Format
+Create `/ai_docs/progress/phase_[N]/visual_review.md` with:
+1. **Feature Tested**: [Name]
+2. **Desktop Analysis**: [Findings from desktop screenshot]
+3. **Mobile Analysis**: [Findings from mobile screenshot]
+4. **Issues Found**: [List any problems with severity]
+5. **Pass/Fail**: [Overall verdict]
+6. **Recommendations**: [Fixes needed]
+
+**REMEMBER**: Do NOT save screenshots. Analyze them in-browser and document findings only.
+```
+
+**Output location**: `/ai_docs/progress/phase_[N]/visual_review.md`
+
+**When to skip**: For backend-only phases with no UI (e.g., API-only implementations)
+
+**Sub-agent selection**: Use general-purpose agent (has Puppeteer MCP access)
+
 ## Orchestrator Decision Points
 
 ### 1. Research Agent Invocation

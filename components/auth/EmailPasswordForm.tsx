@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable no-unused-vars */
 
 import { useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
@@ -14,7 +15,7 @@ import {
 
 interface EmailPasswordFormProps {
   mode: 'signin' | 'signup'
-  onSubmit: (data: EmailPasswordSignIn | EmailPasswordSignUp) => Promise<void>
+  onSubmit: (value: EmailPasswordSignIn | EmailPasswordSignUp) => Promise<void>
   isLoading: boolean
   error?: string | null
 }

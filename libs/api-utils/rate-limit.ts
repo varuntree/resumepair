@@ -21,7 +21,7 @@ setInterval(() => {
   const now = Date.now()
   const fiveMinutesAgo = now - 5 * 60 * 1000
 
-  for (const [key, entry] of rateLimitStore.entries()) {
+  for (const [key, entry] of Array.from(rateLimitStore.entries())) {
     // Remove entries with no recent attempts
     const recentAttempts = entry.attempts.filter(t => t > fiveMinutesAgo)
     if (recentAttempts.length === 0 && (!entry.blockedUntil || entry.blockedUntil < now)) {

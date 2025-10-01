@@ -328,3 +328,22 @@ export const useTemporalStore = () => {
 
   return { undo, redo, clear, canUndo, canRedo, pastStates, futureStates }
 }
+
+/**
+ * Shallow selector for preview components
+ * Prevents unnecessary re-renders by selecting only document content
+ */
+export const selectDocumentForPreview = (state: DocumentState) => ({
+  content: state.document,
+  isLoading: state.isLoading,
+})
+
+/**
+ * Shallow selector for document metadata
+ */
+export const selectDocumentMetadata = (state: DocumentState) => ({
+  documentId: state.documentId,
+  documentVersion: state.documentVersion,
+  documentTitle: state.documentTitle,
+  lastSaved: state.lastSaved,
+})
