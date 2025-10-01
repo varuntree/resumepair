@@ -397,3 +397,4 @@ See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual 
 - Development Standards: `ai_docs/project_documentation/9_development_standards_and_guidelines.md`
 - API Specification: `ai_docs/project_documentation/3_api_specification.md`
 - Database Schema: `ai_docs/project_documentation/4_database_schema.md`
+- i want you Whenever you are doing any kind of work during development, you sometimes need to run the development server. I do not want you to run multiple development servers, so you should not start one each time. I will keep a server running for you on port 3000 at all times. It will always be running by me as a user, so you never need to start it yourself.

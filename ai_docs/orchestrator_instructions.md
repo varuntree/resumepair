@@ -1,5 +1,83 @@
 # Orchestrator Instructions for Phase Implementation
 
+## Context Preservation Protocol
+
+**BEFORE starting any phase, the orchestrator MUST:**
+
+### 1. Create Phase Workspace & Index
+
+```bash
+# Create phase folder
+/agents/phase_[N]/
+
+# Create phase index file
+/agents/phase_[N]/index.md
+```
+
+### 2. Populate index.md with Three Required Sections
+
+The index.md file MUST include these sections at the top:
+
+#### Section 1: Context Recovery Instructions
+**Purpose**: If context is lost, this section explains how to resume
+
+Include:
+- Brief explanation of what this phase is building
+- Key documents to re-read:
+  - `/ai_docs/orchestrator_instructions.md` (this file)
+  - `/ai_docs/phases/phase_[N].md` (phase requirements)
+  - `/ai_docs/coding_patterns.md` (implementation patterns)
+  - `/ai_docs/development_decisions.md` (constraints)
+  - Previous phase outputs (if any)
+- Instruction to check "Progress Tracking" section in this file
+- How to identify current step and continue from there
+
+#### Section 2: Complete Phase Sequence
+**Purpose**: Outline ALL steps before executing Step 1
+
+Include:
+- All agent deployments in order (context-gatherer → systems-researcher → planner-architect → implementer → code-reviewer)
+- Validation gates
+- Visual verification steps
+- Testing playbook execution
+- Phase summary creation
+- Learning system execution
+- Handoff preparation
+
+**Format**: Let the orchestrator decide the structure and level of detail
+
+#### Section 3: Progress Tracking
+**Purpose**: Track execution progress throughout the phase
+
+Include:
+- Which agents have completed
+- Which agents are pending or in progress
+- Current step status
+- Active blockers or risks
+- Key decisions made
+- Next immediate actions
+
+**Format**: Let the orchestrator decide the structure and update frequency
+
+### 3. Maintain Progress Throughout Phase
+
+- **After each agent completes**: Update progress tracking section in index.md
+- **After key decisions**: Document in index.md
+- **When blockers arise**: Document in index.md
+- **Before context compaction**: Ensure all progress is saved to index.md
+
+### Why This Matters
+
+If the session is interrupted or context is lost:
+1. Read `/ai_docs/orchestrator_instructions.md` (this file)
+2. Read `/agents/phase_[N]/index.md`
+3. Check progress tracking to see current state
+4. Continue from next pending step
+
+This makes the multi-agent orchestration system reliable and recoverable.
+
+---
+
 ## Overview
 This document provides the complete instructions for the orchestrator to execute any phase of the ResumePair project. The orchestrator serves as the prime coordinator, managing context and directing specialized agents through each phase of development.
 
