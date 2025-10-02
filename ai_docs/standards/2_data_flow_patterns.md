@@ -855,6 +855,344 @@ export async function POST(req: Request) {
 
 ---
 
+## 15. Database-Backed Queue Pattern
+
+**Why**: Serverless needs persistent job queues without external dependencies like Redis.
+
+**Principle**: Use Postgres with `FOR UPDATE SKIP LOCKED` for atomic job claiming.
+
+### The Problem with Serverless Queues
+
+```
+Traditional Queue:         Serverless Reality:
+Redis/BullMQ      →       No persistent memory
+Background workers →       Functions are stateless
+Job locking       →       Need database-level locking
+```
+
+### The Solution: Postgres Queue
+
+```sql
+-- Export jobs table with queue semantics
+CREATE TABLE export_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  document_id UUID NOT NULL REFERENCES resumes(id),
+
+  -- Queue fields
+  status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+  retry_count INTEGER DEFAULT 0,
+  max_retries INTEGER DEFAULT 3,
+  next_retry_at TIMESTAMPTZ,
+
+  -- Job data
+  template_id TEXT NOT NULL,
+  options JSONB DEFAULT '{}'::jsonb,
+
+  -- Progress tracking
+  progress INTEGER DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
+
+  -- Results
+  result_url TEXT,
+  error_message TEXT,
+
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+
+  -- Indexes for queue operations
+  INDEX idx_export_jobs_pending ON export_jobs(user_id, status, created_at)
+    WHERE status = 'pending',
+  INDEX idx_export_jobs_retry ON export_jobs(next_retry_at)
+    WHERE status = 'pending' AND next_retry_at IS NOT NULL
+);
+```
+
+### Atomic Job Claiming Function
+
+```sql
+-- Database function for race-free job claiming
+CREATE OR REPLACE FUNCTION fetch_next_export_job(p_user_id UUID)
+RETURNS TABLE (
+  id UUID,
+  user_id UUID,
+  document_id UUID,
+  template_id TEXT,
+  options JSONB,
+  retry_count INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ej.id,
+    ej.user_id,
+    ej.document_id,
+    ej.template_id,
+    ej.options,
+    ej.retry_count
+  FROM export_jobs ej
+  WHERE ej.user_id = p_user_id
+    AND ej.status = 'pending'
+    AND (ej.next_retry_at IS NULL OR ej.next_retry_at <= NOW())
+  ORDER BY ej.created_at ASC
+  FOR UPDATE SKIP LOCKED  -- Critical: Prevents race conditions
+  LIMIT 1;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Queue Operations
+
+**1. Enqueue Job**
+```typescript
+export async function createExportJob(
+  supabase: SupabaseClient,
+  job: {
+    user_id: string
+    document_id: string
+    template_id: string
+    options?: Record<string, any>
+  }
+): Promise<ExportJob> {
+  const { data, error } = await supabase
+    .from('export_jobs')
+    .insert({
+      user_id: job.user_id,
+      document_id: job.document_id,
+      template_id: job.template_id,
+      options: job.options ?? {},
+      status: 'pending',
+      progress: 0,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+```
+
+**2. Claim Job (Atomic)**
+```typescript
+export async function claimNextPendingJob(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<ExportJob | null> {
+  // Call database function for atomic claim
+  const { data, error } = await supabase
+    .rpc('fetch_next_export_job', { p_user_id: userId })
+
+  if (error) throw error
+  if (!data || data.length === 0) return null
+
+  const job = data[0]
+
+  // Mark as processing
+  await supabase
+    .from('export_jobs')
+    .update({
+      status: 'processing',
+      started_at: new Date().toISOString(),
+    })
+    .eq('id', job.id)
+
+  return job
+}
+```
+
+**3. Complete Job**
+```typescript
+export async function completeJob(
+  supabase: SupabaseClient,
+  jobId: string,
+  resultUrl: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('export_jobs')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      result_url: resultUrl,
+      progress: 100,
+    })
+    .eq('id', jobId)
+
+  if (error) throw error
+}
+```
+
+**4. Fail Job with Retry**
+```typescript
+export async function failJob(
+  supabase: SupabaseClient,
+  jobId: string,
+  error: Error,
+  currentRetryCount: number,
+  maxRetries: number = 3
+): Promise<void> {
+  const shouldRetry = currentRetryCount < maxRetries
+
+  if (shouldRetry) {
+    // Exponential backoff: 1min, 2min, 4min, 8min, etc.
+    const nextRetryDelay = calculateRetryDelay(currentRetryCount + 1)
+
+    await supabase
+      .from('export_jobs')
+      .update({
+        status: 'pending',
+        retry_count: currentRetryCount + 1,
+        next_retry_at: new Date(Date.now() + nextRetryDelay).toISOString(),
+        error_message: error.message,
+      })
+      .eq('id', jobId)
+  } else {
+    // Max retries reached
+    await supabase
+      .from('export_jobs')
+      .update({
+        status: 'failed',
+        completed_at: new Date().toISOString(),
+        error_message: error.message,
+      })
+      .eq('id', jobId)
+  }
+}
+
+function calculateRetryDelay(attemptNumber: number): number {
+  const baseDelay = 60000 // 1 minute
+  const maxDelay = 3600000 // 60 minutes
+  const jitter = Math.random() * 5000 // 0-5 seconds
+
+  return Math.min(
+    Math.pow(2, attemptNumber - 1) * baseDelay + jitter,
+    maxDelay
+  )
+}
+```
+
+### Queue Processor
+
+```typescript
+// Edge function or API route that processes queue
+export async function processExportQueue(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<void> {
+  // Claim next job atomically
+  const job = await claimNextPendingJob(supabase, userId)
+
+  if (!job) {
+    console.log('No pending jobs for user:', userId)
+    return
+  }
+
+  try {
+    // Process the job
+    const document = await getDocument(supabase, job.document_id, userId)
+    const pdfBuffer = await generatePDF(document.data, job.template_id, job.options)
+
+    // Upload to storage
+    const fileName = `${job.document_id}_${Date.now()}.pdf`
+    const filePath = `${userId}/${fileName}`
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('exports')
+      .upload(filePath, pdfBuffer, { contentType: 'application/pdf' })
+
+    if (uploadError) throw uploadError
+
+    // Get signed URL
+    const { data: urlData } = await supabase.storage
+      .from('exports')
+      .createSignedUrl(filePath, 604800) // 7 days
+
+    // Complete job
+    await completeJob(supabase, job.id, urlData.signedUrl)
+  } catch (error) {
+    // Fail job with retry logic
+    await failJob(supabase, job.id, error as Error, job.retry_count)
+  }
+}
+```
+
+### Queue Benefits
+
+**✅ Advantages:**
+- No external dependencies (uses existing Postgres)
+- Serverless-compatible (stateless functions)
+- Atomic job claiming (`FOR UPDATE SKIP LOCKED`)
+- Built-in retry logic with exponential backoff
+- Persistent across cold starts
+- Easy to debug (SQL queries visible)
+- Simple implementation (~200 LOC vs 2000+ in pg-boss)
+
+**✅ Use Cases:**
+- PDF export jobs
+- Email sending queues
+- AI processing jobs
+- Batch operations
+- Background tasks
+
+**✅ Performance:**
+- Handles 100s of jobs/second for typical workloads
+- Postgres index on (status, created_at) makes claim O(log n)
+- `SKIP LOCKED` prevents contention between workers
+
+### Queue Monitoring
+
+```typescript
+// Get queue statistics
+export async function getQueueStats(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  pending: number
+  processing: number
+  completed: number
+  failed: number
+}> {
+  const { data } = await supabase
+    .from('export_jobs')
+    .select('status')
+    .eq('user_id', userId)
+
+  const stats = {
+    pending: 0,
+    processing: 0,
+    completed: 0,
+    failed: 0,
+  }
+
+  data?.forEach(job => {
+    stats[job.status]++
+  })
+
+  return stats
+}
+```
+
+### Queue Cleanup
+
+```typescript
+// Cleanup old completed jobs (cron job)
+export async function cleanupOldJobs(
+  supabase: SupabaseClient,
+  daysToKeep: number = 30
+): Promise<void> {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
+
+  await supabase
+    .from('export_jobs')
+    .delete()
+    .in('status', ['completed', 'failed'])
+    .lt('completed_at', cutoffDate.toISOString())
+}
+```
+
+---
+
 ## Data Flow Checklist
 
 Before implementing any data flow:

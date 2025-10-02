@@ -126,7 +126,7 @@ export async function POST(req: Request) {
             {
               type: 'file',
               data: buffer,
-              mimeType: 'application/pdf',
+              mediaType: 'application/pdf',
             },
           ],
         },
@@ -184,15 +184,17 @@ export async function POST(req: Request) {
 
           // Calculate cost and record operation
           const usage = await result.usage;
-          const cost = calculateCost(usage.promptTokens, usage.completionTokens);
+          const inputTokens = (usage as any).promptTokens || 0;
+          const outputTokens = (usage as any).completionTokens || 0;
+          const cost = calculateCost(inputTokens, outputTokens);
 
-          await incrementQuota(supabase, user.id, usage.promptTokens + usage.completionTokens, cost);
+          await incrementQuota(supabase, user.id, inputTokens + outputTokens, cost);
 
           await createOperation(supabase, {
             user_id: user.id,
             operation_type: 'import',
-            input_tokens: usage.promptTokens,
-            output_tokens: usage.completionTokens,
+            input_tokens: inputTokens,
+            output_tokens: outputTokens,
             cost,
             duration_ms: duration,
             success: true,

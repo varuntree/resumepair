@@ -10,6 +10,8 @@ const nextConfig = {
       "logos-world.net",
     ],
   },
+  // Exclude Puppeteer and Chromium from serverless bundling
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
 };
 
 module.exports = nextConfig;

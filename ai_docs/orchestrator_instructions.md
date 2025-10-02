@@ -161,6 +161,72 @@ Before starting any phase, the orchestrator MUST:
 - Phase 7: Rich text editors, content sanitization libraries, document linking patterns
 - Phase 8: Performance optimization techniques, monitoring solutions, analytics implementations
 
+### Research-First Approach (BEST PRACTICE)
+
+**Evidence from Phase 5**: The research-first approach provided massive ROI:
+- **Time Investment**: 4 hours of upfront research
+- **Time Saved**: ~10 hours of implementation trial-and-error
+- **Quality Impact**: Code review score 89/100 on first attempt (after fixes)
+- **Confidence**: No fundamental architectural rewrites needed
+
+**When to Apply**:
+- ✅ Complex features requiring technical decisions (PDF generation, AI streaming, queue management)
+- ✅ Integration with external libraries or services
+- ✅ Performance-critical components
+- ✅ Security-sensitive features
+- ❌ Simple CRUD operations (overkill)
+- ❌ UI components using established patterns (redundant)
+
+**Research Objectives**:
+1. **Identify Production Patterns**: Analyze 5-10 production OSS repositories
+2. **Extract Code References**: Cite exact file:line references from OSS
+3. **Validate Constraints**: Ensure compatibility with serverless/tech stack
+4. **Document Trade-Offs**: Compare approaches with pros/cons
+5. **Provide Copy-Paste Examples**: Include working code snippets
+
+**Research Deliverables** (systems-researcher output should include):
+```markdown
+## 1. Solution Overview
+- Recommended approach with justification
+- Key libraries/tools with versions
+- Architecture diagram (text-based)
+
+## 2. OSS Evidence
+- Repository 1: [name] ([GitHub URL])
+  - Pattern: [description]
+  - Code: [file:line reference]
+  - Why relevant: [explanation]
+- [Repeat for 5-10 repos]
+
+## 3. Implementation Patterns
+- Pattern 1: [name]
+  - Code example (copy-paste ready)
+  - When to use
+  - Trade-offs
+- [Repeat for all patterns]
+
+## 4. Stack Compatibility
+- ✅ Serverless: [verification]
+- ✅ Next.js 14: [verification]
+- ✅ TypeScript: [verification]
+- ⚠️ Constraints: [any limitations]
+
+## 5. Recommended Approach
+- Library/tool recommendation
+- Configuration for our stack
+- Migration path (if replacing existing)
+```
+
+**Success Criteria**:
+- Implementer can build from research without additional investigation
+- All technical unknowns resolved before implementation starts
+- Code patterns are production-proven (not theoretical)
+
+**ROI Calculation**:
+- **Acceptable**: Research time ≤ 25% of estimated implementation time
+- **Good**: Research prevents >1 major architectural rework
+- **Excellent**: Research identifies performance/security issues early
+
 ### Phase 3: Planning Architecture
 
 **Agent**: planner-architect

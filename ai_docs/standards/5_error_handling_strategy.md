@@ -457,7 +457,279 @@ log.info('Document created', {
 
 ---
 
-## 8. Error Recovery Patterns
+## 8. Transaction Boundaries
+
+**Why**: Multi-step database operations can fail partway through, leaving inconsistent state.
+
+### The Problem
+
+```typescript
+// ❌ WRONG: Race condition - job marked complete before history exists
+await updateJobStatus(supabase, jobId, 'completed', { result_url: url })
+await recordExport(supabase, { user_id, document_id, file_name })
+// If recordExport fails, job shows "complete" but download button fails!
+```
+
+### The Solution: Critical Operation First
+
+**Rule**: Order operations so that if the second fails, the system degrades gracefully.
+
+```typescript
+// ✅ CORRECT: Create history record FIRST
+// 1. Critical operation (user can re-download)
+await recordExport(supabase, {
+  user_id: job.user_id,
+  document_id: job.document_id,
+  file_name: fileName,
+  file_path: filePath,
+  file_size: buffer.length,
+  expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+})
+
+// 2. Then mark job complete
+await updateJobStatus(supabase, jobId, 'completed', {
+  completed_at: new Date().toISOString(),
+  result_url: signedUrl,
+  progress: 100
+})
+
+// If step 2 fails:
+// - History exists → user can still download
+// - Job stays 'processing' → will retry/recover
+// - No data loss
+```
+
+### Transaction Analysis Questions
+
+Before implementing multi-step operations, ask:
+
+1. **Which operation is more critical?**
+   - Put the most important operation first
+   - Example: Recording data > Updating status
+
+2. **What happens if operation N fails?**
+   - Can the system recover?
+   - Does it leave inconsistent state?
+
+3. **Should they be in a database transaction?**
+   - If both must succeed or both must fail → use transaction
+   - If graceful degradation is acceptable → order carefully
+
+4. **What's the correct order for graceful degradation?**
+   - Put user-facing consequences last
+   - Put data integrity operations first
+
+### Database Transaction Pattern
+
+```typescript
+// For operations that MUST be atomic
+export async function transferCredits(
+  supabase: SupabaseClient,
+  fromUserId: string,
+  toUserId: string,
+  amount: number
+): Promise<void> {
+  const { error } = await supabase.rpc('transfer_credits', {
+    p_from_user_id: fromUserId,
+    p_to_user_id: toUserId,
+    p_amount: amount
+  })
+
+  if (error) throw error
+}
+
+// SQL function with transaction
+CREATE OR REPLACE FUNCTION transfer_credits(
+  p_from_user_id UUID,
+  p_to_user_id UUID,
+  p_amount INTEGER
+) RETURNS VOID AS $$
+BEGIN
+  -- Both operations must succeed or both fail
+  UPDATE user_credits SET balance = balance - p_amount
+  WHERE user_id = p_from_user_id;
+
+  UPDATE user_credits SET balance = balance + p_amount
+  WHERE user_id = p_to_user_id;
+
+  -- Implicit COMMIT at end of function
+  -- ROLLBACK on any error
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Common Patterns
+
+**Pattern 1: Create Before Update**
+```typescript
+// Good for: Export jobs, file operations
+await createRecord()     // If this fails, nothing changes
+await updateStatus()     // If this fails, record exists (retry possible)
+```
+
+**Pattern 2: Validate Before Mutate**
+```typescript
+// Good for: Purchases, destructive actions
+await validatePreconditions()  // Check quotas, permissions
+await performAction()          // Make changes
+```
+
+**Pattern 3: Compensating Transactions**
+```typescript
+// Good for: External API calls
+try {
+  const externalId = await externalAPI.create()
+  await saveToDatabase({ external_id: externalId })
+} catch (error) {
+  // Compensate: cleanup external resource
+  await externalAPI.delete(externalId)
+  throw error
+}
+```
+
+---
+
+## 9. Boundary Validation
+
+**Why**: Never trust external data - always validate at system boundaries.
+
+### The Problem
+
+```typescript
+// ❌ WRONG: No validation before use
+const document = await getDocument(supabase, documentId, userId)
+const pdf = await generatePDF(document.data, templateId, config)
+// Crashes with "Cannot read property 'profile' of undefined"
+```
+
+### The Solution: Validate at Boundaries
+
+**Rule**: Always validate data structure at the boundary between systems.
+
+```typescript
+// ✅ CORRECT: Validate data exists
+const document = await getDocument(supabase, documentId, userId)
+
+// Boundary validation: Check data exists
+if (!document.data || typeof document.data !== 'object') {
+  throw new Error(`Invalid document data for document ${documentId}`)
+}
+
+// Boundary validation: Check required fields
+const requiredFields = ['profile', 'work', 'education', 'skills']
+const missingFields = requiredFields.filter(field => !document.data[field])
+if (missingFields.length > 0) {
+  throw new Error(`Document missing required fields: ${missingFields.join(', ')}`)
+}
+
+// Now safe to use
+const pdf = await generatePDF(document.data, templateId, config)
+```
+
+### System Boundaries
+
+Validate at these boundaries:
+
+1. **API Input** - Request body, query params, headers
+2. **Database Output** - Data from queries (schema changes)
+3. **External APIs** - Third-party responses (AI, payment, etc.)
+4. **File Uploads** - User-provided files
+5. **Environment Variables** - Configuration (startup validation)
+
+### Validation Patterns
+
+**Pattern 1: Schema Validation with Zod**
+```typescript
+import { z } from 'zod'
+
+const ResumeDataSchema = z.object({
+  profile: z.object({
+    name: z.string(),
+    email: z.string().email(),
+  }),
+  work: z.array(z.object({
+    company: z.string(),
+    position: z.string(),
+  })),
+  education: z.array(z.any()),
+  skills: z.array(z.any()),
+})
+
+// Validate at boundary
+export async function generatePDF(
+  documentId: string,
+  templateId: string
+): Promise<Buffer> {
+  const document = await getDocument(documentId)
+
+  // Validate structure
+  const validation = ResumeDataSchema.safeParse(document.data)
+  if (!validation.success) {
+    throw new Error(`Invalid resume data: ${validation.error.message}`)
+  }
+
+  // Use validated data
+  return await renderPDF(validation.data, templateId)
+}
+```
+
+**Pattern 2: Runtime Type Guards**
+```typescript
+function isValidResumeData(data: unknown): data is ResumeData {
+  if (!data || typeof data !== 'object') return false
+
+  const d = data as any
+  return (
+    d.profile &&
+    typeof d.profile === 'object' &&
+    Array.isArray(d.work) &&
+    Array.isArray(d.education) &&
+    Array.isArray(d.skills)
+  )
+}
+
+// Usage
+const document = await getDocument(documentId)
+if (!isValidResumeData(document.data)) {
+  throw new Error('Invalid resume data structure')
+}
+// TypeScript now knows document.data is ResumeData
+```
+
+**Pattern 3: Defensive Field Access**
+```typescript
+// For optional or nullable fields
+const email = document.data?.profile?.email
+if (!email) {
+  throw new Error('Email is required for this operation')
+}
+
+// For arrays
+const workExperience = document.data?.work ?? []
+if (workExperience.length === 0) {
+  console.warn('No work experience found')
+}
+```
+
+### Error Messages for Validation Failures
+
+```typescript
+// ✅ GOOD: Specific, actionable error
+throw new Error(`Document ${documentId} missing required field: profile.email`)
+
+// ✅ GOOD: List all problems at once
+const errors = validateDocument(data)
+if (errors.length > 0) {
+  throw new Error(`Validation failed: ${errors.join(', ')}`)
+}
+
+// ❌ BAD: Vague, unhelpful error
+throw new Error('Invalid data')
+```
+
+---
+
+## 10. Error Recovery Patterns
 
 ```typescript
 class AutoSave {

@@ -172,6 +172,40 @@ enum ApiErrorCode {
 }
 ```
 
+### Error Response Utility (apiError)
+
+**CRITICAL**: The `apiError` utility has a specific parameter order that MUST be followed:
+
+```typescript
+/**
+ * apiError signature:
+ * @param statusCode - HTTP status code (400, 404, 500, etc.)
+ * @param message - User-facing error message
+ * @param error - Original error object (optional, for logging)
+ * @param code - Error code for categorization (optional)
+ */
+function apiError(
+  statusCode: number,
+  message: string,
+  error?: unknown,
+  code?: string
+): Response
+
+// ✅ CORRECT - Proper parameter order
+return apiError(429, 'Too many requests. Please try again later.', undefined, 'RATE_LIMITED')
+return apiError(404, 'Document not found', undefined, 'NOT_FOUND')
+return apiError(500, 'Failed to process export', error, 'EXPORT_FAILED')
+
+// ❌ WRONG - Inverted parameter order (common mistake)
+return apiError('RATE_LIMITED', 'Too many concurrent exports', 429)
+return apiError('NOT_FOUND', 'Document not found', 404)
+```
+
+**Before using apiError**:
+1. Verify the utility signature in your codebase
+2. Check existing usage with: `grep -r "apiError" app/api/`
+3. Add the correct signature to your implementation checklist
+
 ### Error Responses
 
 ```typescript

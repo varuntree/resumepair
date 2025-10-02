@@ -34,7 +34,7 @@ export function ImportReview() {
     );
   }
 
-  const { data, confidence } = parsedResume;
+  const { data, confidence = 0 } = parsedResume;
 
   // Apply corrections to data
   const finalData = {

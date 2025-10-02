@@ -121,7 +121,8 @@ export const useImportStore = create<ImportState>((set, get) => ({
     try {
       // Encode file to base64
       const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const bytes = Array.from(new Uint8Array(arrayBuffer));
+      const base64 = btoa(String.fromCharCode(...bytes));
 
       // Send request to streaming endpoint
       const response = await fetch('/api/v1/ai/import', {
