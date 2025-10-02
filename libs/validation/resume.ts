@@ -80,7 +80,7 @@ export const EducationSchema = z.object({
  */
 export const ProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
-  link: z.string().url('Invalid URL').optional().or(z.literal('')),
+  link: z.string().url('Invalid URL').optional(),
   summary: z.string().optional(),
   bullets: z.array(z.string()).optional(),
   techStack: z.array(z.string()).optional(),

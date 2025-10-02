@@ -29,7 +29,7 @@
 > * **Scoring weights**: ATS Readiness 30, Keyword Match 25, Content Strength 20, Format Quality 15, Completeness 10.
 > * **DOCX**: “Good‑enough” parity (not pixel‑perfect).
 > * **Persistence**: Résumé/Cover Letter stored as **versioned JSONB documents** + thin relational metadata.
-> * **AI rate limits**: Soft 3 req/s/user; hard 10 requests/10s/user; graceful 429 with retry‑after.
+> * **AI rate limits** (Phase 4.5 simplified): Database-only quota (100 operations/day); graceful 429 with retry-after.
 > * **Logging**: Error + perf metrics only; **no analytics**.
 
 ---
@@ -133,12 +133,20 @@ migrations/               # phase folders + SQL files (file‑only per process)
 3. Autosave (debounced) → `PUT /resumes/{id}` with updated JSON.
 4. Score recalculates locally (deterministic) and optionally calls `POST /score` for rubric hints.
 
-### 4.2 PDF Import → ResumeJson
+### 4.2 PDF Import → ResumeJson (Phase 4.5 Refactored)
 
-1. User uploads PDF → `POST /import/pdf` (Node)
-2. Extract text (pdf-parse/unpdf). If no text layer → offer OCR (Tesseract; capped pages).
-3. AI SDK → **Gemini** with **strict Zod schema** → `ResumeJson`.
-4. Respond with `{resume, confidence, ocrUsed}` → client shows Review/Fix view → user accepts → save as new doc.
+**Current Implementation** (Phase 4.5):
+1. User uploads PDF → `POST /api/v1/ai/import` (Edge, SSE streaming)
+2. Gemini multimodal processes PDF directly (handles text extraction + OCR automatically)
+3. SSE streams `ResumeJson` progress with events: `progress` → `update` → `complete`
+4. Client shows real-time streaming preview → Review/Fix view → user accepts → save as new doc.
+
+**Key Changes from Phase 4**:
+- ~~Two endpoints~~ → Single streaming endpoint
+- ~~unpdf + separate Gemini call~~ → Gemini multimodal (native PDF processing)
+- ~~Node runtime~~ → Edge runtime (faster cold starts)
+- ~~No streaming~~ → Real-time SSE streaming (identical to AI generation flow)
+- ~~Tesseract.js OCR~~ → Gemini built-in OCR
 
 ### 4.3 AI Zero‑to‑Draft
 

@@ -12,6 +12,7 @@ import { DocumentSort } from '@/components/documents/DocumentSort'
 import { EmptyDocuments } from '@/components/documents/EmptyDocuments'
 import { CreateDocumentDialog } from '@/components/documents/CreateDocumentDialog'
 import { useDocumentListStore } from '@/stores/documentListStore'
+import { AIQuotaIndicator } from '@/components/ai/AIQuotaIndicator'
 
 export default function DashboardPage(): React.ReactElement {
   const router = useRouter()
@@ -186,42 +187,53 @@ export default function DashboardPage(): React.ReactElement {
           </Button>
         </div>
 
-        {/* Filters and Search */}
-        {!showEmpty && (
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="flex-1">
-              <DocumentSearch
-                onSearch={handleSearch}
-                defaultValue={filters.search || ''}
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <DocumentFilters
-                status={filters.status || 'all'}
-                onStatusChange={handleStatusChange}
-              />
-              <DocumentSort
-                sort={sorting.field}
-                order={sorting.order}
-                onSortChange={handleSortChange}
-                onOrderChange={handleOrderToggle}
-              />
-            </div>
-          </div>
-        )}
+        {/* Main Layout: Content + Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+          {/* Main Content */}
+          <div className="space-y-8">
+            {/* Filters and Search */}
+            {!showEmpty && (
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <DocumentSearch
+                    onSearch={handleSearch}
+                    defaultValue={filters.search || ''}
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <DocumentFilters
+                    status={filters.status || 'all'}
+                    onStatusChange={handleStatusChange}
+                  />
+                  <DocumentSort
+                    sort={sorting.field}
+                    order={sorting.order}
+                    onSortChange={handleSortChange}
+                    onOrderChange={handleOrderToggle}
+                  />
+                </div>
+              </div>
+            )}
 
-        {/* Document Grid */}
-        {showEmpty ? (
-          <EmptyDocuments onCreateNew={() => setCreateDialogOpen(true)} />
-        ) : (
-          <DocumentGrid
-            documents={documents}
-            loading={isLoading}
-            onEdit={handleEdit}
-            onDuplicate={handleDuplicate}
-            onDelete={handleDelete}
-          />
-        )}
+            {/* Document Grid */}
+            {showEmpty ? (
+              <EmptyDocuments onCreateNew={() => setCreateDialogOpen(true)} />
+            ) : (
+              <DocumentGrid
+                documents={documents}
+                loading={isLoading}
+                onEdit={handleEdit}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
+              />
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-6">
+            <AIQuotaIndicator />
+          </aside>
+        </div>
 
         {/* Create Dialog */}
         <CreateDocumentDialog

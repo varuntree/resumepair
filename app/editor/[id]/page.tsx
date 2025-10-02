@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LivePreview } from '@/components/preview'
 import { PreviewControls } from '@/components/preview/PreviewControls'
 import { CustomizationPanel } from '@/components/customization/CustomizationPanel'
+import { EnhancementPanel } from '@/components/enhance/EnhancementPanel'
 import { useDocumentStore, useTemporalStore } from '@/stores/documentStore'
 import type { ResumeJson } from '@/types/resume'
 import type { SaveStatus } from '@/components/editor/EditorHeader'
@@ -196,6 +197,7 @@ export default function EditorPage(): React.ReactElement {
             <History className="h-4 w-4 mr-2" />
             Version History
           </Button>
+          <EnhancementPanel />
         </div>
       }
     >

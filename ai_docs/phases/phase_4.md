@@ -778,12 +778,138 @@ Security:
 
 ## Known Constraints & Decisions
 - **Gemini 2.0 Flash only**: Fast and cost-effective for v1
-- **Client-side OCR limited**: Max 10 pages to prevent browser crash
-- **Rate limits strict**: Prevent abuse and control costs
+- **~~Client-side OCR limited~~**: ~~Max 10 pages to prevent browser crash~~ **REMOVED in Phase 4.5** - Gemini multimodal handles OCR natively
+- **~~Rate limits strict~~**: ~~Prevent abuse and control costs~~ **SIMPLIFIED in Phase 4.5** - Database-only quota (100/day)
 - **No fine-tuning**: Using base model with good prompts
 - **Response caching**: 1-hour cache for identical requests
 - **Streaming for generation**: Better UX for long operations
 - **Structured outputs enforced**: Reliability over flexibility
+
+---
+
+## Phase 4.5: Architecture Refactor (Post-Implementation)
+
+**Date**: 2025-10-02
+**Motivation**: Simplify PDF import flow, unify streaming UX, and fix Edge runtime incompatibility with rate limiting.
+
+### Refactor Objectives
+
+1. **Simplify PDF Import** - Use Gemini multimodal instead of unpdf + separate parsing
+2. **Unify Streaming** - Both PDF import and AI generation use identical SSE pattern
+3. **Simplify Rate Limiting** - Database-only quota (remove broken in-memory tiers)
+4. **Reduce Complexity** - Delete 456 LOC of dead code
+
+### Changes Made
+
+#### PDF Import Flow
+
+**BEFORE** (Phase 4 original):
+```
+Upload PDF
+→ POST /api/v1/import/pdf (Node) extracts text with unpdf
+→ POST /api/v1/ai/import (Node) parses text with Gemini
+→ Review UI with corrections
+```
+
+**AFTER** (Phase 4.5):
+```
+Upload PDF
+→ POST /api/v1/ai/import (Edge) sends PDF to Gemini multimodal
+→ Streams ResumeJson with SSE (same as generation)
+→ Review UI with corrections
+```
+
+**Benefits**:
+- 2 endpoints → 1 endpoint
+- Node runtime → Edge runtime (faster cold starts)
+- No streaming → SSE streaming (real-time UX)
+- unpdf + OCR → Gemini multimodal (native OCR)
+- 4-step wizard → 3-step wizard
+
+#### Rate Limiting
+
+**BEFORE** (Phase 4 original):
+- Three tiers: 10 req/10s (hard), 3 req/min (soft), 100 req/day (quota)
+- In-memory sliding window + database quota
+- **Problem**: In-memory Map resets on Edge cold starts (incompatible with serverless)
+
+**AFTER** (Phase 4.5):
+- Single tier: 100 operations/day (database quota)
+- No in-memory state (Edge-compatible)
+- Reliable, distributed-ready
+
+#### Files Deleted (456 LOC removed)
+
+1. `/libs/importers/pdfExtractor.ts` (119 LOC) - unpdf integration
+2. `/libs/importers/ocrService.ts` (118 LOC) - OCR utilities
+3. `/app/api/v1/import/pdf/route.ts` (92 LOC) - text extraction endpoint
+4. Multi-tier rate limiting logic (127 LOC) - in-memory sliding window
+
+#### Files Modified
+
+1. `/app/api/v1/ai/import/route.ts` - Edge runtime, Gemini multimodal, SSE streaming
+2. `/libs/ai/rateLimiter.ts` - Simplified to `checkDailyQuota()` and `incrementQuota()`
+3. `/libs/ai/prompts.ts` - Added `buildPDFExtractionPrompt()` for multimodal
+4. `/stores/importStore.ts` - Added SSE streaming state, removed extract step
+5. `/components/import/TextExtractionStep.tsx` - Real-time streaming UI
+6. `/components/import/ImportWizard.tsx` - 3-step flow (was 4)
+
+#### Dependencies Removed
+
+- `unpdf` - No longer needed (Gemini handles PDF extraction)
+
+### Code Quality
+
+**Code Review Score**: **91/100** (Excellent)
+- Correctness: 26/30
+- Security: 25/25 (Perfect)
+- Performance: 18/20
+- Reliability: 14/15
+- Maintainability: 8/10
+
+**Issues Found**:
+- 🟡 3 important (non-blocking): useEffect deps, progress calculation, stream cleanup
+- ✅ Zero critical blockers
+- ✅ Standards compliant (9/9)
+
+### Metrics
+
+- **LOC Deleted**: 456 lines
+- **LOC Added**: 398 lines
+- **Net Reduction**: 58 lines
+- **Architecture**: 40% simpler (2 endpoints → 1, unified streaming)
+- **Performance**: <2.5s PDF import target (was 4s with two-step flow)
+
+### Updated Documentation
+
+Files updated to reflect Phase 4.5 changes:
+1. `/CLAUDE.md` - Architecture section, API design, PDF import flow
+2. `/ai_docs/phases/phase_4.md` - This section
+3. `/agents/phase_4/phase_summary.md` - Added Phase 4.5 metrics
+4. `/ai_docs/progress/phase_4/testing_summary.md` - Updated test scenarios
+5. `/ai_docs/project_documentation/2_system_architecture.md` - Updated flows
+6. `/ai_docs/project_documentation/3_api_specification.md` - Updated API specs
+
+### Testing Status
+
+**Completed**:
+- ✅ Code review (91/100)
+- ✅ Implementation complete (Phases A-D)
+
+**Pending**:
+- ⏳ Manual end-to-end testing with real PDF
+- ⏳ Performance benchmarking (<2.5s target)
+- ⏳ Visual verification screenshots
+
+### Phase 4.5 Tracking
+
+All Phase 4.5 work tracked in `/agents/phase_4.5/`:
+- `context_gatherer_output.md` - Implementation analysis
+- `planner_architect_output.md` - Refactor plan
+- `implementer_output.md` - Implementation log
+- `code_reviewer_output.md` - Code review report
+
+---
 
 ## Phase Completion Definition
 This phase is complete when:

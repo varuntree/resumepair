@@ -78,12 +78,16 @@ types/
 ```
 app/
   api/v1/
-    ai/draft/          # AI-powered drafting (Edge, SSE)
-    export/            # PDF/DOCX generation (Node)
-    import/            # PDF import & OCR (Node)
-    resumes/           # CRUD for resumes
-    cover-letters/     # CRUD for cover letters
-    score/             # Resume/cover letter scoring
+    ai/
+      draft/          # AI-powered drafting (Edge, SSE)
+      import/         # PDF import with Gemini multimodal (Edge, SSE) - Phase 4.5 refactored
+      generate/       # AI resume generation (Edge, SSE)
+      enhance/        # Content enhancement (Edge)
+      match/          # Job description matching (Edge)
+    export/           # PDF/DOCX generation (Node)
+    resumes/          # CRUD for resumes
+    cover-letters/    # CRUD for cover letters
+    score/            # Resume/cover letter scoring
 libs/
   api-utils/           # API wrappers (withApiHandler, withAuth, apiSuccess/apiError)
   repositories/        # Pure functions for DB access (server-only, DI with Supabase client)
@@ -102,9 +106,10 @@ migrations/            # SQL migration files (NEVER auto-apply)
 ### API Design
 - All API routes MUST use `withApiHandler` (public) or `withAuth` (protected)
 - All responses use `ApiResponse<T>` envelope: `{ success, data?, error?, message? }`
+  - **Exception**: SSE streaming endpoints return `text/event-stream` for real-time updates
 - Validate all inputs with Zod schemas
-- Edge runtime for: AI streaming, light reads
-- Node runtime for: PDF/DOCX export, PDF parsing/OCR, file uploads
+- Edge runtime for: AI streaming (import, generate, enhance, match), light reads
+- Node runtime for: PDF/DOCX export, file processing
 - API versioning: `/api/v1/*` (major version only)
 
 ### Repository Pattern
@@ -257,12 +262,18 @@ These workflows describe the target Phase 1 implementation. They document the in
 4. Client updates preview in real-time
 5. User saves final draft as document
 
-### PDF Import Flow
-1. Upload to `/api/v1/import/pdf` (Node)
-2. Extract text via pdf-parse/unpdf
-3. If no text layer, offer OCR (Tesseract, ≤10 pages)
-4. Send to Gemini with strict Zod schema → ResumeJson
-5. Show Review & Fix UI before saving
+### PDF Import Flow (Phase 4.5 Refactored)
+1. Upload PDF to `/api/v1/ai/import` (Edge, SSE streaming)
+2. Gemini multimodal processes PDF directly (handles both text extraction and OCR automatically)
+3. SSE streams ResumeJson progress in real-time (progress → update → complete events)
+4. Show Review & Fix UI with parsed data
+5. User saves as new resume document
+
+**Key Improvements** (Phase 4.5):
+- Single streaming endpoint (was 2 separate endpoints)
+- Gemini handles OCR natively (removed unpdf, Tesseract dependencies)
+- Real-time streaming UX (identical to AI generation flow)
+- Edge runtime for faster performance
 
 ### Scoring
 1. Phase A (deterministic): Local checks on JSON structure
@@ -388,7 +399,7 @@ See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual 
 - Templates must be **pure React** and schema-agnostic
 - All dates stored as ISO strings; format via Intl at render time
 - Feature flags: Simple env or in-code toggles (no flag service)
-- Rate limiting: In-memory token bucket (3 req/s soft, 10 req/10s hard)
+- Rate limiting: Database-only quota (100 operations/day) - Phase 4.5 simplified for Edge compatibility
 
 ## Reference Files
 
