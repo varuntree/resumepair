@@ -18,7 +18,6 @@
 | Score – deterministic only                        | ≤ **200 ms**                          |
 | Score – with LLM rubric                           | ≤ **1.2 s**                           |
 | **PDF export** (1–2 pages)                        | ≤ **2.5 s**                           |
-| DOCX export                                       | ≤ **1.5 s**                           |
 | Mobile first contentful interaction (editor load) | ≤ **2.0 s**                           |
 | Edge route TTFB (AI/score)                        | ≤ **200 ms** (excl. provider latency) |
 
@@ -100,7 +99,7 @@ Typical indie SaaS loads: dozens of concurrent users. The above budgets assume *
 ## 5. Edge vs Node Runtime Guidance
 
 * **Edge**: low‑latency AI streaming and scoring (no binary, no headless browser).
-* **Node**: PDF/DOCX export, PDF parse/OCR, file uploads.
+* **Node**: PDF export, PDF parse/OCR, file uploads.
 * **Rule**: Don’t import heavy Node‑only modules into Edge routes. Use route‑local imports.
 
 ---

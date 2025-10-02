@@ -8,7 +8,7 @@
 2. **Templates**: multiple designs with color/font/spacing/icon customization.
 3. **Cover letter** with the same 3 start modes and template system.
 4. **Scoring sidebar** (modular ATO/“résumé score”) usable anywhere in the app.
-5. **Exports**: PDF and DOCX.
+5. **Exports**: PDF.
 
 > **Backbone**: The app uses the (Vercel) **AI SDK** (“Virtual AI SDK” in the brief) for model orchestration & structured outputs, with **Gemini 2.0 Flash** as the default writer/extractor model. The AI SDK provides provider‑agnostic structured output generation and streams; Gemini supports structured/JSON outputs and large‑context, multimodal understanding (important for PDF import and job‑description alignment). ([AI SDK][1])
 
@@ -25,7 +25,7 @@ Most résumé builders feel heavy—many inputs before a result, janky previews,
 * **<60s to first draft** starting from any of the 3 modes.
 * **Smooth, near‑instant preview** as the user types (subjective: “no jitter”).
 * **Consistent schema** across all templates to keep logic simple and stable.
-* **ATS‑safe outputs** (machine‑readable PDFs and DOCX, standard fonts, simple layout).
+* **ATS‑safe outputs** (machine‑readable PDFs, standard fonts, simple layout).
 * **Reusable scoring** component for any résumé/cover letter instance.
 * **Serverless‑friendly implementation** with maintainable code paths and low costs.
 
@@ -63,7 +63,6 @@ Success metrics (internal):
 **Exports**:
 
 * **PDF**: HTML → PDF via headless Chromium (Puppeteer/Playwright) in a serverless function; export uses print CSS and paged media semantics. ([Vercel][4])
-* **DOCX**: `docx` (dolanmiu/docx). ([docx.js.org][5])
 
 **Templates**: React components with a shared data schema + design tokens.
 **Scoring**: Deterministic rules + lightweight model rubric (Gemini) → composite score.
@@ -179,11 +178,7 @@ Success metrics (internal):
 
 * **Preferred**: HTML/CSS → **Puppeteer/Playwright** headless Chromium in a Node serverless function that calls `page.pdf()` with `@page` rules. Proven on Vercel with `puppeteer-core` + `@sparticuz/chromium` (Chromium trimmed for serverless). Use Playwright if we standardize on its API. ([Vercel][4])
 * **Why not client‑side**: client PDF libs struggle with page layout fidelity & fonts; server renders ensure **WYSIWYG** with the same HTML/CSS used for preview.
-* **Fallback/Scale**: If serverless size/timeouts become an issue, run **Gotenberg** (Chromium/LibreOffice in a container) as a **separate microservice**—kept out of the main Next.js deploy; internal endpoint only. ([Gotenberg][9])
-
-### 6.3 DOCX Export
-
-* Use **`docx`** library to map the same schema to paragraphs/runs/styles. DOCX output won’t be pixel‑identical (that’s OK); it’s explicitly for ATS portals or recruiters requesting Word. ([docx.js.org][5])
+* **Fallback/Scale**: If serverless size/timeouts become an issue, run **Gotenberg** (Chromium in a container) as a **separate microservice**—kept out of the main Next.js deploy; internal endpoint only. ([Gotenberg][9])
 
 ---
 
@@ -263,7 +258,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
    * Machine‑readable? (no scanned images only; text layer present)
    * No content solely inside images or complex tables; heading hierarchy present.
    * Allowed fonts used; size ≥ 10pt; sufficient contrast.
-   * Export contains selectable text (PDF), and DOCX generated successfully.
+   * Export contains selectable text (PDF).
 2. **Keyword Match (0–25)**
 
    * Extract JD keywords (nouns/skills) vs. résumé coverage; penalize missing core terms; bonus for quantified, relevant bullets.
@@ -283,7 +278,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 * **Phase B (LLM rubric)**: optional 1 small call to Gemini for qualitative scoring on clarity & impact with an explicit rubric → returns numeric breakdown + suggestions (kept ≤ 512 tokens).
 * **Output**: overall, sub‑scores, **suggestions[]** with `severity`, `sectionRef`, and `one‑click Quick Fix` where safe (e.g., change date style, toggle icons).
 
-> References on ATS‑safety (fonts/format/PDF vs DOCX) vary; consensus is to prefer **simple, text‑based PDF and DOCX** with standard fonts and minimal columns/tables. We follow that, providing both exports. ([Jobscan][10])
+> References on ATS‑safety (fonts/format) recommend **simple, text‑based PDF** with standard fonts and minimal columns/tables. We follow that standard for PDF exports. ([Jobscan][10])
 
 ---
 
@@ -301,7 +296,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 * **State**: `zustand` store with **immer** middleware; implement undo/redo using **patches** or `zundo` temporal middleware. Keep history size bounded; group changes during fast typing. ([immerjs.github.io][17])
 * **Preview budget**: Apply edits → recompute affected blocks only; throttle heavy reflows.
 * **Autosave**: Debounced; store patch diffs or snapshots (v1 OK with snapshots).
-* **PDF export latency target**: < 2.5s for 1–2 pages; DOCX < 1.5s.
+* **PDF export latency target**: < 2.5s for 1–2 pages.
 
 ---
 
@@ -326,7 +321,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 
 ## 15) Error Handling & Observability
 
-* **Soft failures**: If PDF export fails, show actionable message (“Try DOCX / try simpler template headers”).
+* **Soft failures**: If PDF export fails, show actionable message ("Try simpler template / reduce content length").
 * **Import**: If extraction quality < threshold, prompt “Import Low Confidence” and jump to review screen.
 * **Logging**: Non‑PII error telemetry (endpoint latency, export success/failure counts), feature usage (template switches) for product quality only (no marketing targeting).
 
@@ -348,18 +343,14 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
   2. SSR renders the **same HTML** with template CSS,
   3. Starts headless Chromium (Playwright or `puppeteer-core` + `@sparticuz/chromium`) and `page.pdf()` with `printBackground: true`, `format: A4/Letter`, `preferCSSPageSize: true`.
 * Verified approaches & caveats for Vercel serverless exist; use the **trimmed Chromium** package to fit the bundle and follow Vercel sizing advice. ([Vercel][4])
-* If we hit cold‑start limits or timeouts at scale, deploy **Gotenberg** separately (Fly/Render/Koyeb) and call via internal API; it renders HTML with Chromium and also converts DOCX → PDF if needed in the future. ([Gotenberg][9])
+* If we hit cold‑start limits or timeouts at scale, deploy **Gotenberg** separately (Fly/Render/Koyeb) and call via internal API for dedicated PDF rendering. ([Gotenberg][9])
 
-### 16.3 DOCX Generation
-
-* `docx` maps schema to Word paragraphs, headings, bullet lists, and tables (sparingly). Embed margins and page size; embed fonts where permitted or stick to Word defaults. ([docx.js.org][5])
-
-### 16.4 PDF Import
+### 16.3 PDF Import
 
 * Primary parser: **pdf‑parse/unpdf** on server; if page has **no text layer**, show “Use OCR” toggle; run **Tesseract.js** server‑side (Edge Function or background Node) with a **page limit (≤10 pages)**. ([npm][6])
 * Feed the resulting text to **P‑Extract‑Resume** with structured output target. ([Google AI for Developers][7])
 
-### 16.5 Images
+### 16.4 Images
 
 * Upload avatar to Supabase Storage; generate transformed sizes via **Storage Image Transformations**; use signed URLs in the editor; revoke on sign‑out. ([Supabase][20])
 
@@ -368,7 +359,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 ## 17) UX Details
 
 * **Two‑pane layout**: Left editor forms; right live preview (pages).
-* **Top bar**: Template switcher, color/theme dropdown, font selector, spacing control, export buttons (PDF/DOCX), undo/redo, score badge.
+* **Top bar**: Template switcher, color/theme dropdown, font selector, spacing control, export button (PDF), undo/redo, score badge.
 * **Section add/remove/reorder** via drag handle; real‑time preview updates.
 * **Icon control**: toggle icons globally or per section.
 * **Date format menu**: US (MMM YYYY), ISO (YYYY‑MM), EU (DD MMM YYYY).
@@ -395,8 +386,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 
 ## 19) Exports — Compliance & Quality
 
-* **PDF**: must be **selectable text** (never flattened images). Use print CSS + Paged rules and embed fonts. Machine‑readable PDFs are widely supported by ATS if simple; we still provide DOCX as well to cover portals preferring Word. ([resumeworded.com][21])
-* **DOCX**: consistent heading styles, bullets, margins. No text in text boxes for main content.
+* **PDF**: must be **selectable text** (never flattened images). Use print CSS + Paged rules and embed fonts. Machine‑readable PDFs are widely supported by ATS when following simple, text‑based layout standards. ([resumeworded.com][21])
 
 ---
 
@@ -425,7 +415,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 
 **M2 – Export (1 week)**
 
-* PDF serverless export (Chromium) + DOCX export. Tests with long/short content.
+* PDF serverless export (Chromium). Tests with long/short content.
 
 **M3 – AI Modes (2 weeks)**
 
@@ -449,7 +439,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 
 * **AC‑Preview**: Typing in any field updates the preview **within p95 ≤120ms**.
 * **AC‑Templates**: Switching templates never loses content; all sections render.
-* **AC‑Export**: PDF and DOCX downloads succeed ≥99.5% in test matrix (Windows/macOS browsers, Letter/A4). PDFs have selectable text; DOCX opens in Word/Google Docs.
+* **AC‑Export**: PDF downloads succeed ≥99.5% in test matrix (Windows/macOS browsers, Letter/A4). PDFs have selectable text.
 * **AC‑Import**: Given a text‑layer PDF, ≥95% of sections/fields are correctly populated; OCR fallback flagged when needed.
 * **AC‑Score**: Score appears in ≤1s after major edit; clicking a suggestion focuses the relevant control.
 * **AC‑Security**: RLS policies block cross‑user access; media via signed URLs only. ([Supabase][18])
@@ -460,7 +450,6 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 
 * **AI Orchestration**: **AI SDK** for TypeScript with **structured outputs** (`generateObject/streamObject`) → one schema across providers; **Gemini 2.0 Flash** for fast generation/extraction and multimodal understanding. ([AI SDK][1])
 * **PDF Export**: **Headless Chromium** (Playwright/Puppeteer) in serverless; proven patterns and Vercel guide; **Paged/CSS print** semantics. Gotenberg as scalable fallback service if needed. ([Vercel][4])
-* **DOCX**: `docx` library (battle‑tested). ([docx.js.org][5])
 * **Icons**: **Iconify** with **Tabler** and **Lucide** (all permissive licenses; huge coverage). ([Iconify][11])
 * **Image Handling**: `react‑easy‑crop`, `browser‑image‑compression`, and **Supabase Storage with image transformations**. ([valentinh.github.io][15])
 * **Internationalization**: `Intl.DateTimeFormat`; **address‑formatter/i18n‑postal‑address**; **libphonenumber‑js**. ([MDN Web Docs][12])
@@ -473,7 +462,7 @@ Provide immediate, actionable feedback and a single score (0–100). Must be che
 * **OCR accuracy** on scanned PDFs → restrict to ≤10 pages v1; warn user; force manual review. ([tesseract.projectnaptha.com][22])
 * **AI hallucination** → strict schema, content validation; “no fabrication” rule; user review gates.
 * **Font glyph coverage** for non‑Latin scripts → ship **Noto** fallbacks and embed fonts in PDF.
-* **ATS variability** → provide both PDF and DOCX; stick to simple, text‑based layout and standard fonts. ([resumeworded.com][21])
+* **ATS variability** → provide PDF with simple, text‑based layout and standard fonts for maximum compatibility. ([resumeworded.com][21])
 
 ---
 
@@ -522,8 +511,8 @@ settings: { locale: string; dateFormat: "US"|"ISO"|"EU"; addressFormat?: string;
 
 * A single, consistent **schema‑driven** system that feeds **editor → preview → export → score**.
 * **Modular AI** prompts and schemas, easy to tweak without code churn.
-* **Live preview** that feels native and instant, with robust **exports** (PDF & DOCX).
-* **Internationalization** that “just works” (dates, addresses, phones).
+* **Live preview** that feels native and instant, with robust **PDF export**.
+* **Internationalization** that "just works" (dates, addresses, phones).
 * A **reusable scoring** engine to deploy across résumé & cover letters.
 
 ---

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ResumePair is an AI-assisted résumé and cover-letter builder built on Next.js 14 (App Router) with a schema-driven architecture. The product emphasizes Jobs-level simplicity: <60s to first draft, smooth live preview, ATS-safe outputs (PDF/DOCX), and reusable scoring components.
+ResumePair is an AI-assisted résumé and cover-letter builder built on Next.js 14 (App Router) with a schema-driven architecture. The product emphasizes Jobs-level simplicity: <60s to first draft, smooth live preview, ATS-safe PDF outputs, and reusable scoring components.
 
 **Core Tech Stack:**
 - Framework: Next.js 14 (App Router), React 18, TypeScript (strict mode)
@@ -13,7 +13,7 @@ ResumePair is an AI-assisted résumé and cover-letter builder built on Next.js 
 - Styling: Tailwind CSS + shadcn/ui components + CSS design tokens
 - State: Zustand with zundo (undo/redo)
 - Icons: Lucide React only
-- Exports: PDF (Puppeteer + Chromium), DOCX (docx library)
+- Exports: PDF (Puppeteer + Chromium)
 
 ## Essential Commands
 
@@ -84,7 +84,7 @@ app/
       generate/       # AI resume generation (Edge, SSE)
       enhance/        # Content enhancement (Edge)
       match/          # Job description matching (Edge)
-    export/           # PDF/DOCX generation (Node)
+    export/           # PDF generation (Node)
     resumes/          # CRUD for resumes
     cover-letters/    # CRUD for cover letters
     score/            # Resume/cover letter scoring
@@ -93,7 +93,7 @@ libs/
   repositories/        # Pure functions for DB access (server-only, DI with Supabase client)
   ai/                  # AI SDK wrappers, prompt modules, Zod schemas
   scoring/             # Deterministic checks + LLM rubric composer
-  exporters/           # PDF (Puppeteer) and DOCX generators
+  exporters/           # PDF (Puppeteer) generator
   templates/           # React renderers for resume/cover-letter by slug
   preview/             # HTML paginated preview helpers
   i18n/                # Date/address/phone formatting
@@ -109,7 +109,7 @@ migrations/            # SQL migration files (NEVER auto-apply)
   - **Exception**: SSE streaming endpoints return `text/event-stream` for real-time updates
 - Validate all inputs with Zod schemas
 - Edge runtime for: AI streaming (import, generate, enhance, match), light reads
-- Node runtime for: PDF/DOCX export, file processing
+- Node runtime for: PDF export, file processing
 - API versioning: `/api/v1/*` (major version only)
 
 ### Repository Pattern
@@ -172,7 +172,6 @@ migrations/            # SQL migration files (NEVER auto-apply)
 - Keystroke → preview paint: p95 ≤ 120ms
 - Template switch render: ≤ 200ms
 - PDF export (1-2 pages): ≤ 2.5s
-- DOCX export: ≤ 1.5s
 - Scoring (deterministic): ≤ 200ms
 - Scoring (with LLM): ≤ 1.2s
 
@@ -213,7 +212,7 @@ migrations/            # SQL migration files (NEVER auto-apply)
 ### Add Document Field (Phase 1)
 1. Update runtime Zod schema and bump `schemaVersion`
 2. Update editor form and preview rendering
-3. Update exporter mappings (PDF/DOCX)
+3. Update exporter mappings (PDF)
 4. Add migration only if storing derived field (rare)
 5. Provide upgrade path (clone into new schema)
 
@@ -253,7 +252,7 @@ These workflows describe the target Phase 1 implementation. They document the in
 2. Store in Zustand with zundo for undo/redo
 3. Autosave debounced updates via API
 4. Templates render from same schema
-5. Export to PDF (Puppeteer) or DOCX via `/api/v1/export/*`
+5. Export to PDF via `/api/v1/export/pdf`
 
 ### AI Drafting Flow
 1. Client sends input to `/api/v1/ai/draft/{type}?stream=true`

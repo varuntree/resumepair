@@ -16,7 +16,6 @@ A concise, repeatable, **npm‑only** setup your agent can follow for local dev 
 * **AI SDK**: `ai` (Virtual AI SDK) with **Google Generative AI provider** (Gemini 2.0 Flash). The provider uses `GOOGLE_GENERATIVE_AI_API_KEY` by default. ([AI SDK][3])
 * **Structured output**: AI SDK `generateObject` / `streamObject` with Zod schemas. ([AI SDK][4])
 * **PDF export**: `puppeteer-core` + ` @sparticuz/chromium` in **Node** runtime route handlers. Use Chromium’s serverless args from the package. ([GitHub][5])
-* **DOCX export**: `docx` library. ([docx.js.org][6])
 * **PDF import**: `pdf-parse` or `unpdf` (server); **OCR fallback** with `tesseract.js` (capped ≤ 10 pages).
 
 ---
@@ -41,7 +40,7 @@ libs/
   repositories/         # pure functions (server-only)
   ai/                   # ai-sdk provider + prompt modules + Zod schemas
   scoring/              # deterministic checks + composer
-  exporters/            # pdf/docx
+  exporters/            # pdf
   templates/            # resume/cover-letter React renderers
   preview/              # paged preview helpers
   i18n/                 # date/address/phone formatting
@@ -71,7 +70,6 @@ public/
 * `tailwindcss`, `postcss`, `autoprefixer`
 * `clsx` (or `classnames`)
 * `next-themes`
-* `docx`
 * `puppeteer-core`, ` @sparticuz/chromium`      # serverless PDF
 * `tesseract.js`                                # OCR fallback
 * `pdf-parse` (or `unpdf`)
@@ -149,7 +147,7 @@ export default nextConfig
 **Route runtime declarations**
 
 * AI streaming routes (`/api/v1/ai/*`) → `export const runtime = 'edge'`.
-* PDF/DOCX export and PDF import → `export const runtime = 'nodejs'`.
+* PDF export and PDF import → `export const runtime = 'nodejs'`.
 
 > Use serverless Chromium defaults from ` @sparticuz/chromium` in Node routes; they bundle arguments tuned for serverless platforms. ([GitHub][5])
 
@@ -198,7 +196,7 @@ export async function extractResume(text: string) {
 
 ---
 
-## 4.9 PDF/DOCX Export Setup
+## 4.9 PDF Export Setup
 
 **Serverless PDF** (`libs/exporters/pdf.ts`)
 
@@ -208,12 +206,6 @@ export async function extractResume(text: string) {
 * Keep CSS lean (print styles) to avoid timeouts.
 
 > Reference guidance for Puppeteer on Vercel and using Sparticuz Chromium for serverless. ([Vercel][7])
-
-**DOCX** (`libs/exporters/docx.ts`)
-
-* Map the shared schema to Word paragraphs, headings, bullet lists.
-* Avoid text boxes/tables for main content to keep ATS‑friendly.
-* `docx` is mature and battle‑tested. ([docx.js.org][6])
 
 ---
 
@@ -236,7 +228,7 @@ export async function extractResume(text: string) {
 **Runtime rules**
 
 * **Edge**: AI streaming, lightweight compute (no headless browser).
-* **Node**: PDF/DOCX export, PDF parsing/OCR, uploads.
+* **Node**: PDF export, PDF parsing/OCR, uploads.
 
 ---
 
@@ -249,7 +241,7 @@ export async function extractResume(text: string) {
 5. Create a résumé (Manual), type, see instant preview.
 6. Try **Import PDF**; if scanned, opt‑in to **OCR** (≤ 10 pages).
 7. Try **AI Draft** with a job description.
-8. Export **PDF** and **DOCX**.
+8. Export **PDF**.
 9. Verify **Storage**: avatar/media upload paths begin with your `user_id/`.
 
 ---

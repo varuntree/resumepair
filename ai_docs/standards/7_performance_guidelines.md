@@ -24,7 +24,6 @@
 | Preview Update | < 120ms | Keystroke to visual change |
 | AI First Token | < 1s | Request to first streamed token |
 | PDF Export | < 2.5s | Click to download (2 pages) |
-| DOCX Export | < 1.5s | Click to download |
 | Page Load (FCP) | < 1.5s | First Contentful Paint |
 | Time to Interactive | < 3s | Page fully interactive |
 | Bundle Size | < 200KB | Initial JavaScript |

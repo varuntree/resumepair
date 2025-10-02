@@ -117,7 +117,7 @@ export const withAuth = (handler) => async (req: NextRequest) => {
 | `POST /import/pdf`                      | ✔     | Uses user server client; result saved under user          |                           |
 | `POST /ai/draft/*`                      | ✔     | Uses Edge runtime; user required (rate‑limited)           |                           |
 | `POST /score/*`                         | ✔     | Owner only; optional LLM rubric                           |                           |
-| `POST /export/pdf                       | docx` | ✔                                                         | Owner only; server render |
+| `POST /export/pdf` | ✔                                                         | Owner only; server render |
 | (removed)                                |       |                                                           |                           |
 | `GET /templates/*`                      | ✔     | Non‑sensitive; still gated behind sign‑in for consistency |                           |
 

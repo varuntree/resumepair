@@ -45,7 +45,7 @@ Use **UPPER_SNAKE_CASE**. Keep concise and stable.
 | IMPORT      | 422  | `OCR_LOW_CONFIDENCE`      | “OCR was unclear. Please review before saving.”        |
 | AI          | 422  | `AI_INVALID_OUTPUT`       | “Draft formatting failed. Try again.”                  |
 | AI          | 503  | `AI_PROVIDER_UNAVAILABLE` | “AI is temporarily unavailable. Try again.”            |
-| EXPORT      | 504  | `PDF_RENDER_TIMEOUT`      | “PDF took too long. Try DOCX or try again.”            |
+| EXPORT      | 504  | `PDF_RENDER_TIMEOUT`      | "PDF took too long. Try simpler template or try again." |
 | SERVER      | 500  | `INTERNAL_ERROR`          | “Something went wrong. Please try again.”              |
 
 > Add new codes sparingly; update a single source in `libs/api-utils/errors.ts`.
@@ -118,7 +118,7 @@ if (updated.rowCount === 0) {
 ### 2.5 Export
 
 * Headless Chromium timeouts → `ApiProblem(504, 'PDF_RENDER_TIMEOUT')`.
-* Offer DOCX fallback on the client.
+* Offer simpler template option on the client.
 
 ---
 
@@ -140,7 +140,7 @@ if (updated.rowCount === 0) {
 | Score (LLM)        | Yes        | 1 w/ backoff          | 0              |
 | PDF Import (parse) | Yes        | 1                     | 0              |
 | OCR                | Yes        | Manual only           | 0              |
-| PDF Export         | Yes        | 1 (then suggest DOCX) | 0              |
+| PDF Export         | Yes        | 1 (then suggest simpler template) | 0 |
 | CRUD Save          | No         | 0                     | 0              |
 
 **Backoff**: 400ms → 1200ms jittered.
@@ -222,6 +222,6 @@ if (updated.rowCount === 0) {
 * [ ] Rate limit → 429 with countdown.
 * [ ] AI invalid JSON → single retry, then helpful prompt.
 * [ ] PDF no text → prompt OCR; declining → 422 with review suggestion.
-* [ ] PDF timeout → DOCX fallback offered.
+* [ ] PDF timeout → Simpler template option offered.
 
 ---

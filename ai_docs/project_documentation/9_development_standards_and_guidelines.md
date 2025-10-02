@@ -23,7 +23,7 @@ libs/
   repositories/        # pure functions (server-only) DI with Supabase client
   ai/                  # provider, prompt modules, Zod schemas
   scoring/             # deterministic checks + composer
-  exporters/           # pdf/docx renderers
+  exporters/           # pdf renderer
   templates/           # resume/cover-letter renderers by slug
   preview/             # paged HTML preview + token applicators
   i18n/                # date/address/phone helpers
@@ -72,7 +72,7 @@ public/                # static assets
 * **Edge vs Node**:
 
   * Edge: AI streaming & light reads.
-  * Node: PDF/DOCX export, PDF parse/OCR, uploads.
+  * Node: PDF export, PDF parse/OCR, uploads.
 
 ### 3.2 Repositories (DB Access)
 
@@ -166,7 +166,6 @@ export function applyDocTokens(node: HTMLElement, tokens: DocTokens) {
 ## 10. Export & Import Standards
 
 * **PDF**: Same HTML as preview; Chromium prints with `preferCSSPageSize: true`, `printBackground: true`.
-* **DOCX**: Map to headings, paragraphs, bullets; avoid text boxes/tables for main content.
 * **Import PDF**: prefer text layer; if missing, offer OCR (≤ 10 pages). Always show Review & Fix.
 
 ---
@@ -253,7 +252,7 @@ export function applyDocTokens(node: HTMLElement, tokens: DocTokens) {
 * [ ] Sign in/out with Google works; `/me` returns user.
 * [ ] Create, edit (live preview), autosave, undo/redo.
 * [ ] Switch templates (no content loss; <200ms).
-* [ ] PDF export (text selectable); DOCX export opens in Word.
+* [ ] PDF export (text selectable).
 * [ ] Import from PDF (with/without OCR) → Review & Fix → Save.
 * [ ] Score updates quickly; suggestions navigate to correct fields.
 * [ ] Mobile flows: bottom nav, section editing, export.

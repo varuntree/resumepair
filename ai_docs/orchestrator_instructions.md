@@ -148,7 +148,7 @@ Before starting any phase, the orchestrator MUST:
 - Single agent: `/agents/phase_[N]/systems_researcher_phase[N]_output.md`
 - Multiple agents: `/agents/phase_[N]/systems_researcher_phase[N]_[topic]_output.md`
   - Example: `systems_researcher_phase5_pdf_generation_output.md`
-  - Example: `systems_researcher_phase5_docx_generation_output.md`
+  - Example: `systems_researcher_phase5_pdf_generation_output.md`
   - Example: `systems_researcher_phase5_export_queue_output.md`
 
 **Note**: The orchestrator should analyze the phase requirements and identify ALL areas needing research, not limiting to predefined topics. Examples of research areas by phase (non-exhaustive):
@@ -156,7 +156,7 @@ Before starting any phase, the orchestrator MUST:
 - Phase 2: State management libraries, undo/redo implementations, form validation approaches
 - Phase 3: Template rendering engines, HTML-to-React patterns, live preview architectures, pagination algorithms
 - Phase 4: AI SDK patterns, streaming implementations, rate limiting strategies, prompt engineering techniques
-- Phase 5: PDF generation libraries, serverless Puppeteer setups, DOCX generation approaches, export queuing systems
+- Phase 5: PDF generation libraries, serverless Puppeteer setups, export queuing systems
 - Phase 6: Scoring algorithms, real-time calculation strategies, keyword matching algorithms
 - Phase 7: Rich text editors, content sanitization libraries, document linking patterns
 - Phase 8: Performance optimization techniques, monitoring solutions, analytics implementations
@@ -320,7 +320,7 @@ All sub-agents testing authenticated pages MUST use email/password authenticatio
 Invoke systems-researcher for phases involving:
 - Phase 3: Template system (rendering approaches)
 - Phase 4: AI integration (SDK patterns, streaming)
-- Phase 5: Export system (PDF/DOCX generation)
+- Phase 5: Export system (PDF generation)
 - Phase 6: Scoring algorithms
 - Phase 7: Rich text editing
 - Phase 8: Production optimization

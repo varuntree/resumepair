@@ -50,7 +50,7 @@ ResumePair uses a comprehensive, production-ready design system based on the Ram
 
 ### Document-Scoped Tokens (`--doc-*`)
 
-**Purpose**: Resume/cover letter templates, live preview, PDF/DOCX exports
+**Purpose**: Resume/cover letter templates, live preview, PDF exports
 
 **Scope**: Wrapped in `.doc-theme` class, isolated from app styling
 

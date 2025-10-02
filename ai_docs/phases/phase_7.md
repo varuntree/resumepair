@@ -22,7 +22,7 @@ Extend the platform to support cover letters with rich text editing, multiple te
   - Multiple cover letter templates (3+)
   - Template switching preserves content
   - Preview matches final output
-  - Export to PDF/DOCX working
+  - Export to PDF working
 - [ ] **AI Generation Playbook** (to be created in `ai_docs/testing/playbooks/phase_7_ai_generation.md`)
   - "Generate from resume" working
   - Job description context used
@@ -120,7 +120,7 @@ Extend the platform to support cover letters with rich text editing, multiple te
 - **Settings Pages**: Cover letter preferences, default templates, tone settings
 - **Error Handling**: Rich text validation, link verification, sync conflicts
 - **Preview System**: Cover letter preview with pagination
-- **Export System**: Cover letter PDF/DOCX with formatting preserved
+- **Export System**: Cover letter PDF with formatting preserved
 - **Scoring System**: Cover letter scoring and optimization
 
 ### User Flows Covered
@@ -156,7 +156,7 @@ describe('Component: RichTextEditor', () => {
   test('applies italic formatting')
   test('creates bullet lists')
   test('creates numbered lists')
-  test('handles paste from Word')
+  test('handles paste from external sources')
   test('preserves formatting on save')
   test('keyboard shortcuts work')
 })
@@ -706,7 +706,7 @@ interface MultiDocumentStore {
 ### User Scenarios (All Need Tests)
 - [ ] Cover letter without linked resume → Test: standalone_cover_letter
 - [ ] Resume deletion with linked cover letter → Test: cascade_handling
-- [ ] Rich text paste from Word → Test: word_paste_cleanup
+- [ ] Rich text paste from external sources → Test: paste_cleanup
 - [ ] Very long cover letter → Test: length_limits
 - [ ] Multiple cover letters per job → Test: variant_management
 - [ ] Package with missing documents → Test: incomplete_package

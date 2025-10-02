@@ -26,7 +26,7 @@
 
 ### Phase 5: Export System
 **File**: `phases/phase_5.md`
-**Scope**: PDF generation with Puppeteer, DOCX export, multiple page sizes, template-specific exports, download management, export queuing
+**Scope**: PDF generation with Puppeteer, multiple page sizes, template-specific exports, download management, export queuing
 
 ### Phase 6: Scoring & Optimization
 **File**: `phases/phase_6.md`

@@ -12,7 +12,7 @@
 **Server**: Next.js Route Handlers (Edge or Node per endpoint)
 **Auth & Data**: Supabase (Auth = **Google OAuth only**, DB = Postgres, Storage = buckets)
 **AI**: “Virtual” AI SDK → **Google AI for Developers** (Gemini 2.0 Flash) using **structured outputs** (Zod)
-**Exports**: HTML→PDF (**Node runtime** with `puppeteer-core` + `@sparticuz/chromium`), DOCX via `docx`
+**Exports**: HTML→PDF (**Node runtime** with `puppeteer-core` + `@sparticuz/chromium`)
 **Design System**: Tailwind + shadcn/ui; CSS Variables tokens in `app/globals.css`
 **Icons**: **Lucide React** (free, permissive)
 **State**: Zustand + zundo (undo/redo)
@@ -27,7 +27,6 @@
 > * **OCR**: Tesseract **enabled** with a hard limit of 10 pages; user must opt‑in when text layer is missing.
 > * **Photos in templates**: Supported in select templates; **off by default**.
 > * **Scoring weights**: ATS Readiness 30, Keyword Match 25, Content Strength 20, Format Quality 15, Completeness 10.
-> * **DOCX**: “Good‑enough” parity (not pixel‑perfect).
 > * **Persistence**: Résumé/Cover Letter stored as **versioned JSONB documents** + thin relational metadata.
 > * **AI rate limits** (Phase 4.5 simplified): Database-only quota (100 operations/day); graceful 429 with retry-after.
 > * **Logging**: Error + perf metrics only; **no analytics**.
@@ -45,7 +44,6 @@ app/
         draft/            # POST /resume, POST /cover-letter (Edge; SSE or JSON)
       export/
         pdf/              # POST (Node runtime)
-        docx/             # POST (Node runtime)
       import/
         pdf/              # POST (Node runtime; OCR fallback)
       resumes/            # GET/POST collection; /{id} item routes
@@ -75,7 +73,7 @@ libs/
       cover-letter.ts     # Zod for CoverLetterJson
       score.ts
   scoring/                # deterministic checks + composer
-  exporters/              # html->pdf (puppeteer), docx builder
+  exporters/              # html->pdf (puppeteer)
   templates/              # React renderers for resume/cover-letter by slug
     resume/[slug]/
     cover-letter/[slug]/
@@ -154,11 +152,11 @@ migrations/               # phase folders + SQL files (file‑only per process)
 2. Edge route streams SSE deltas; client hydrates draft preview live.
 3. On stream end → user can “Save as Document”.
 
-### 4.4 Export (PDF/DOCX)
+### 4.4 Export (PDF)
 
 1. Client calls `POST /export/pdf` (Node) with `{ documentId, templateSlug, overrides? }`.
 2. Server SSR renders template HTML → headless Chromium prints PDF with print CSS.
-3. Return `application/pdf` (download). DOCX path similar via `docx`.
+3. Return `application/pdf` (download).
 
 ### 4.5 Scoring
 
@@ -176,7 +174,6 @@ migrations/               # phase folders + SQL files (file‑only per process)
 | PDF import (parse/OCR)       |    Node | Parse < 2s for 2 pages; OCR only on opt‑in; max 10 pages |
 | Live preview keystroke→paint |  Client | p95 ≤ 120ms                                              |
 | PDF export                   |    Node | ≤ 2.5s for 1–2 pages                                     |
-| DOCX export                  |    Node | ≤ 1.5s                                                   |
 | Scoring (deterministic)      |  Client | ≤ 200ms                                                  |
 | Scoring (with LLM)           |    Edge | ≤ 1.2s                                                   |
 
@@ -196,7 +193,7 @@ migrations/               # phase folders + SQL files (file‑only per process)
 ## 7. Resilience & Failure Modes
 
 * **AI invalid JSON** → retry with repair; return 422 with details if still invalid.
-* **PDF export timeout** → 504 with suggestion; client shows DOCX fallback.
+* **PDF export timeout** → 504 with suggestion; prompt user to try simpler template or reduce content.
 * **OCR low confidence** → mark `confidence < 0.6` and force Review/Fix view.
 * **Rate limit exceeded** → 429 with `Retry-After`.
 * **Schema mismatch** → 409 with migration hint (client offers “clone into latest schema”).

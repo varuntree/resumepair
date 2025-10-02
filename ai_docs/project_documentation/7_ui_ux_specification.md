@@ -147,7 +147,7 @@ Wrap preview/export root with `.doc-theme`:
   * Breadcrumbs (`Home / Documents / {Title}`),
   * Template switcher,
   * **Document theme** button (opens panel for color/typography/spacing/icons),
-  * Export menu (PDF/DOCX),
+  * Export menu (PDF),
   * Undo/Redo,
   * Score badge (click → open score panel).
 * **Right Sidebar** (toggle): Score panel with sub‑scores and suggestions.
@@ -205,7 +205,7 @@ Wrap preview/export root with `.doc-theme`:
 ### 4.6 Export Dialog
 
 * Options: Template (current/default), page size (Letter/A4 auto by locale), margins (Normal/Compact), icons (on/off).
-* Buttons: **Export PDF**, **Export DOCX**; show spinners and disable while processing.
+* Button: **Export PDF**; show spinner and disable while processing.
 * “Preflight” warnings (e.g., font too small) inline before export buttons.
 
 --- 
@@ -269,7 +269,7 @@ Wrap preview/export root with `.doc-theme`:
 * Short, instructive, friendly. Examples:
 
   * Import low confidence: “Some parts look unclear. Please review the highlighted fields.”
-  * Export timeout: “That took too long. Try DOCX or try again.”
+  * Export timeout: "That took too long. Try a simpler template or try again."
   * AI guardrails: “We won’t invent experience. Edit any phrasing you’d like.”
 
 ---

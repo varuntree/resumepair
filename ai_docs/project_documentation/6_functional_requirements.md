@@ -22,7 +22,7 @@
 
 * **Visitor (unauthenticated)**: Can view landing/marketing (out of scope), must sign in to use the app.
 * **Authenticated User**: Creates and manages documents; uses AI and import; exports.
-* **System**: AI orchestrator, PDF/DOCX exporter, scoring engine.
+* **System**: AI orchestrator, PDF exporter, scoring engine.
 
 ---
 
@@ -48,7 +48,7 @@
 
 5. **Export**
 
-   * PDF or DOCX with selected template; preflight checks; download.
+   * PDF with selected template; preflight checks; download.
 
 6. **Manage documents**
 
@@ -175,13 +175,12 @@
 
 * **FR‑EXP‑1**: Export dialog: choose template, page size, margins (simple presets), and whether to include icons.
 * **FR‑EXP‑2**: **PDF**: HTML→PDF on server with print CSS; selectable text guaranteed.
-* **FR‑EXP‑3**: **DOCX**: approximate style parity; stable headings/bullets.
 * **FR‑EXP‑4**: Preflight ATS check warns if risky layout choices are enabled (e.g., tiny font).
 
 **Acceptance**
 
-* PDF export ≤ 2.5s for 1–2 pages; DOCX ≤ 1.5s.
-* In case of 504 timeout, UI offers DOCX fallback and a retry button.
+* PDF export ≤ 2.5s for 1–2 pages.
+* In case of 504 timeout, UI offers simpler template option and a retry button.
 
 ---
 
@@ -220,7 +219,7 @@
 
 * **FR‑ERR‑1**: All API errors use the standard envelope; UI shows concise messages and preserves user input.
 * **FR‑ERR‑2**: Rate limit exceeded → toast + inline hint with “wait and retry” countdown.
-* **FR‑ERR‑3**: Import/Export failures provide actionable next steps (try OCR / try DOCX).
+* **FR‑ERR‑3**: Import/Export failures provide actionable next steps (try OCR / try simpler template).
 
 ---
 

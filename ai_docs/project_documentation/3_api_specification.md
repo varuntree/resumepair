@@ -401,29 +401,6 @@ paths:
         "401": { $ref: '#/components/responses/Unauthorized' }
         "504": { description: Render timeout }
 
-  /export/docx:
-    post:
-      tags: [Export]
-      summary: Render a document as DOCX
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ExportDocxRequest' }
-      responses:
-        "200":
-          description: DOCX stream
-          headers:
-            Content-Disposition:
-              schema: { type: string }
-          content:
-            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
-              schema: { type: string, format: binary }
-        "400": { $ref: '#/components/responses/BadRequest' }
-        "401": { $ref: '#/components/responses/Unauthorized' }
-
-
   /templates/resume:
     get:
       tags: [Templates]

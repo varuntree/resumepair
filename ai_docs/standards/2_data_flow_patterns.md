@@ -572,7 +572,6 @@ const RATE_LIMITS = {
   AI_GENERATE: { max: 3, window: 60000 },      // 3 per minute
   AI_EXTRACT: { max: 1, window: 30000 },       // 1 per 30s
   PDF_EXPORT: { max: 5, window: 60000 },       // 5 per minute
-  DOCX_EXPORT: { max: 5, window: 60000 },      // 5 per minute
   AUTO_SAVE: { max: 1, window: 2000 },         // 1 per 2s
   SCORE_CALC: { max: 10, window: 60000 },      // 10 per minute
 }

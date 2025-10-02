@@ -1,7 +1,7 @@
 # Phase 5: Export System
 
 ## Phase Objective
-Build a robust export system that generates high-quality PDF and DOCX documents from resume templates, with support for multiple page sizes, batch operations, ATS optimization, and reliable serverless PDF generation using Puppeteer.
+Build a robust export system that generates high-quality PDF documents from resume templates, with support for multiple page sizes, batch operations, ATS optimization, and reliable serverless PDF generation using Puppeteer.
 
 ## Phase Validation Gate
 
@@ -14,12 +14,6 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
   - Font embedding correct
   - Template rendering accurate
   - Metadata embedded correctly
-- [ ] **DOCX Export Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_docx_export.md`)
-  - DOCX generation working (docx library)
-  - Template mapping to Word styles
-  - Formatting preserved
-  - ATS-friendly structure
-  - Editable in Microsoft Word
 - [ ] **Export Options Playbook** (to be created in `ai_docs/testing/playbooks/phase_5_options.md`)
   - Page sizes supported (Letter, A4)
   - Margin controls working
@@ -43,13 +37,11 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
 
 ### Performance Validation
 - [ ] PDF export completes within 2.5 seconds (2 pages)
-- [ ] DOCX export completes within 1.5 seconds
 - [ ] Batch export handles multiple documents efficiently
 - [ ] No performance regressions from Phase 4
 
 ### Quality Validation
 - [ ] PDF output opens correctly in Adobe Reader, Chrome
-- [ ] DOCX output editable in Microsoft Word, Google Docs
 - [ ] ATS parsing test passes (copy-paste test)
 - [ ] Print quality acceptable (300 DPI)
 
@@ -74,17 +66,7 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
    - Metadata embedding
    - Compression options
 
-2. **DOCX Generation**
-   - docx library implementation
-   - Template mapping to Word styles
-   - Table-based layouts
-   - Bullet point formatting
-   - Header/footer support
-   - Page breaks
-   - Style preservation
-   - ATS-friendly structure
-
-3. **Export Options**
+2. **Export Options**
    - Page sizes (A4, Letter, Legal)
    - Orientation (Portrait, Landscape)
    - Margins customization
@@ -94,9 +76,8 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
    - Watermark options (free tier)
    - Color modes (color, grayscale)
 
-4. **Batch Operations**
+3. **Batch Operations**
    - Multiple document export
-   - Multiple format export
    - Bulk download as ZIP
    - Queue management
    - Progress tracking
@@ -104,7 +85,7 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
    - Error recovery
    - Partial success handling
 
-5. **Export Management**
+4. **Export Management**
    - Export history tracking
    - Download links (temporary)
    - Re-export capability
@@ -114,7 +95,7 @@ Build a robust export system that generates high-quality PDF and DOCX documents 
    - Usage analytics
    - Cost tracking
 
-6. **ATS Optimization**
+5. **ATS Optimization**
    - Text layer verification
    - Font compatibility
    - Simple structure
@@ -186,14 +167,6 @@ describe('Service: PDFGenerator', () => {
   test('handles timeout')
 })
 
-describe('Service: DOCXGenerator', () => {
-  test('creates document structure')
-  test('maps styles correctly')
-  test('formats sections')
-  test('handles bullets')
-  test('preserves formatting')
-  test('sets margins')
-})
 
 describe('Utils: exportQueue', () => {
   test('adds to queue')
@@ -234,13 +207,6 @@ describe('Feature: PDF Export', () => {
   test('metadata present')
 })
 
-describe('Feature: DOCX Export', () => {
-  test('generates valid DOCX')
-  test('opens in Word')
-  test('preserves formatting')
-  test('bullets work correctly')
-  test('tables structured properly')
-})
 
 describe('API Route: /api/v1/export/pdf', () => {
   test('accepts export request')
@@ -250,12 +216,6 @@ describe('API Route: /api/v1/export/pdf', () => {
   test('enforces timeouts')
 })
 
-describe('API Route: /api/v1/export/docx', () => {
-  test('generates DOCX file')
-  test('applies styling')
-  test('returns proper headers')
-  test('handles errors')
-})
 
 describe('API Route: /api/v1/export/batch', () => {
   test('queues multiple exports')
@@ -273,7 +233,6 @@ describe('Feature: Export Queue', () => {
 
 describe('Feature: ATS Optimization', () => {
   test('PDF has text layer')
-  test('DOCX is readable')
   test('no parsing errors')
   test('keywords preserved')
 })
@@ -292,7 +251,6 @@ describe('User Journey: Export Resume', () => {
 
 describe('User Journey: Batch Export', () => {
   test('selects multiple resumes')
-  test('exports all formats')
   test('monitors progress')
   test('downloads ZIP')
 })
@@ -316,7 +274,6 @@ describe('Performance: Export Generation', () => {
   test('PDF 1 page < 1.5s')
   test('PDF 2 pages < 2.5s')
   test('PDF 5 pages < 5s')
-  test('DOCX any size < 1.5s')
   test('batch of 5 < 15s')
 })
 
@@ -353,26 +310,14 @@ interface PDFConfig {
   }
 }
 
-// DOCX Configuration
-interface DOCXConfig {
-  pageSize: string
-  margins: Margins
-  styles: {
-    heading1: ParagraphStyle
-    heading2: ParagraphStyle
-    normal: ParagraphStyle
-    bullet: ParagraphStyle
-  }
-  compatibility: 'modern' | 'legacy'
-}
 
 // Export Queue
 interface ExportJob {
   id: string
   userId: string
   documentId: string
-  format: 'pdf' | 'docx'
-  options: PDFConfig | DOCXConfig
+  format: 'pdf'
+  options: PDFConfig
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress: number
   result?: {
@@ -393,7 +338,7 @@ Tables/Collections:
   - id: uuid (primary key)
   - user_id: uuid (references profiles.id)
   - document_id: uuid (references resumes.id)
-  - format: text ('pdf', 'docx')
+  - format: text ('pdf')
   - options: jsonb
   - status: text
   - progress: integer (0-100)
@@ -420,7 +365,6 @@ Tables/Collections:
 - export_templates: Template export settings
   - template_id: text (primary key)
   - pdf_config: jsonb
-  - docx_config: jsonb
   - special_rules: jsonb
 
 Migrations Required:
@@ -436,12 +380,8 @@ Export Operations:
   Body: { documentId, options: PDFConfig }
   Response: { jobId } or stream file
 
-- POST /api/v1/export/docx - Generate DOCX
-  Body: { documentId, options: DOCXConfig }
-  Response: { jobId } or stream file
-
 - POST /api/v1/export/batch - Batch export
-  Body: { documentIds[], formats[], options }
+  Body: { documentIds[], options }
   Response: { jobIds[] }
 
 - GET /api/v1/export/job/:id - Get job status
@@ -483,7 +423,7 @@ Queue Management:
 /components/export/
 ├── ExportDialog.tsx - Main export modal
 ├── ExportOptions.tsx - Format options
-├── ExportFormatSelector.tsx - PDF/DOCX choice
+├── ExportFormatSelector.tsx - PDF format selector
 ├── ExportPageSize.tsx - Size selector
 ├── ExportQuality.tsx - Quality settings
 ├── ExportAdvanced.tsx - Advanced options
@@ -569,92 +509,6 @@ export async function POST(req: Request) {
 }
 ```
 
-### DOCX Generation Service
-```typescript
-// libs/export/docxGenerator.ts
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell } from 'docx'
-
-export class DOCXGenerator {
-  generate(resume: ResumeJson, options: DOCXConfig): Buffer {
-    const doc = new Document({
-      sections: [{
-        properties: {
-          page: {
-            size: options.pageSize,
-            margin: options.margins,
-          },
-        },
-        children: [
-          ...this.createHeader(resume.profile),
-          ...this.createSummary(resume.summary),
-          ...this.createWork(resume.work),
-          ...this.createEducation(resume.education),
-          ...this.createSkills(resume.skills),
-        ],
-      }],
-      styles: options.styles,
-    })
-
-    return Packer.toBuffer(doc)
-  }
-
-  private createHeader(profile: Profile): Paragraph[] {
-    return [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: profile.fullName,
-            bold: true,
-            size: 28,
-          }),
-        ],
-        alignment: 'center',
-      }),
-      new Paragraph({
-        children: [
-          new TextRun(profile.email),
-          new TextRun(' | '),
-          new TextRun(profile.phone),
-        ],
-        alignment: 'center',
-      }),
-    ]
-  }
-
-  private createWork(work: Work[]): Paragraph[] {
-    const paragraphs: Paragraph[] = [
-      new Paragraph({
-        text: 'EXPERIENCE',
-        heading: 'Heading1',
-      }),
-    ]
-
-    for (const job of work) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({ text: job.role, bold: true }),
-            new TextRun(` at ${job.company}`),
-          ],
-        }),
-        new Paragraph({
-          text: `${job.startDate} - ${job.endDate || 'Present'}`,
-          italics: true,
-        }),
-        ...job.descriptionBullets.map(bullet =>
-          new Paragraph({
-            text: `• ${bullet}`,
-            indent: { left: 720 }, // 0.5 inch
-          })
-        )
-      )
-    }
-
-    return paragraphs
-  }
-}
-```
-
 ### Export Queue Management
 ```typescript
 // libs/export/exportQueue.ts
@@ -686,11 +540,7 @@ export class ExportQueue {
   private async executeJob(job: ExportJob): Promise<void> {
     await this.updateStatus(job.id, 'processing')
 
-    if (job.format === 'pdf') {
-      await this.generatePDF(job)
-    } else if (job.format === 'docx') {
-      await this.generateDOCX(job)
-    }
+    await this.generatePDF(job)
   }
 
   private async onComplete(job: ExportJob): Promise<void> {
@@ -722,8 +572,7 @@ interface ExportStore {
 
   // Actions
   exportPDF(documentId: string, options: PDFConfig): Promise<void>
-  exportDOCX(documentId: string, options: DOCXConfig): Promise<void>
-  batchExport(documentIds: string[], formats: string[]): Promise<void>
+  batchExport(documentIds: string[]): Promise<void>
   cancelExport(jobId: string): Promise<void>
   retryExport(jobId: string): Promise<void>
   downloadExport(jobId: string): void
@@ -758,7 +607,6 @@ interface ExportStore {
 - [ ] Memory limits in serverless → Test: memory_management
 - [ ] Font loading failures → Test: font_fallback
 - [ ] CSS print media queries → Test: print_styles
-- [ ] DOCX compatibility → Test: word_compatibility
 - [ ] File size limits → Test: size_constraints
 - [ ] Temporary file cleanup → Test: storage_cleanup
 - [ ] Signed URL expiration → Test: url_expiry
@@ -784,7 +632,6 @@ E2E Tests:
 
 Performance:
   PDF 2 pages: <2.5s
-  DOCX: <1.5s
   Batch 5: <15s
 
 Accessibility:
@@ -798,7 +645,6 @@ Security:
 
 ### Phase Gate Checklist
 - [ ] PDF export fully functional
-- [ ] DOCX export working
 - [ ] All page sizes supported
 - [ ] Batch export operational
 - [ ] Export queue processing
@@ -821,11 +667,10 @@ Security:
 This phase is complete when:
 1. **ALL tests are passing (100%)**
 2. PDF export generates high-quality documents
-3. DOCX export creates editable documents
-4. Multiple page sizes supported
-5. Batch export working smoothly
-6. Export queue processing reliably
-7. History tracking functional
-8. ATS optimization verified
-9. Performance benchmarks met
-10. **Gate check approved for Phase 6**
+3. Multiple page sizes supported
+4. Batch export working smoothly
+5. Export queue processing reliably
+6. History tracking functional
+7. ATS optimization verified
+8. Performance benchmarks met
+9. **Gate check approved for Phase 6**
