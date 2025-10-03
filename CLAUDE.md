@@ -233,15 +233,9 @@ Three client types in `libs/supabase/`:
 - `middleware.ts`: Middleware client with session refresh
 
 ### Documentation Location
-Comprehensive planning docs in `ai_docs/`:
-- `project_documentation/`: PRD, architecture, API specs, DB schema, tech stack, requirements, UI/UX, auth matrix, standards, error handling, performance
-- `standards/`: Architecture principles, data flow patterns, component standards, API contracts, error handling, security, performance, code review
-- `design-system.md`: Design token system and guidelines
-
-### Phase-Based Development
-The project is organized in phases (see `/phases/` directory):
-- Each phase contains its own implementation plan and milestones
-- Follow phase documentation for context on current development stage
+Comprehensive documentation in `ai_docs/`:
+- **`standards/`**: Core development standards (architecture, implementation, state & data, design system, components, visual quality, quality & security)
+- **`project/`**: Project-specific documentation (product vision, schemas, architecture, tech stack, database, API, workflows)
 
 ## Common Workflows (Phase 1)
 
@@ -300,22 +294,10 @@ ResumePair uses **Puppeteer MCP-based manual testing** (no Playwright, no Vitest
 
 ### Testing Components
 
-1. **Playbooks** (`ai_docs/testing/playbooks/`)
-   - Markdown checklists with embedded Puppeteer MCP commands
-   - One playbook per phase (~20 total across 8 phases)
-   - Combines manual verification + automated checks
-   - Estimated 15-20 minutes per playbook
-
-2. **MCP Patterns** (`ai_docs/testing/mcp_patterns.md`)
-   - Reusable Puppeteer command library
-   - Copy-paste patterns for common scenarios
-   - Navigation, screenshots, element verification, API testing
-
-3. **Visual Verification** (`ai_docs/standards/9_visual_verification_workflow.md`)
-   - 11-step workflow for UI quality assurance
-   - Screenshot → Analyze → Refine → Document
-   - Desktop (1440px) + Mobile (375px) screenshots required
-   - Design system compliance checks
+Visual verification workflow integrated directly into feature development:
+- Screenshot → Analyze → Refine → Document process
+- Desktop (1440px) + Mobile (375px) screenshots required
+- Design system compliance checks (see `ai_docs/standards/06_visual_quality.md`)
 
 ### Visual Verification Workflow (Mandatory)
 
@@ -348,8 +330,7 @@ ResumePair uses **Puppeteer MCP-based manual testing** (no Playwright, no Vitest
    - [ ] Responsive (no horizontal scroll on mobile)
    - [ ] Ramp palette only (navy, lime, grays)
 6. **Refine if needed** (increase spacing, fix hierarchy, etc.)
-7. **Document results** in `ai_docs/progress/phase_N/visual_review.md`
-8. **Save screenshots** to `ai_docs/progress/phase_N/screenshots/`
+7. **Verify compliance** with design system standards
 
 ### Phase Gate Requirements
 
@@ -371,7 +352,7 @@ ResumePair uses **Puppeteer MCP-based manual testing** (no Playwright, no Vitest
 
 ### Visual Quality Standards
 
-See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual standards.
+See `ai_docs/standards/05_components.md` and `ai_docs/standards/06_visual_quality.md` for complete visual standards.
 
 **Quick reference:**
 - **Spacing**: 8px grid, generous padding (space-6 for cards)
@@ -379,15 +360,6 @@ See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual 
 - **Typography**: Clear hierarchy, Inter font, text-4xl → text-xl → text-base
 - **Primary actions**: One lime button per section (not multiple)
 - **Components**: shadcn/ui only, follow composition patterns
-
-### Reference Documentation
-
-- **Testing README**: `ai_docs/testing/README.md`
-- **MCP Patterns**: `ai_docs/testing/mcp_patterns.md`
-- **Visual Verification Workflow**: `ai_docs/standards/9_visual_verification_workflow.md`
-- **Component Standards**: `ai_docs/standards/3_component_standards.md` (Section 10)
-- **Code Review Standards**: `ai_docs/standards/8_code_review_standards.md` (Section 9)
-- **Playbook Template**: `ai_docs/testing/playbooks/playbook_template.md`
 
 ## Important Notes
 
@@ -402,9 +374,21 @@ See `ai_docs/standards/3_component_standards.md` Section 10 for complete visual 
 
 ## Reference Files
 
-- PRD: `ai_docs/project_documentation/1_prd_v1.md`
-- System Architecture: `ai_docs/project_documentation/2_system_architecture.md`
-- Development Standards: `ai_docs/project_documentation/9_development_standards_and_guidelines.md`
-- API Specification: `ai_docs/project_documentation/3_api_specification.md`
-- Database Schema: `ai_docs/project_documentation/4_database_schema.md`
+### Standards
+- Architecture Principles: `ai_docs/standards/01_architecture.md`
+- Implementation Patterns: `ai_docs/standards/02_implementation.md`
+- State & Data Management: `ai_docs/standards/03_state_and_data.md`
+- Design System: `ai_docs/standards/04_design_system.md`
+- Component Standards: `ai_docs/standards/05_components.md`
+- Visual Quality: `ai_docs/standards/06_visual_quality.md`
+- Quality & Security: `ai_docs/standards/07_quality_and_security.md`
+
+### Project Documentation
+- Product Vision & Features: `ai_docs/project/01_product.md`
+- JSON Schemas (ResumeJson, CoverLetterJson): `ai_docs/project/02_schemas.md`
+- System Architecture: `ai_docs/project/03_architecture.md`
+- Tech Stack: `ai_docs/project/04_tech_stack.md`
+- Database Schema & RLS: `ai_docs/project/05_database.md`
+- API Specification: `ai_docs/project/06_api.md`
+- Common Workflows: `ai_docs/project/07_workflows.md`
 - i want you Whenever you are doing any kind of work during development, you sometimes need to run the development server. I do not want you to run multiple development servers, so you should not start one each time. I will keep a server running for you on port 3000 at all times. It will always be running by me as a user, so you never need to start it yourself.
