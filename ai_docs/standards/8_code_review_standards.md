@@ -32,6 +32,7 @@
 - [ ] **Clear naming** - Can another dev understand in 30 seconds?
 - [ ] **No magic values** - All constants named
 - [ ] **Single responsibility** - Each function/component does one thing
+- [ ] **Design token compliance** - No hardcoded colors/spacing (Phase 6)
 
 ### Functionality
 
@@ -213,6 +214,30 @@ useGlobalStore(s => s.dropdownStates[componentId])
 <div style={{ padding: '16px', color: '#333' }}>
 ```
 
+### Design Token Violations (Phase 6)
+
+**Common violations to catch**:
+
+```typescript
+// ❌ WRONG - Hardcoded Tailwind colors
+<Badge className="bg-green-500 text-white">Good</Badge>
+<div className="bg-gray-300">Content</div>
+<span className="bg-green-100 text-green-800">Status</span>
+
+// ✅ CORRECT - Design tokens via shadcn variants
+<Badge variant="success">Good</Badge>
+<div className="bg-muted">Content</div>
+<Badge variant="outline">Status</Badge>
+
+// ✅ CORRECT - Or use primary/secondary tokens
+<Button className="bg-primary text-primary-foreground">Action</Button>
+```
+
+**Prevention**:
+- Use shadcn/ui variants (success, outline, etc.)
+- Create reusable variants in shadcn config
+- Never use color-* or gray-* Tailwind classes directly
+
 ---
 
 ## 3. API Review Standards
@@ -255,6 +280,13 @@ export const POST = withRateLimit('ai',
   - Only selects needed fields
   - Proper indexes used
   - No N+1 queries
+
+- [ ] **RLS Policy Completeness (Phase 6)**
+  - [ ] SELECT policy present
+  - [ ] INSERT policy present
+  - [ ] UPDATE policy present
+  - [ ] DELETE policy present
+  - All 4 CRUD operations covered for user-scoped tables
 
 - [ ] **Migrations Are Safe**
 ```sql

@@ -15,7 +15,8 @@ import {
   Plus,
   History,
   Eye,
-  Palette
+  Palette,
+  BarChart3
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { EditorLayout } from '@/components/editor/EditorLayout'
@@ -44,6 +45,7 @@ import { CertificationsSection } from '@/components/editor/sections/Certificatio
 import { AwardsSection } from '@/components/editor/sections/AwardsSection'
 import { LanguagesSection } from '@/components/editor/sections/LanguagesSection'
 import { ExtrasSection } from '@/components/editor/sections/ExtrasSection'
+import { ScorePanel } from '@/components/score/ScorePanel'
 
 export default function EditorPage(): React.ReactElement {
   const params = useParams()
@@ -51,7 +53,7 @@ export default function EditorPage(): React.ReactElement {
   const { toast } = useToast()
   const [versionHistoryOpen, setVersionHistoryOpen] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState('profile')
-  const [activeTab, setActiveTab] = React.useState<'edit' | 'preview' | 'customize'>('edit')
+  const [activeTab, setActiveTab] = React.useState<'edit' | 'preview' | 'customize' | 'score'>('edit')
 
   const {
     document: resumeDocument,
@@ -201,7 +203,7 @@ export default function EditorPage(): React.ReactElement {
         </div>
       }
     >
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'edit' | 'preview' | 'customize')} className="h-full flex flex-col">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'edit' | 'preview' | 'customize' | 'score')} className="h-full flex flex-col">
         <TabsList className="w-full rounded-none border-b">
           <TabsTrigger value="edit" className="flex-1">
             <FileText className="h-4 w-4 mr-2" />
@@ -214,6 +216,10 @@ export default function EditorPage(): React.ReactElement {
           <TabsTrigger value="customize" className="flex-1">
             <Palette className="h-4 w-4 mr-2" />
             Customize
+          </TabsTrigger>
+          <TabsTrigger value="score" className="flex-1">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Score
           </TabsTrigger>
         </TabsList>
 
@@ -266,6 +272,10 @@ export default function EditorPage(): React.ReactElement {
 
         <TabsContent value="customize" className="flex-1 mt-0 h-full">
           <CustomizationPanel />
+        </TabsContent>
+
+        <TabsContent value="score" className="flex-1 mt-0 overflow-auto">
+          <ScorePanel resumeId={resumeId} />
         </TabsContent>
       </Tabs>
 

@@ -146,6 +146,33 @@ await mcp__supabase__apply_migration({
 - Prevents accidental database modifications
 - Maintains clear separation between development and deployment
 
+### ✅ RLS Policy Completeness Checklist (Phase 6)
+
+**For ALL user-scoped tables**, create these 4 CRUD policies:
+
+```sql
+-- Required RLS policies:
+-- 1. SELECT: Read own data
+CREATE POLICY "users_select_own" ON table_name
+  FOR SELECT USING (user_id = auth.uid());
+
+-- 2. INSERT: Create own data
+CREATE POLICY "users_insert_own" ON table_name
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- 3. UPDATE: Modify own data
+CREATE POLICY "users_update_own" ON table_name
+  FOR UPDATE
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- 4. DELETE: Remove own data
+CREATE POLICY "users_delete_own" ON table_name
+  FOR DELETE USING (user_id = auth.uid());
+```
+
+**CRITICAL**: Missing any of these 4 policies creates a security gap.
+
 ---
 
 ## 🔒 Authentication Pattern
@@ -463,6 +490,41 @@ export default function Dashboard() {
 - **Props Interface**: `ComponentNameProps`
 - **Hooks**: camelCase starting with `use` (`useFileUpload.ts`)
 
+### Component Composition for Complex Features (Phase 6)
+
+**Pattern**: Break complex features into small, focused components.
+
+**Example from Scoring Dashboard**:
+```typescript
+// ❌ WRONG - Monolithic component
+<ScoreDashboard
+  overallScore={85}
+  atsScore={28}
+  keywordScore={22}
+  contentScore={18}
+  formatScore={14}
+  completenessScore={9}
+  showBreakdown={true}
+  showSuggestions={true}
+  theme="default"
+  // 20+ more props...
+/>
+
+// ✅ CORRECT - Composed components
+<ScoreDashboard score={overallScore}>
+  <ScoreRing value={atsScore} max={30} label="ATS" />
+  <ScoreRing value={keywordScore} max={25} label="Keywords" />
+  <ScoreBreakdown dimensions={dimensions} />
+  <ScoreSuggestions items={suggestions} />
+</ScoreDashboard>
+```
+
+**Benefits**:
+- Each component <100 lines
+- Single responsibility
+- Easy to maintain and test
+- Reusable in different contexts
+
 ---
 
 ## 🚫 Prohibited Patterns
@@ -717,6 +779,38 @@ if (firstJob) {
   processJob(firstJob)
 }
 ```
+
+#### Domain-Specific Types (Phase 6)
+
+**Rule**: Use granular types for domain values with business rules.
+
+```typescript
+// ❌ WRONG - Generic primitives
+interface Score {
+  dimensions: { [key: string]: number }
+  total: number
+}
+
+// ✅ CORRECT - Explicit types with rules
+interface ScoreDimensions {
+  atsScore: number      // 0-30 points
+  keywordScore: number  // 0-25 points
+  contentScore: number  // 0-20 points
+  formatScore: number   // 0-15 points
+  completenessScore: number // 0-10 points
+}
+
+interface Score {
+  dimensions: ScoreDimensions
+  total: number // Sum of dimensions (0-100)
+}
+```
+
+**Benefits**:
+- Type system enforces structure
+- Missing fields caught at compile time
+- Business rules documented in types
+- Better IDE autocomplete
 
 #### TypeScript Benefits (Phase 5 Evidence):
 - Caught 8 type errors during implementation

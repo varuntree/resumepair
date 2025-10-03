@@ -8,6 +8,7 @@ This file defines the FIXED decisions for all SaaS applications built using this
 - **No Advanced Features**: No high security, analytics, high performance optimizations
 - **Goal**: Fully functioning SaaS that works, not enterprise-grade solutions
 - **Rule**: Keep it simple and get it working first
+- **Performance**: Start with simple algorithms; optimize only when performance budgets are missed after measurement (Phase 6)
 
 ## 🔐 Authentication (FIXED)
 - **Auth Provider**: Google OAuth only
@@ -28,6 +29,7 @@ This file defines the FIXED decisions for all SaaS applications built using this
 - **Migration Creation**: Claude creates all migrations during development
 - **Connection**: Database keys provided by developer when instructed by user
 - **Rule**: Create migrations, connection timing depends on user instructions
+- **RLS Performance**: Denormalize user_id in child tables for efficient RLS without joins (Phase 6)
 
 ## 📧 Email Service (FIXED)
 - **Provider**: None until explicitly requested
