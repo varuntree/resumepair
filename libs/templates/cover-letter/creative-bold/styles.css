@@ -1,0 +1,176 @@
+/**
+ * Creative Bold Cover Letter Template Styles
+ *
+ * Bold, expressive styling for creative professionals.
+ */
+
+.creative-bold-template {
+  font-family: var(--doc-font-family, 'Inter');
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  line-height: var(--doc-line-height, 1.5);
+  color: var(--doc-text, hsl(210 11% 15%));
+  background-color: var(--doc-background, white);
+  padding: var(--doc-page-padding, 56px);
+  max-width: 8.5in;
+  margin: 0 auto;
+}
+
+/* Bold Header */
+.creative-bold-template .doc-letterhead {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+  position: relative;
+}
+
+.creative-bold-template .doc-header-accent-bar {
+  position: absolute;
+  top: 0;
+  left: -16px;
+  width: 6px;
+  height: 100%;
+  background: var(--doc-accent, hsl(73 100% 50%));
+  border-radius: 3px;
+}
+
+.creative-bold-template .doc-header-content {
+  padding-left: 16px;
+}
+
+.creative-bold-template .doc-sender-name {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+}
+
+.creative-bold-template .doc-sender-contact {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.95em;
+  color: var(--doc-secondary, hsl(226 36% 16%));
+  font-weight: 500;
+}
+
+/* Meta Section (Date + Recipient) */
+.creative-bold-template .doc-meta-section {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+}
+
+.creative-bold-template .doc-date {
+  margin-bottom: 16px;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--doc-accent, hsl(73 100% 50%));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Recipient */
+.creative-bold-template .doc-recipient {
+  line-height: 1.6;
+}
+
+.creative-bold-template .doc-recipient-name {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--doc-primary, hsl(225 52% 8%));
+}
+
+.creative-bold-template .doc-recipient-title {
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-style: italic;
+}
+
+.creative-bold-template .doc-recipient-company {
+  font-weight: 600;
+  color: var(--doc-secondary, hsl(226 36% 16%));
+}
+
+/* Salutation */
+.creative-bold-template .doc-salutation {
+  margin-bottom: calc(var(--doc-paragraph-gap, 12px) * 1.5);
+  font-weight: 600;
+  font-size: 1.1em;
+  color: var(--doc-primary, hsl(225 52% 8%));
+}
+
+/* Body */
+.creative-bold-template .doc-body {
+  margin-bottom: var(--doc-section-gap, 24px);
+}
+
+.creative-bold-template .doc-body p {
+  margin-bottom: var(--doc-paragraph-gap, 12px);
+  line-height: 1.6;
+}
+
+.creative-bold-template .doc-body p:last-child {
+  margin-bottom: 0;
+}
+
+.creative-bold-template .doc-body strong {
+  color: var(--doc-primary, hsl(225 52% 8%));
+  font-weight: 600;
+}
+
+.creative-bold-template .doc-body ul,
+.creative-bold-template .doc-body ol {
+  margin-left: 20px;
+  margin-bottom: var(--doc-paragraph-gap, 12px);
+}
+
+.creative-bold-template .doc-body li {
+  margin-bottom: 6px;
+}
+
+/* Closing */
+.creative-bold-template .doc-closing {
+  margin-top: calc(var(--doc-section-gap, 24px) * 1.5);
+  position: relative;
+}
+
+.creative-bold-template .doc-closing-phrase {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.creative-bold-template .doc-signature-space {
+  height: 48px;
+}
+
+.creative-bold-template .doc-signature-name {
+  font-weight: 700;
+  font-size: 1.1em;
+  color: var(--doc-primary, hsl(225 52% 8%));
+}
+
+.creative-bold-template .doc-closing-accent-line {
+  margin-top: 12px;
+  height: 3px;
+  width: 60px;
+  background: var(--doc-accent, hsl(73 100% 50%));
+  border-radius: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .creative-bold-template {
+    padding: 0.75in;
+    max-width: none;
+  }
+
+  .creative-bold-template .doc-signature-space {
+    height: 0.5in;
+  }
+
+  .creative-bold-template .doc-header-accent-bar {
+    left: -0.2in;
+  }
+}
+
+/* Preview Mode */
+.creative-bold-template[data-mode='preview'] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 11in;
+}

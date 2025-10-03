@@ -1,0 +1,164 @@
+/**
+ * Executive Formal Cover Letter Template Styles
+ *
+ * Prestigious, elegant styling for senior professionals.
+ */
+
+.executive-formal-template {
+  font-family: var(--doc-font-family, 'Source Serif 4');
+  font-size: calc(11.5pt * var(--doc-font-size-scale, 1));
+  line-height: var(--doc-line-height, 1.6);
+  color: var(--doc-text, hsl(210 11% 15%));
+  background-color: var(--doc-background, white);
+  padding: var(--doc-page-padding, 80px);
+  max-width: 8.5in;
+  margin: 0 auto;
+}
+
+/* Centered Header */
+.executive-formal-template .doc-letterhead {
+  text-align: center;
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 2);
+  padding-bottom: 20px;
+}
+
+.executive-formal-template .doc-sender-name {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.executive-formal-template .doc-sender-details {
+  font-size: 0.9em;
+  color: var(--doc-secondary, hsl(226 36% 16%));
+  line-height: 1.8;
+}
+
+.executive-formal-template .doc-sender-address {
+  margin-bottom: 6px;
+}
+
+.executive-formal-template .doc-sender-contact {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.executive-formal-template .doc-header-divider {
+  margin: 20px auto 0;
+  height: 1px;
+  width: 120px;
+  background: var(--doc-border, hsl(210 16% 93%));
+}
+
+/* Date (centered) */
+.executive-formal-template .doc-date {
+  text-align: center;
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+  color: var(--doc-muted, hsl(210 11% 46%));
+  font-style: italic;
+}
+
+/* Recipient (left-aligned) */
+.executive-formal-template .doc-recipient {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+  line-height: 1.6;
+}
+
+.executive-formal-template .doc-recipient-name {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--doc-primary, hsl(225 52% 8%));
+}
+
+.executive-formal-template .doc-recipient-title {
+  font-style: italic;
+  color: var(--doc-muted, hsl(210 11% 46%));
+}
+
+.executive-formal-template .doc-recipient-company {
+  font-weight: 600;
+  color: var(--doc-secondary, hsl(226 36% 16%));
+  margin-top: 4px;
+}
+
+.executive-formal-template .doc-recipient-address {
+  margin-top: 8px;
+  color: var(--doc-muted, hsl(210 11% 46%));
+}
+
+/* Salutation */
+.executive-formal-template .doc-salutation {
+  margin-bottom: calc(var(--doc-paragraph-gap, 12px) * 1.5);
+  font-weight: 500;
+  font-size: 1.05em;
+}
+
+/* Body */
+.executive-formal-template .doc-body {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+}
+
+.executive-formal-template .doc-body p {
+  margin-bottom: calc(var(--doc-paragraph-gap, 12px) * 1.5);
+  text-align: justify;
+  line-height: 1.7;
+}
+
+.executive-formal-template .doc-body p:last-child {
+  margin-bottom: 0;
+}
+
+.executive-formal-template .doc-body strong {
+  font-weight: 600;
+}
+
+.executive-formal-template .doc-body ul,
+.executive-formal-template .doc-body ol {
+  margin-left: 24px;
+  margin-bottom: calc(var(--doc-paragraph-gap, 12px) * 1.5);
+}
+
+.executive-formal-template .doc-body li {
+  margin-bottom: 8px;
+}
+
+/* Closing */
+.executive-formal-template .doc-closing {
+  margin-top: calc(var(--doc-section-gap, 24px) * 2);
+}
+
+.executive-formal-template .doc-closing-phrase {
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.executive-formal-template .doc-signature-space {
+  height: 56px;
+}
+
+.executive-formal-template .doc-signature-name {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--doc-primary, hsl(225 52% 8%));
+}
+
+/* Print Styles */
+@media print {
+  .executive-formal-template {
+    padding: 1in;
+    max-width: none;
+  }
+
+  .executive-formal-template .doc-signature-space {
+    height: 0.6in;
+  }
+}
+
+/* Preview Mode */
+.executive-formal-template[data-mode='preview'] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 11in;
+}

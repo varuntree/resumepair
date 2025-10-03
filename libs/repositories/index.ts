@@ -33,6 +33,20 @@ export {
   bulkArchiveResumes,
 } from './documents'
 
+// Cover letter document operations
+export {
+  getCoverLetters,
+  getCoverLetter,
+  createCoverLetter,
+  updateCoverLetter,
+  deleteCoverLetter,
+  restoreCoverLetter,
+  duplicateCoverLetter,
+  getDeletedCoverLetters,
+  bulkDeleteCoverLetters,
+  bulkArchiveCoverLetters,
+} from './coverLetters'
+
 // Resume version operations
 export {
   getVersions,

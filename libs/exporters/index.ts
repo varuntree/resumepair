@@ -9,15 +9,17 @@
 // PDF Generation
 export {
   generateResumePdf,
+  generateCoverLetterPdf,
   validatePdfBuffer,
   generateExportFilename,
+  generateCoverLetterFilename,
   calculateStoragePath,
   type PdfGenerationResult,
   type PdfGenerationOptions,
 } from './pdfGenerator'
 
 // Template Rendering
-export { renderResumeTemplate } from './templateRenderer'
+export { renderResumeTemplate, renderCoverLetterTemplate } from './templateRenderer'
 
 // Queue Management
 export {

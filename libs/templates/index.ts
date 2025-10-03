@@ -7,7 +7,7 @@
  * @module libs/templates
  */
 
-// Registry functions
+// Resume template registry functions
 export {
   getTemplate,
   listTemplates,
@@ -18,9 +18,21 @@ export {
   getDefaultTemplateSlug,
 } from './registry'
 
+// Cover letter template registry functions
+export {
+  getCoverLetterTemplate,
+  listCoverLetterTemplates,
+  listCoverLetterTemplateMetadata,
+  hasCoverLetterTemplate,
+  getCoverLetterTemplatesByCategory,
+  getDefaultCoverLetterTemplate,
+  getDefaultCoverLetterTemplateSlug,
+} from './cover-letter'
+
 // Shared components (available for direct import if needed)
 export { TemplateBase } from './shared/TemplateBase'
 export { TemplateSection } from './shared/TemplateSection'
+export { CoverLetterTemplateBase } from './cover-letter/shared/CoverLetterTemplateBase'
 
 // Icon components
 export * from './shared/TemplateIcons'
@@ -28,7 +40,14 @@ export * from './shared/TemplateIcons'
 // Utilities
 export * from './shared/TemplateUtils'
 
-// Re-export types for convenience
+// Cover letter specific utilities (only export non-conflicting functions)
+export {
+  formatCoverLetterDate,
+  formatAddressMultiline,
+  formatEmailLink,
+} from './cover-letter/shared/CoverLetterTemplateUtils'
+
+// Re-export resume template types
 export type {
   TemplateSlug,
   TemplateCategory,
@@ -43,3 +62,17 @@ export type {
   IconSettings,
   LayoutSettings,
 } from '@/types/template'
+
+// Re-export cover letter template types
+export type {
+  CoverLetterTemplateSlug,
+  CoverLetterTemplateCategory,
+  CoverLetterTemplateMode,
+  CoverLetterTemplateProps,
+  CoverLetterTemplateMetadata,
+  CoverLetterTemplate,
+  CoverLetterCustomizations,
+  CoverLetterColorScheme,
+  CoverLetterTypography,
+  CoverLetterSpacing,
+} from '@/types/cover-letter-template'

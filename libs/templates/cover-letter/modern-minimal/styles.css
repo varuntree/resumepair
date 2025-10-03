@@ -1,0 +1,139 @@
+/**
+ * Modern Minimal Cover Letter Template Styles
+ *
+ * Clean, contemporary styling with generous whitespace.
+ */
+
+.modern-minimal-template {
+  font-family: var(--doc-font-family, 'Inter');
+  font-size: calc(11pt * var(--doc-font-size-scale, 1));
+  line-height: var(--doc-line-height, 1.5);
+  color: var(--doc-text, hsl(210 11% 15%));
+  background-color: var(--doc-background, white);
+  padding: var(--doc-page-padding, 64px);
+  max-width: 8.5in;
+  margin: 0 auto;
+}
+
+/* Modern Letterhead */
+.modern-minimal-template .doc-letterhead {
+  margin-bottom: calc(var(--doc-section-gap, 24px) * 1.5);
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--doc-accent, hsl(73 100% 50%));
+}
+
+.modern-minimal-template .doc-sender-name {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: var(--doc-primary, hsl(225 52% 8%));
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.modern-minimal-template .doc-sender-contact {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+  color: var(--doc-muted, hsl(210 11% 46%));
+}
+
+.modern-minimal-template .doc-contact-item {
+  position: relative;
+}
+
+.modern-minimal-template .doc-contact-item:not(:last-child)::after {
+  content: '•';
+  position: absolute;
+  right: -10px;
+  color: var(--doc-border, hsl(210 16% 93%));
+}
+
+.modern-minimal-template .doc-accent-line {
+  margin-top: 12px;
+  height: 2px;
+  width: 48px;
+  background: var(--doc-accent, hsl(73 100% 50%));
+}
+
+/* Date */
+.modern-minimal-template .doc-date {
+  margin-bottom: var(--doc-section-gap, 24px);
+  font-size: 0.95em;
+  color: var(--doc-muted, hsl(210 11% 46%));
+}
+
+/* Recipient (simplified) */
+.modern-minimal-template .doc-recipient {
+  margin-bottom: var(--doc-section-gap, 24px);
+  line-height: 1.6;
+}
+
+.modern-minimal-template .doc-recipient div {
+  color: var(--doc-text, hsl(210 11% 15%));
+}
+
+/* Salutation */
+.modern-minimal-template .doc-salutation {
+  margin-bottom: calc(var(--doc-paragraph-gap, 12px) * 1.5);
+  font-weight: 500;
+  font-size: 1.05em;
+}
+
+/* Body */
+.modern-minimal-template .doc-body {
+  margin-bottom: var(--doc-section-gap, 24px);
+}
+
+.modern-minimal-template .doc-body p {
+  margin-bottom: var(--doc-paragraph-gap, 12px);
+}
+
+.modern-minimal-template .doc-body p:last-child {
+  margin-bottom: 0;
+}
+
+.modern-minimal-template .doc-body ul,
+.modern-minimal-template .doc-body ol {
+  margin-left: 20px;
+  margin-bottom: var(--doc-paragraph-gap, 12px);
+}
+
+.modern-minimal-template .doc-body li {
+  margin-bottom: 6px;
+}
+
+/* Closing */
+.modern-minimal-template .doc-closing {
+  margin-top: calc(var(--doc-section-gap, 24px) * 1.5);
+}
+
+.modern-minimal-template .doc-closing-phrase {
+  margin-bottom: 4px;
+}
+
+.modern-minimal-template .doc-signature-space {
+  height: 48px;
+}
+
+.modern-minimal-template .doc-signature-name {
+  font-weight: 500;
+}
+
+/* Print Styles */
+@media print {
+  .modern-minimal-template {
+    padding: 0.75in;
+    max-width: none;
+  }
+
+  .modern-minimal-template .doc-signature-space {
+    height: 0.5in;
+  }
+}
+
+/* Preview Mode */
+.modern-minimal-template[data-mode='preview'] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 11in;
+}

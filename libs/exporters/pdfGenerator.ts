@@ -9,8 +9,9 @@
 
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
-import { renderResumeTemplate } from './templateRenderer'
+import { renderResumeTemplate, renderCoverLetterTemplate } from './templateRenderer'
 import { ResumeJson } from '@/types/resume'
+import { CoverLetterJson } from '@/types/cover-letter'
 import { ExportOptions } from '@/libs/repositories/exportJobs'
 
 // ============================================
@@ -33,6 +34,7 @@ export interface PdfGenerationOptions {
     left: number
   }
   quality?: 'standard' | 'high'
+  documentType?: 'resume' | 'cover-letter' // Added for cover letter support
 }
 
 // ============================================
@@ -230,7 +232,77 @@ export function validatePdfBuffer(buffer: Buffer): boolean {
 }
 
 /**
- * Generate filename for export
+ * Generate PDF from cover letter JSON
+ */
+export async function generateCoverLetterPdf(
+  coverLetterData: CoverLetterJson,
+  options: PdfGenerationOptions
+): Promise<PdfGenerationResult> {
+  let browser: Browser | null = null
+
+  try {
+    // Step 1: Render HTML from template
+    const html = await renderCoverLetterTemplate(coverLetterData, {
+      templateSlug: options.templateSlug,
+      pageSize: options.pageSize,
+      margins: options.margins,
+    })
+
+    // Step 2: Launch browser
+    browser = await launchBrowser()
+
+    // Step 3: Create page and set content
+    const page = await browser.newPage()
+    await configurePage(page)
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: DEFAULT_TIMEOUT,
+    })
+
+    // Step 4: Generate PDF
+    const quality = options.quality || 'standard'
+    const pdfBuffer = await page.pdf({
+      ...PDF_QUALITY_SETTINGS[quality],
+      format: options.pageSize === 'a4' ? 'A4' : 'Letter',
+      margin: options.margins
+        ? {
+            top: `${options.margins.top}in`,
+            right: `${options.margins.right}in`,
+            bottom: `${options.margins.bottom}in`,
+            left: `${options.margins.left}in`,
+          }
+        : undefined,
+    })
+
+    // Step 5: Calculate metadata
+    const pageCount = await countPdfPages(page)
+    const buffer = Buffer.from(pdfBuffer)
+    const fileSize = buffer.length
+
+    return {
+      buffer,
+      pageCount,
+      fileSize,
+    }
+  } catch (error) {
+    throw new Error(
+      `PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  } finally {
+    // Always clean up browser
+    if (browser) {
+      try {
+        await browser.close()
+      } catch (cleanupError) {
+        console.error('Failed to close browser:', cleanupError)
+        // Continue - browser will be GC'd eventually
+      }
+    }
+  }
+}
+
+/**
+ * Generate filename for resume export
  */
 export function generateExportFilename(
   resumeData: ResumeJson,
@@ -240,6 +312,25 @@ export function generateExportFilename(
   const sanitized = name.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '_')
   const timestamp = new Date().toISOString().split('T')[0]
   return `${sanitized}_${timestamp}.${format}`
+}
+
+/**
+ * Generate filename for cover letter export
+ */
+export function generateCoverLetterFilename(
+  coverLetterData: CoverLetterJson,
+  format: string = 'pdf'
+): string {
+  const name = coverLetterData.from?.fullName || 'Cover_Letter'
+  const company = coverLetterData.to?.companyName || ''
+  const sanitized = name.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '_')
+  const companySanitized = company.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '_')
+  const timestamp = new Date().toISOString().split('T')[0]
+
+  if (companySanitized) {
+    return `${sanitized}_CoverLetter_${companySanitized}_${timestamp}.${format}`
+  }
+  return `${sanitized}_CoverLetter_${timestamp}.${format}`
 }
 
 /**
