@@ -31,7 +31,6 @@ import { LivePreview } from '@/components/preview'
 import { UnifiedStreamOverlay } from '@/components/preview/UnifiedStreamOverlay'
 import { PreviewControls } from '@/components/preview/PreviewControls'
 import { CustomizationPanel } from '@/components/customization/CustomizationPanel'
-import { EnhancementPanel } from '@/components/enhance/EnhancementPanel'
 import UnifiedAITool from '@/components/ai/UnifiedAITool'
 import { useDocumentStore, useTemporalStore } from '@/stores/documentStore'
 import type { ResumeJson } from '@/types/resume'
@@ -199,9 +198,6 @@ export default function EditorPage(): React.ReactElement {
                   <History className="h-4 w-4 mr-2" />
                   Version History
                 </Button>
-                <div className="mt-2">
-                  <EnhancementPanel />
-                </div>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth">
                 <EditorForm
