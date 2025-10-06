@@ -11,18 +11,31 @@ const inter = Inter({
 	subsets: ["latin"],
 	variable: "--font-inter",
 	display: "swap",
+	preload: true,
+	fallback: [
+		"-apple-system",
+		"BlinkMacSystemFont",
+		"Segoe UI",
+		"Helvetica Neue",
+		"Arial",
+		"sans-serif"
+	],
 });
 
 const jetbrainsMono = JetBrains_Mono({
 	subsets: ["latin"],
 	variable: "--font-jetbrains-mono",
 	display: "swap",
+	preload: true,
+	fallback: ["Consolas", "Monaco", "monospace"],
 });
 
 const sourceSerif = Source_Serif_4({
 	subsets: ["latin"],
 	variable: "--font-source-serif",
 	display: "swap",
+	preload: true,
+	fallback: ["Georgia", "serif"],
 });
 
 export const viewport: Viewport = {
@@ -39,7 +52,7 @@ export const metadata = getSEOTags();
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} ${sourceSerif.variable}`}>
+			<body className={`${inter.className} ${inter.variable} ${jetbrainsMono.variable} ${sourceSerif.variable}`}>
 				{/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
 				<ClientLayout>{children}</ClientLayout>
 			</body>

@@ -7,12 +7,12 @@ import { Footer } from "@/components/layout/Footer";
 import config from "@/config";
 
 /**
- * Dashboard Layout
+ * Documents Layout
  *
- * Protected layout for dashboard and editor pages.
+ * Protected layout for unified documents page.
  * Includes Header, Sidebar, and Footer.
  */
-export default async function LayoutPrivate({
+export default async function DocumentsLayout({
   children,
 }: {
   children: ReactNode;

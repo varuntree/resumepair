@@ -7,12 +7,12 @@ import { Footer } from "@/components/layout/Footer";
 import config from "@/config";
 
 /**
- * Dashboard Layout
+ * AI Tools Layout
  *
- * Protected layout for dashboard and editor pages.
+ * Protected layout for AI generation and enhancement pages.
  * Includes Header, Sidebar, and Footer.
  */
-export default async function LayoutPrivate({
+export default async function AILayout({
   children,
 }: {
   children: ReactNode;

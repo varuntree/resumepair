@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from './UserMenu'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { cn } from '@/libs/utils'
 
 interface HeaderProps {
@@ -64,8 +65,9 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           </Link>
         </nav>
 
-        {/* User Menu (Desktop) */}
-        <div className="hidden md:block">
+        {/* Theme Toggle & User Menu (Desktop) */}
+        <div className="hidden md:flex items-center space-x-4">
+          <ThemeToggle />
           <UserMenu />
         </div>
 
