@@ -1,6 +1,6 @@
 import { Suspense, ReactNode } from "react";
 import HeaderBlog from "./_assets/components/HeaderBlog";
-import Footer from "@/components/Footer";
+import { Footer } from "@/components/layout/Footer";
 
 export default async function LayoutBlog({ children }: { children: ReactNode }) {
   return (

@@ -119,6 +119,18 @@ export interface CoverLetter {
 }
 
 /**
+ * Version history entry
+ */
+export interface CoverLetterVersion {
+  id: number
+  cover_letter_id: string
+  version_number: number
+  data: CoverLetterJson
+  created_at: string
+  created_by: string
+}
+
+/**
  * Cover letter create input
  */
 export interface CoverLetterCreateInput {
@@ -190,11 +202,11 @@ export function createEmptyCoverLetter(
 ): CoverLetterJson {
   return {
     from: {
-      fullName: fullName || '',
+      fullName: fullName || 'Your Name',
       email: email,
     },
     to: {
-      companyName: '',
+      companyName: 'Company Name',
     },
     date: new Date().toISOString(),
     salutation: 'Dear Hiring Manager,',

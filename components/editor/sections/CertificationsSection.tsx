@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { DateField } from '../fields/DateField'
 import { ArrayField } from '../fields/ArrayField'
@@ -15,15 +14,6 @@ export function CertificationsSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Certifications</h2>
-        <p className="text-muted-foreground mt-1">
-          Professional certifications and licenses
-        </p>
-      </div>
-
-      <Separator />
-
       <ArrayField
         name="certifications"
         label="Certifications"

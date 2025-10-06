@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { DateField } from '../fields/DateField'
 import { TextAreaField } from '../fields/TextAreaField'
@@ -17,15 +16,6 @@ export function AwardsSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Awards</h2>
-        <p className="text-muted-foreground mt-1">
-          Recognition and achievements
-        </p>
-      </div>
-
-      <Separator />
-
       <ArrayField
         name="awards"
         label="Awards"

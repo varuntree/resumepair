@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { TextAreaField } from '../fields/TextAreaField'
 import { ArrayField } from '../fields/ArrayField'
@@ -14,15 +13,6 @@ export function ExtrasSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Additional Sections</h2>
-        <p className="text-muted-foreground mt-1">
-          Add custom sections for anything else you&apos;d like to include
-        </p>
-      </div>
-
-      <Separator />
-
       <ArrayField
         name="extras"
         label="Custom Sections"

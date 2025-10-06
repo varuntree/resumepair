@@ -106,16 +106,18 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
 
   return (
     <PreviewError>
-      <div ref={containerRef} className="w-full h-full">
-        {showControls && <PreviewControls />}
-        <PreviewContainer>
-          <TemplateRenderer
-            templateId={templateId}
-            data={previewData}
-            customizations={customizations}
-            mode="preview"
-          />
-        </PreviewContainer>
+      <div ref={containerRef} className="w-full h-full flex flex-col min-h-0">
+        {showControls && <div className="flex-shrink-0"><PreviewControls /></div>}
+        <div className="flex-1 min-h-0">
+          <PreviewContainer>
+            <TemplateRenderer
+              templateId={templateId}
+              data={previewData}
+              customizations={customizations}
+              mode="preview"
+            />
+          </PreviewContainer>
+        </div>
       </div>
     </PreviewError>
   )

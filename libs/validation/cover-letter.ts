@@ -133,3 +133,41 @@ export const CoverLetterListParamsSchema = z.object({
   limit: z.number().int().min(1).max(100).default(20),
   linked_resume_id: z.string().uuid('Invalid resume ID').optional(),
 })
+
+/**
+ * Cover letter customizations schema
+ */
+export const CoverLetterCustomizationsSchema = z.object({
+  colors: z.object({
+    primary: z.string(),
+    secondary: z.string(),
+    accent: z.string(),
+    text: z.string(),
+    background: z.string(),
+    muted: z.string(),
+    border: z.string(),
+  }),
+  typography: z.object({
+    fontFamily: z.string(),
+    fontSize: z.number().min(0.8).max(1.2),
+    lineHeight: z.number().min(1.0).max(1.8),
+    fontWeight: z.number().min(300).max(700),
+  }),
+  spacing: z.object({
+    sectionGap: z.number().min(12).max(48),
+    paragraphGap: z.number().min(8).max(20),
+    pagePadding: z.number().min(24).max(96),
+  }),
+})
+
+/**
+ * Cover letter export request schema
+ */
+export const CoverLetterExportRequestSchema = z.object({
+  coverLetterId: z.string().uuid('Invalid cover letter ID'),
+  format: z.enum(['pdf']).default('pdf'),
+  templateId: z
+    .enum(['classic-block', 'modern-minimal', 'creative-bold', 'executive-formal'])
+    .optional(),
+  customizations: CoverLetterCustomizationsSchema.optional(),
+})

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Footer } from "@/components/layout/Footer";
 
 export default function Page() {
   return (
@@ -36,6 +37,8 @@ export default function Page() {
           </div>
         </section>
       </main>
+
+      <Footer />
     </>
   );
 }

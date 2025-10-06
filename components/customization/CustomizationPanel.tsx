@@ -27,10 +27,10 @@ export function CustomizationPanel(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState('template')
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       <CustomizationHeader title="Customize Resume" />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 min-h-0 p-6">
         <Card className="border-gray-200">
           <div className="p-6 space-y-6">
             <CustomizationTabs activeTab={activeTab} onTabChange={setActiveTab} />

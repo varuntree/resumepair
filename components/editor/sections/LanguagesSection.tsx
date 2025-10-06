@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { SelectField } from '../fields/SelectField'
 import { ArrayField } from '../fields/ArrayField'
@@ -22,15 +21,6 @@ export function LanguagesSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Languages</h2>
-        <p className="text-muted-foreground mt-1">
-          Languages you speak and your proficiency level
-        </p>
-      </div>
-
-      <Separator />
-
       <ArrayField
         name="languages"
         label="Languages"

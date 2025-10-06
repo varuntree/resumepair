@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { ArrayField } from '../fields/ArrayField'
 import { LinkField } from '../fields/LinkField'
@@ -11,15 +10,6 @@ export function ProfileSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Profile</h2>
-        <p className="text-muted-foreground mt-1">
-          Your basic information and contact details
-        </p>
-      </div>
-
-      <Separator />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TextField
           name="profile.fullName"

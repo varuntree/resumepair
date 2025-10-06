@@ -222,7 +222,7 @@ export function calculateCost(inputTokens: number, outputTokens: number): number
 export async function trackEnhancement(
   supabase: SupabaseClient,
   userId: string,
-  enhancementType: 'bullet' | 'summary' | 'keywords',
+  enhancementType: 'bullet' | 'summary' | 'keywords' | 'cover_letter_paragraph',
   inputTokens: number,
   outputTokens: number,
   fromCache: boolean

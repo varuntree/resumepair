@@ -74,7 +74,9 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     const { title, template_id, linked_resume_id } = validation.data
 
     // Create default cover letter data
-    const defaultData = createEmptyCoverLetter(user.email!, user.user_metadata?.full_name)
+    const userEmail = user.email || user.user_metadata?.email || ''
+    const userName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+    const defaultData = createEmptyCoverLetter(userEmail, userName)
 
     // Validate cover letter JSON schema
     const dataValidation = CoverLetterJsonSchema.safeParse(defaultData)

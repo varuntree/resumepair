@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/components/ui/separator'
 import { TextField } from '../fields/TextField'
 import { LinkField } from '../fields/LinkField'
 import { ArrayField } from '../fields/ArrayField'
@@ -21,15 +20,6 @@ export function ProjectsSection(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Projects</h2>
-        <p className="text-muted-foreground mt-1">
-          Showcase your personal or professional projects
-        </p>
-      </div>
-
-      <Separator />
-
       <ArrayField
         name="projects"
         label="Projects"

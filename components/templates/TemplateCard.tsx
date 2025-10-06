@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { TemplateMetadata } from '@/types/template'
+import { TemplateLivePreview } from './TemplateLivePreview'
 
 interface TemplateCardProps {
   template: TemplateMetadata
@@ -32,10 +33,8 @@ export function TemplateCard({ template }: TemplateCardProps): React.ReactElemen
   return (
     <Card className="group overflow-hidden border-gray-200 transition-all hover:shadow-lg hover:border-lime-500">
       {/* Thumbnail */}
-      <div className="aspect-[4/5] bg-gray-100 border-b border-gray-200 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-gray-400 text-sm">{template.name} Template</span>
-        </div>
+      <div className="aspect-[4/5] bg-gray-100 border-b border-gray-200 relative overflow-hidden">
+        <TemplateLivePreview templateId={template.id} ariaLabel={`${template.name} preview`} />
       </div>
 
       {/* Content */}

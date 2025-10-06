@@ -19,32 +19,32 @@ export function EditorLayout({
   sidebarMobileVisible,
 }: EditorLayoutProps): React.ReactElement {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-full bg-background flex flex-col">
       {/* Header */}
       {header && (
-        <div className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex-shrink-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           {header}
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Sidebar - hidden on mobile, shown on desktop */}
         {sidebar && (
           <aside className={cn(
             sidebarMobileVisible ? 'flex flex-col' : 'hidden lg:flex lg:flex-col',
             'w-60 border-r border-border',
             'bg-muted/30',
+            'flex-shrink-0 h-full overflow-hidden',
             sidebarClassName
           )}>
-            <div className="flex-1 overflow-y-auto p-4">
-              {sidebar}
-            </div>
+            {/* Let the sidebar content manage its own scroll regions */}
+            <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">{sidebar}</div>
           </aside>
         )}
 
         {/* Editor Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-hidden flex flex-col min-h-0">
           {children}
         </main>
       </div>

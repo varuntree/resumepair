@@ -13,7 +13,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -133,9 +133,11 @@ export function Sidebar() {
       return (
         pathname === '/dashboard' ||
         pathname.startsWith('/editor') ||
-        pathname.startsWith('/cover-letter-editor') ||
         pathname.startsWith('/documents')
       )
+    }
+    if (path === '/cover-letter-editor/new') {
+      return pathname.startsWith('/cover-letter-editor')
     }
     return pathname.startsWith(path)
   }
@@ -194,18 +196,9 @@ export function Sidebar() {
     : 0
 
   return (
-    <aside className="hidden lg:flex h-screen w-64 flex-col border-r border-app-border bg-app-background">
-      {/* Logo / Brand */}
-      <div className="p-6 border-b border-app-border">
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-app-foreground">
-            ResumePair
-          </span>
-        </Link>
-      </div>
-
+    <aside className="hidden lg:flex h-full w-64 flex-col flex-shrink-0 border-r border-app-border bg-app-background">
       {/* Navigation Sections */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 pt-8">
         <nav className="space-y-8">
           {navSections.map((section) => (
             <div key={section.title} className="space-y-2">

@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card'
 import { useTemplateStore, useTemplateId } from '@/stores/templateStore'
 import { listTemplates } from '@/libs/templates/registry'
 import { cn } from '@/libs/utils'
+import { TemplateLivePreview } from '@/components/templates/TemplateLivePreview'
 
 /**
  * Template selector grid component
@@ -46,9 +47,9 @@ export function TemplateSelector(): React.ReactElement {
               onClick={() => selectTemplate(template.metadata.id)}
             >
               <div className="p-4 space-y-3">
-                {/* Thumbnail placeholder */}
-                <div className="aspect-[4/5] bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
-                  <span className="text-xs text-gray-400">{template.metadata.name}</span>
+                {/* Live preview (lazy, scaled) */}
+                <div className="aspect-[4/5] rounded border border-gray-200 overflow-hidden bg-gray-100">
+                  <TemplateLivePreview templateId={template.metadata.id} ariaLabel={`${template.metadata.name} preview`} />
                 </div>
 
                 {/* Template info */}
