@@ -130,7 +130,12 @@ export function Sidebar() {
   // Check if link is active
   const isActive = (path: string) => {
     if (path === '/dashboard') {
-      return pathname === '/dashboard' || pathname.startsWith('/editor')
+      return (
+        pathname === '/dashboard' ||
+        pathname.startsWith('/editor') ||
+        pathname.startsWith('/cover-letter-editor') ||
+        pathname.startsWith('/documents')
+      )
     }
     return pathname.startsWith(path)
   }
