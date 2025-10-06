@@ -28,9 +28,11 @@ import { VersionHistory } from '@/components/editor/VersionHistory'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LivePreview } from '@/components/preview'
+import { UnifiedStreamOverlay } from '@/components/preview/UnifiedStreamOverlay'
 import { PreviewControls } from '@/components/preview/PreviewControls'
 import { CustomizationPanel } from '@/components/customization/CustomizationPanel'
 import { EnhancementPanel } from '@/components/enhance/EnhancementPanel'
+import UnifiedAITool from '@/components/ai/UnifiedAITool'
 import { useDocumentStore, useTemporalStore } from '@/stores/documentStore'
 import type { ResumeJson } from '@/types/resume'
 import type { SaveStatus } from '@/components/editor/EditorHeader'
@@ -55,6 +57,7 @@ export default function EditorPage(): React.ReactElement {
   const [versionHistoryOpen, setVersionHistoryOpen] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState<string | null>(null)
   const [activeTab, setActiveTab] = React.useState<'preview' | 'customize' | 'score'>('preview')
+  const [sidebarTab, setSidebarTab] = React.useState<'ai' | 'editor'>('ai')
 
   const {
     document: resumeDocument,
@@ -102,30 +105,31 @@ export default function EditorPage(): React.ReactElement {
 
   // Intersection observer to highlight active section based on scroll position
   React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            const id = entry.target.id.replace('section-', '')
-            setActiveSection(id)
-          }
-        })
-      },
-      {
-        threshold: [0.5],
-        rootMargin: '-100px 0px -50% 0px',
+    if (sidebarTab !== 'editor') return
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          const id = entry.target.id.replace('section-', '')
+          React.startTransition(() => {
+            setActiveSection((prev) => (prev === id ? prev : id))
+          })
+          break
+        }
       }
-    )
+    }
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      threshold: [0.5],
+      rootMargin: '-100px 0px -50% 0px',
+    })
 
     sections.forEach(({ id }) => {
       const element = document.getElementById(`section-${id}`)
-      if (element) {
-        observer.observe(element)
-      }
+      if (element) observer.observe(element)
     })
 
     return () => observer.disconnect()
-  }, [sections])
+  }, [sections, sidebarTab])
 
   const handleChange = (data: ResumeJson): void => { updateDocument(data) }
 
@@ -177,73 +181,88 @@ export default function EditorPage(): React.ReactElement {
         />
       }
       sidebar={
-        <div className="flex h-full flex-col gap-4 min-h-0">
-          <div className="shrink-0">
-            <EditorSidebar sections={sections} activeSection={activeSection || undefined} onSectionClick={handleSectionClick} />
-            <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => setVersionHistoryOpen(true)}>
-              <History className="h-4 w-4 mr-2" />
-              Version History
-            </Button>
-            <div className="mt-2">
-              <EnhancementPanel />
+        <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as 'ai' | 'editor')} className="h-full flex flex-col min-h-0">
+          <TabsList className="w-full rounded-none border-b flex-shrink-0">
+            <TabsTrigger value="ai" className="flex-1">AI Tool</TabsTrigger>
+            <TabsTrigger value="editor" className="flex-1">Traditional Editor</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ai" className="flex-1 mt-0 overflow-auto p-2">
+            <UnifiedAITool docType="resume" editorData={resumeDocument} />
+          </TabsContent>
+
+          <TabsContent value="editor" className="flex-1 mt-0 overflow-hidden">
+            <div className="flex h-full flex-col gap-4 min-h-0 p-2">
+              <div className="shrink-0">
+                <EditorSidebar sections={sections} activeSection={activeSection || undefined} onSectionClick={handleSectionClick} />
+                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => setVersionHistoryOpen(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  Version History
+                </Button>
+                <div className="mt-2">
+                  <EnhancementPanel />
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth">
+                <EditorForm
+                  documentId={documentId!}
+                  document={resumeDocument!}
+                  onSubmit={handleSubmit}
+                  onChange={handleChange}
+                  containerClassName="pr-2 space-y-6"
+                >
+                  <SectionAccordion id="profile" title="Profile" icon={sections[0].iconLarge} defaultOpen>
+                    <ProfileSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="summary" title="Professional Summary" icon={sections[1].iconLarge} defaultOpen>
+                    <SummarySection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="work" title="Work Experience" icon={sections[2].iconLarge} defaultOpen>
+                    <WorkSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="education" title="Education" icon={sections[3].iconLarge} defaultOpen>
+                    <EducationSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="projects" title="Projects" icon={sections[4].iconLarge} defaultOpen>
+                    <ProjectsSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="skills" title="Skills" icon={sections[5].iconLarge} defaultOpen>
+                    <SkillsSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="certifications" title="Certifications" icon={sections[6].iconLarge} defaultOpen>
+                    <CertificationsSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="awards" title="Awards" icon={sections[7].iconLarge} defaultOpen>
+                    <AwardsSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="languages" title="Languages" icon={sections[8].iconLarge} defaultOpen>
+                    <LanguagesSection />
+                  </SectionAccordion>
+
+                  <SectionAccordion id="extras" title="Additional Sections" icon={sections[9].iconLarge} defaultOpen>
+                    <ExtrasSection />
+                  </SectionAccordion>
+                </EditorForm>
+              </div>
             </div>
-          </div>
-          <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth">
-            <EditorForm
-              documentId={documentId!}
-              document={resumeDocument!}
-              onSubmit={handleSubmit}
-              onChange={handleChange}
-              containerClassName="pr-2 space-y-6"
-            >
-              {/* All sections rendered with accordions */}
-              <SectionAccordion id="profile" title="Profile" icon={sections[0].iconLarge} defaultOpen>
-                <ProfileSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="summary" title="Professional Summary" icon={sections[1].iconLarge} defaultOpen>
-                <SummarySection />
-              </SectionAccordion>
-
-              <SectionAccordion id="work" title="Work Experience" icon={sections[2].iconLarge} defaultOpen>
-                <WorkSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="education" title="Education" icon={sections[3].iconLarge} defaultOpen>
-                <EducationSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="projects" title="Projects" icon={sections[4].iconLarge} defaultOpen>
-                <ProjectsSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="skills" title="Skills" icon={sections[5].iconLarge} defaultOpen>
-                <SkillsSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="certifications" title="Certifications" icon={sections[6].iconLarge} defaultOpen>
-                <CertificationsSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="awards" title="Awards" icon={sections[7].iconLarge} defaultOpen>
-                <AwardsSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="languages" title="Languages" icon={sections[8].iconLarge} defaultOpen>
-                <LanguagesSection />
-              </SectionAccordion>
-
-              <SectionAccordion id="extras" title="Additional Sections" icon={sections[9].iconLarge} defaultOpen>
-                <ExtrasSection />
-              </SectionAccordion>
-            </EditorForm>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       }
       sidebarClassName="w-[420px]"
       sidebarMobileVisible
     >
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'preview' | 'customize' | 'score')} className="h-full flex flex-col min-h-0">
+      <Tabs value={activeTab} onValueChange={(v) => {
+        const next = v as 'preview' | 'customize' | 'score'
+        if (next !== activeTab) setActiveTab(next)
+      }} className="h-full flex flex-col min-h-0">
         <TabsList className="w-full rounded-none border-b flex-shrink-0">
           <TabsTrigger value="preview" className="flex-1"><Eye className="h-4 w-4 mr-2" />Preview</TabsTrigger>
           <TabsTrigger value="customize" className="flex-1"><Palette className="h-4 w-4 mr-2" />Customize</TabsTrigger>
@@ -252,8 +271,9 @@ export default function EditorPage(): React.ReactElement {
 
         <TabsContent value="preview" className="flex-1 mt-0 overflow-hidden flex flex-col min-h-0">
           <div className="border-b flex-shrink-0"><PreviewControls /></div>
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="relative flex-1 min-h-0 overflow-y-auto">
             <LivePreview documentId={resumeId} showControls={false} />
+            <UnifiedStreamOverlay />
           </div>
         </TabsContent>
 

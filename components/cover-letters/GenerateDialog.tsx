@@ -35,6 +35,8 @@ import { Progress } from '@/components/ui/progress'
 import { Sparkles, FileText, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { CoverLetterJson } from '@/types/cover-letter'
+import { useUnifiedAIStore } from '@/stores/unifiedAIStore'
+import { useShallow } from 'zustand/react/shallow'
 
 export interface Resume {
   id: string
@@ -60,9 +62,18 @@ export function GenerateDialog({
   const [selectedResumeId, setSelectedResumeId] = React.useState('')
   const [tone, setTone] = React.useState<Tone>('formal')
   const [length, setLength] = React.useState<Length>('medium')
-  const [isGenerating, setIsGenerating] = React.useState(false)
-  const [progress, setProgress] = React.useState(0)
-  const [streamingText, setStreamingText] = React.useState('')
+  const [isPreparing, setIsPreparing] = React.useState(false)
+  const { isStreaming, progress, partial, final, start, cancel, reset } = useUnifiedAIStore(
+    useShallow((s: any) => ({
+      isStreaming: s.isStreaming,
+      progress: s.progress,
+      partial: s.partial,
+      final: s.final,
+      start: s.start,
+      cancel: s.cancel,
+      reset: s.reset,
+    }))
+  )
   const { toast } = useToast()
 
   const handleGenerate = async (): Promise<void> => {
@@ -75,92 +86,33 @@ export function GenerateDialog({
       return
     }
 
-    setIsGenerating(true)
-    setProgress(0)
-    setStreamingText('Starting generation...')
-
+    setIsPreparing(true)
     try {
-      const response = await fetch('/api/v1/cover-letters/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobDescription,
-          resumeId: selectedResumeId || undefined,
-          tone,
-          length,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate cover letter')
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response stream')
-      }
-
-      const decoder = new TextDecoder()
-      let finalCoverLetter: CoverLetterJson | null = null
-      let isReading = true
-
-      while (isReading) {
-        const { done, value } = await reader.read()
-        if (done) {
-          isReading = false
-          break
-        }
-
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n\n')
-
-        for (const line of lines) {
-          if (!line.trim() || !line.startsWith('event:')) continue
-
-          const eventMatch = line.match(/event: (\w+)\ndata: (.+)/)
-          if (!eventMatch) continue
-
-          const [, eventType, eventData] = eventMatch
-          const data = JSON.parse(eventData)
-
-          switch (eventType) {
-            case 'progress':
-              setProgress(Math.round(data.progress * 100))
-              setStreamingText('Generating cover letter...')
-              break
-            case 'update':
-              if (data.data?.body) {
-                const paragraphCount = data.data.body.length
-                setStreamingText(
-                  `Writing paragraph ${paragraphCount} of ${length === 'short' ? '3' : length === 'medium' ? '4' : '5'}...`
-                )
-              }
-              break
-            case 'complete':
-              setProgress(100)
-              setStreamingText('Complete!')
-              finalCoverLetter = data.data
-              break
-            case 'error':
-              throw new Error(data.message || 'Generation failed')
+      // Optionally fetch selected resume for context
+      let resumeContext = ''
+      if (selectedResumeId) {
+        try {
+          const res = await fetch(`/api/v1/resumes/${selectedResumeId}`)
+          if (res.ok) {
+            const payload = await res.json()
+            const r = payload?.data || payload
+            // Minimal, structured context to keep prompt compact
+            const summary = [
+              r?.profile?.fullName && `Name: ${r.profile.fullName}`,
+              r?.profile?.email && `Email: ${r.profile.email}`,
+              r?.summary && `Summary: ${typeof r.summary === 'string' ? r.summary : ''}`,
+            ].filter(Boolean).join('\n')
+            const topWork = Array.isArray(r?.work) ? r.work.slice(0, 2).map((w: any) => `- ${w.position || ''} @ ${w.company || ''} (${w.startDate || ''} - ${w.endDate || 'Present'})`).join('\n') : ''
+            const skills = Array.isArray(r?.skills?.items) ? r.skills.items.slice(0, 12).map((s: any) => s.name).join(', ') : ''
+            resumeContext = `\n\nCandidate context (from selected resume):\n${summary}${topWork ? `\nWork:\n${topWork}` : ''}${skills ? `\nSkills: ${skills}` : ''}`
           }
-        }
+        } catch {}
       }
 
-      if (finalCoverLetter) {
-        onGenerate(finalCoverLetter)
-        toast({
-          title: 'Cover letter generated',
-          description: 'Your cover letter has been generated successfully',
-        })
+      const desiredParagraphs = length === 'short' ? 3 : length === 'medium' ? 4 : 5
+      const composed = `Write a professional cover letter.\nTone: ${tone}. Target paragraphs: ${desiredParagraphs}.\nFocus on relevance to the job description and the candidate's background.\n\nJob description:\n${jobDescription.trim()}${resumeContext}`
 
-        // Reset and close
-        setJobDescription('')
-        setSelectedResumeId('')
-        setOpen(false)
-      }
+      await start({ docType: 'cover-letter', text: composed })
     } catch (error) {
       console.error('Failed to generate cover letter:', error)
       toast({
@@ -170,9 +122,7 @@ export function GenerateDialog({
         variant: 'destructive',
       })
     } finally {
-      setIsGenerating(false)
-      setProgress(0)
-      setStreamingText('')
+      setIsPreparing(false)
     }
   }
 
@@ -188,7 +138,19 @@ export function GenerateDialog({
     { value: 'long', label: 'Long', description: '350-450 words' },
   ]
 
-  const canGenerate = jobDescription.trim().length >= 50 && !isGenerating
+  const canGenerate = jobDescription.trim().length >= 50 && !isPreparing && !isStreaming
+
+  // When unified store completes, hand off to parent and reset
+  React.useEffect(() => {
+    if (final) {
+      onGenerate(final as CoverLetterJson)
+      toast({ title: 'Cover letter generated', description: 'Your cover letter has been generated successfully' })
+      setJobDescription('')
+      setSelectedResumeId('')
+      reset()
+      setOpen(false)
+    }
+  }, [final, onGenerate, reset, toast])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -222,7 +184,7 @@ export function GenerateDialog({
               placeholder="Paste the job description here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              disabled={isGenerating}
+              disabled={isPreparing || isStreaming}
               rows={8}
               className="resize-none"
             />
@@ -238,7 +200,7 @@ export function GenerateDialog({
               <Select
                 value={selectedResumeId}
                 onValueChange={setSelectedResumeId}
-                disabled={isGenerating}
+                disabled={isPreparing || isStreaming}
               >
                 <SelectTrigger id="resume-select">
                   <SelectValue placeholder="Select a resume for context" />
@@ -263,7 +225,7 @@ export function GenerateDialog({
           {/* Tone Selection */}
           <div className="space-y-2">
             <Label>Tone</Label>
-            <RadioGroup value={tone} onValueChange={(v) => setTone(v as Tone)} disabled={isGenerating}>
+            <RadioGroup value={tone} onValueChange={(v) => setTone(v as Tone)} disabled={isPreparing || isStreaming}>
               <div className="grid grid-cols-3 gap-3">
                 {toneOptions.map((option) => (
                   <div
@@ -288,7 +250,7 @@ export function GenerateDialog({
           {/* Length Selection */}
           <div className="space-y-2">
             <Label>Length</Label>
-            <RadioGroup value={length} onValueChange={(v) => setLength(v as Length)} disabled={isGenerating}>
+            <RadioGroup value={length} onValueChange={(v) => setLength(v as Length)} disabled={isPreparing || isStreaming}>
               <div className="grid grid-cols-3 gap-3">
                 {lengthOptions.map((option) => (
                   <div
@@ -311,11 +273,11 @@ export function GenerateDialog({
           </div>
 
           {/* Generation Progress */}
-          {isGenerating && (
+          {(isPreparing || isStreaming) && (
             <div className="space-y-2 p-4 rounded-lg border border-border bg-muted/30">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <p className="text-sm font-medium">{streamingText}</p>
+                <p className="text-sm font-medium">{isPreparing ? 'Preparing…' : 'Generating cover letter…'}</p>
               </div>
               <Progress value={progress} className="h-2" />
             </div>
@@ -323,11 +285,11 @@ export function GenerateDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isGenerating}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isPreparing || isStreaming}>
             Cancel
           </Button>
           <Button onClick={handleGenerate} disabled={!canGenerate}>
-            {isGenerating ? (
+            {isPreparing || isStreaming ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Generating...

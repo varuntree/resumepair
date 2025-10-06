@@ -40,6 +40,7 @@ export function CoverLetterLivePreview({
   const scrollPositionRef = React.useRef<ReturnType<typeof saveScrollPosition> | null>(null)
   const rafIdRef = React.useRef<number | null>(null)
   const [previewData, setPreviewData] = React.useState<CoverLetterJson | null>(null)
+  const lastDocRef = React.useRef<CoverLetterJson | null>(null)
 
   // Shallow selector for document data
   const document = useCoverLetterStore(useShallow((state) => state.document))
@@ -52,9 +53,8 @@ export function CoverLetterLivePreview({
 
   // RAF-batched update handler
   React.useEffect(() => {
-    if (!document) {
-      return
-    }
+    if (!document) return
+    if (lastDocRef.current === document) return
 
     // Save scroll position before update
     if (containerRef.current) {
@@ -72,6 +72,7 @@ export function CoverLetterLivePreview({
 
       // Update preview data
       setPreviewData(document)
+      lastDocRef.current = document
 
       // Restore scroll position after render
       if (containerRef.current && scrollPositionRef.current) {

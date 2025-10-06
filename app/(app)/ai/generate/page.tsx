@@ -11,43 +11,27 @@
 
 import { Sparkles, Download, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useGenerationStore } from '@/stores/generationStore';
-import JobDescriptionInput from '@/components/ai/JobDescriptionInput';
-import PersonalInfoForm from '@/components/ai/PersonalInfoForm';
+import UnifiedAITool from '@/components/ai/UnifiedAITool';
 import GenerationPreview from '@/components/ai/GenerationPreview';
-import StreamingIndicator from '@/components/ai/StreamingIndicator';
+import { useUnifiedAIStore } from '@/stores/unifiedAIStore';
+import { useShallow } from 'zustand/react/shallow'
 
 export default function GeneratePage() {
-  const {
-    jobDescription,
-    personalInfo,
-    selectedTemplate,
-    isGenerating,
-    currentSection,
-    progress,
-    generatedResume,
-    error,
-    setJobDescription,
-    setPersonalInfo,
-    startGeneration,
-    cancelGeneration,
-    reset,
-  } = useGenerationStore();
-
-  const canGenerate =
-    jobDescription.length >= 50 &&
-    jobDescription.length <= 5000 &&
-    !isGenerating;
+  const { isStreaming, partial, final, progress, reset } = useUnifiedAIStore(
+    useShallow((s: any) => ({
+      isStreaming: s.isStreaming,
+      partial: s.partial,
+      final: s.final,
+      progress: s.progress,
+      reset: s.reset,
+    }))
+  )
+  const generatedResume = final || partial
+  const selectedTemplate = 'default'
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Streaming Indicator (Fixed Position) */}
-      <StreamingIndicator
-        isGenerating={isGenerating}
-        currentSection={currentSection}
-        progress={progress}
-        onCancel={cancelGeneration}
-      />
+      {/* Progress indicator is included inside the AI Tool */}
 
       {/* Header */}
       <div className="border-b bg-card">
@@ -74,56 +58,17 @@ export default function GeneratePage() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Left Column: Input */}
-          <div className="space-y-6">
-            {/* Job Description */}
-            <div className="rounded-lg border bg-card p-6">
-              <JobDescriptionInput
-                value={jobDescription}
-                onChange={setJobDescription}
-                disabled={isGenerating}
-              />
-            </div>
-
-            {/* Personal Info */}
-            <div className="rounded-lg bg-card">
-              <PersonalInfoForm
-                personalInfo={personalInfo}
-                onChange={setPersonalInfo}
-                disabled={isGenerating}
-              />
-            </div>
-
-            {/* Template Selection (Future Phase) */}
-            {/* For now, uses default 'minimal' template */}
-
-            {/* Error Display */}
-            {error && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-                <p className="text-sm font-medium text-destructive">{error}</p>
-              </div>
-            )}
-
-            {/* Generate Button */}
-            <Button
-              size="lg"
-              className="w-full bg-lime-600 hover:bg-lime-700"
-              onClick={startGeneration}
-              disabled={!canGenerate}
-            >
-              <Sparkles className="mr-2 h-5 w-5" />
-              {isGenerating ? 'Generating...' : 'Generate Resume'}
-            </Button>
-
-            {/* Info Box */}
+          {/* Left Column: Unified AI Tool */}
+          <div className="space-y-6 rounded-lg border bg-card p-6">
+            <UnifiedAITool docType="resume" />
             <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
               <p className="font-medium">How it works:</p>
               <ol className="mt-2 list-decimal space-y-1 pl-5">
-                <li>Paste a job description above</li>
+                <li>Paste a job description and/or upload a PDF</li>
                 <li>Optionally add your personal information</li>
                 <li>Click Generate to create a tailored resume</li>
                 <li>Watch as sections appear in real-time</li>
-                <li>Save or download when complete</li>
+                <li>Apply to editor or download when complete</li>
               </ol>
             </div>
           </div>
@@ -132,12 +77,12 @@ export default function GeneratePage() {
           <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)]">
             <GenerationPreview
               resume={generatedResume}
-              isGenerating={isGenerating}
+              isGenerating={isStreaming}
               template={selectedTemplate}
             />
 
             {/* Action Buttons (when resume generated) */}
-            {generatedResume && !isGenerating && (
+            {generatedResume && !isStreaming && (
               <div className="mt-4 flex gap-3">
                 <Button variant="outline" className="flex-1">
                   <Download className="mr-2 h-4 w-4" />

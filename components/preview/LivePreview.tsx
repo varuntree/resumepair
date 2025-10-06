@@ -35,6 +35,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   const scrollPositionRef = React.useRef<ReturnType<typeof saveScrollPosition> | null>(null)
   const rafIdRef = React.useRef<number | null>(null)
   const [previewData, setPreviewData] = React.useState<ResumeJson | null>(null)
+  const lastDocRef = React.useRef<ResumeJson | null>(null)
 
   // Shallow selector for document data
   const document = useDocumentStore(
@@ -49,9 +50,9 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
 
   // RAF-batched update handler
   React.useEffect(() => {
-    if (!document) {
-      return
-    }
+    if (!document) return
+    if (lastDocRef.current === document) return
+    lastDocRef.current = document
 
     // Save scroll position before update
     if (containerRef.current) {
@@ -67,7 +68,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
     rafIdRef.current = requestAnimationFrame(() => {
       const start = performance.now()
 
-      // Update preview data
+      // Update preview data only when reference changes
       setPreviewData(document)
 
       // Restore scroll position after render

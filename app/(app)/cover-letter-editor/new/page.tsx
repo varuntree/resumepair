@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react'
 export default function NewCoverLetterPage(): React.ReactElement {
   const router = useRouter()
   const [error, setError] = React.useState<string | null>(null)
+  const startedRef = React.useRef(false)
 
   React.useEffect(() => {
     const createNew = async (): Promise<void> => {
@@ -33,7 +34,10 @@ export default function NewCoverLetterPage(): React.ReactElement {
       }
     }
 
-    createNew()
+    if (!startedRef.current) {
+      startedRef.current = true
+      createNew()
+    }
   }, [router])
 
   if (error) {

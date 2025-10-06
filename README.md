@@ -66,6 +66,15 @@ For detailed information about architecture, API design, and development standar
 - `ai_docs/project_documentation/` - Comprehensive project documentation
 - `ai_docs/standards/` - Development standards and patterns
 
+## Unified AI Endpoint (Resume + Cover Letter)
+
+- Endpoint: `POST /api/v1/ai/unified`
+- Inputs (JSON): `{ docType: 'resume' | 'cover-letter', text?, personalInfo?, fileData?, fileName?, mimeType?, editorData? }`
+- Streaming (SSE): emits `progress`, `update`, `complete`, `error` events with `{ type, progress?, data?, message? }`
+- Client hook: `useUnifiedAIStore.start({ docType, text, personalInfo, file, editorData })`
+
+Deprecation note: legacy routes `/api/v1/ai/generate`, `/api/v1/ai/import`, and `/api/v1/cover-letters/generate` are being phased out in favor of the unified endpoint.
+
 ## Support
 
 For questions or issues, please open a GitHub issue.
