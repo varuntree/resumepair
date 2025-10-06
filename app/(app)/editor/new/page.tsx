@@ -13,12 +13,8 @@ export default function NewEditorPage(): React.ReactElement {
       try {
         const response = await fetch('/api/v1/resumes', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: 'Untitled Resume',
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: 'Untitled Resume' }),
         })
 
         if (!response.ok) {
@@ -26,7 +22,6 @@ export default function NewEditorPage(): React.ReactElement {
         }
 
         const result = await response.json()
-
         if (result.data?.id) {
           router.replace(`/editor/${result.data.id}`)
         } else {
@@ -46,10 +41,7 @@ export default function NewEditorPage(): React.ReactElement {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-destructive mb-4">{error}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-primary hover:underline"
-          >
+          <button onClick={() => router.push('/dashboard')} className="text-primary hover:underline">
             Return to Dashboard
           </button>
         </div>

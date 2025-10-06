@@ -13,6 +13,7 @@ export interface EditorFormProps {
   onSubmit: () => void
   onChange?: (value: ResumeJson) => void
   children: React.ReactNode
+  containerClassName?: string
 }
 
 export function EditorForm({
@@ -21,6 +22,7 @@ export function EditorForm({
   onSubmit,
   onChange,
   children,
+  containerClassName,
 }: EditorFormProps): React.ReactElement {
   const methods = useForm<ResumeJson>({
     resolver: zodResolver(ResumeJsonSchema),
@@ -51,7 +53,7 @@ export function EditorForm({
     <FormProvider {...methods}>
       <form
         onSubmit={methods.handleSubmit(onSubmit)}
-        className="max-w-4xl mx-auto p-6 space-y-8"
+        className={containerClassName || "max-w-4xl mx-auto p-6 space-y-8"}
       >
         {children}
       </form>

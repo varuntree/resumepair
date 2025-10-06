@@ -3,22 +3,16 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/libs/supabase/server";
 
 /**
- * Dashboard Layout
- *
- * Route-specific layout for Dashboard (within app group).
+ * Route-specific layout for Editor (within app group).
  * Only ensures auth and renders children.
  */
-export default async function LayoutPrivate({
+export default async function EditorLayoutRoot({
   children,
 }: {
   children: ReactNode;
 }) {
   const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/signin');
   return children as ReactNode;
 }

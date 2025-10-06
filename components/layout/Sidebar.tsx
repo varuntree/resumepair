@@ -136,39 +136,7 @@ export function Sidebar() {
   }
 
   // Handle creating new document
-  const handleCreateResume = async () => {
-    try {
-      const response = await fetch('/api/v1/resumes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled Resume' }),
-      })
-
-      const result = await response.json()
-      if (result.success && result.data) {
-        router.push(`/editor/${result.data.id}`)
-      }
-    } catch (error) {
-      console.error('Failed to create resume:', error)
-    }
-  }
-
-  const handleCreateCoverLetter = async () => {
-    try {
-      const response = await fetch('/api/v1/cover-letters', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled Cover Letter' }),
-      })
-
-      const result = await response.json()
-      if (result.success && result.data) {
-        router.push(`/cover-letter-editor/${result.data.id}`)
-      }
-    } catch (error) {
-      console.error('Failed to create cover letter:', error)
-    }
-  }
+  // Creation flows handled by /editor/new and /cover-letter-editor/new routes
 
   // Navigation structure
   const navSections: NavSection[] = [
@@ -177,8 +145,8 @@ export function Sidebar() {
       icon: FileText,
       items: [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { label: 'New Resume', href: '#', icon: PlusCircle, action: handleCreateResume },
-        { label: 'New Cover Letter', href: '#', icon: Mail, action: handleCreateCoverLetter },
+        { label: 'New Resume', href: '/editor/new', icon: PlusCircle },
+        { label: 'New Cover Letter', href: '/cover-letter-editor/new', icon: Mail },
       ],
     },
     {

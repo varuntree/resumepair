@@ -31,15 +31,11 @@ export default function DashboardPage(): React.ReactElement {
     setSorting,
   } = useDocumentListStore()
 
-  // Load documents on mount
   React.useEffect(() => {
     fetchDocuments()
-    // Zustand functions are stable, only run once on mount
-    // Filters/sorting changes trigger fetchDocuments internally
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Show error toast
   React.useEffect(() => {
     if (error) {
       toast({
@@ -72,64 +68,26 @@ export default function DashboardPage(): React.ReactElement {
 
   const handleDuplicate = async (id: string): Promise<void> => {
     try {
-      const response = await fetch(`/api/v1/resumes/${id}/duplicate`, {
-        method: 'POST',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to duplicate document')
-      }
-
+      const response = await fetch(`/api/v1/resumes/${id}/duplicate`, { method: 'POST' })
+      if (!response.ok) throw new Error('Failed to duplicate document')
       const result = await response.json()
-
-      toast({
-        title: 'Success',
-        description: 'Document duplicated successfully',
-      })
-
-      // Refresh list
+      toast({ title: 'Success', description: 'Document duplicated successfully' })
       await fetchDocuments()
-
-      // Navigate to the new document
-      if (result.data?.id) {
-        router.push(`/editor/${result.data.id}`)
-      }
+      if (result.data?.id) router.push(`/editor/${result.data.id}`)
     } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to duplicate document',
-      })
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to duplicate document' })
     }
   }
 
   const handleDelete = async (id: string): Promise<void> => {
-    if (!confirm('Are you sure you want to delete this document?')) {
-      return
-    }
-
+    if (!confirm('Are you sure you want to delete this document?')) return
     try {
-      const response = await fetch(`/api/v1/resumes/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete document')
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Document deleted successfully',
-      })
-
-      // Refresh list
+      const response = await fetch(`/api/v1/resumes/${id}`, { method: 'DELETE' })
+      if (!response.ok) throw new Error('Failed to delete document')
+      toast({ title: 'Success', description: 'Document deleted successfully' })
       await fetchDocuments()
     } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to delete document',
-      })
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete document' })
     }
   }
 
@@ -137,33 +95,15 @@ export default function DashboardPage(): React.ReactElement {
     try {
       const response = await fetch('/api/v1/resumes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to create document')
-      }
-
+      if (!response.ok) throw new Error('Failed to create document')
       const result = await response.json()
-
-      toast({
-        title: 'Success',
-        description: 'Resume created successfully',
-      })
-
-      // Navigate to editor
-      if (result.data?.id) {
-        router.push(`/editor/${result.data.id}`)
-      }
+      toast({ title: 'Success', description: 'Resume created successfully' })
+      if (result.data?.id) router.push(`/editor/${result.data.id}`)
     } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create resume',
-      })
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to create resume' })
       throw err
     }
   }
@@ -173,13 +113,10 @@ export default function DashboardPage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-background">
       <div className="container-ramp py-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-foreground">My Resumes</h1>
-            <p className="text-muted-foreground mt-2">
-              Manage and edit your resume documents
-            </p>
+            <p className="text-muted-foreground mt-2">Manage and edit your resume documents</p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
             <Plus className="h-5 w-5" />
@@ -187,35 +124,20 @@ export default function DashboardPage(): React.ReactElement {
           </Button>
         </div>
 
-        {/* Main Layout: Content + Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-          {/* Main Content */}
           <div className="space-y-8">
-            {/* Filters and Search */}
             {!showEmpty && (
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                  <DocumentSearch
-                    onSearch={handleSearch}
-                    defaultValue={filters.search || ''}
-                  />
+                  <DocumentSearch onSearch={handleSearch} defaultValue={filters.search || ''} />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <DocumentFilters
-                    status={filters.status || 'all'}
-                    onStatusChange={handleStatusChange}
-                  />
-                  <DocumentSort
-                    sort={sorting.field}
-                    order={sorting.order}
-                    onSortChange={handleSortChange}
-                    onOrderChange={handleOrderToggle}
-                  />
+                  <DocumentFilters status={filters.status || 'all'} onStatusChange={handleStatusChange} />
+                  <DocumentSort sort={sorting.field} order={sorting.order} onSortChange={handleSortChange} onOrderChange={handleOrderToggle} />
                 </div>
               </div>
             )}
 
-            {/* Document Grid */}
             {showEmpty ? (
               <EmptyDocuments onCreateNew={() => setCreateDialogOpen(true)} />
             ) : (
@@ -229,18 +151,12 @@ export default function DashboardPage(): React.ReactElement {
             )}
           </div>
 
-          {/* Sidebar */}
           <aside className="space-y-6">
             <AIQuotaIndicator />
           </aside>
         </div>
 
-        {/* Create Dialog */}
-        <CreateDocumentDialog
-          open={createDialogOpen}
-          onClose={() => setCreateDialogOpen(false)}
-          onCreate={handleCreate}
-        />
+        <CreateDocumentDialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} onCreate={handleCreate} />
       </div>
     </div>
   )

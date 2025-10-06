@@ -7,12 +7,12 @@ import { Footer } from "@/components/layout/Footer";
 import config from "@/config";
 
 /**
- * Import Layout
+ * App Group Layout
  *
- * Route-specific layout for Import (within app group).
- * Only ensures auth and renders children.
+ * Protected layout for all authenticated app pages.
+ * Wraps children with Header, Sidebar, and Footer.
  */
-export default async function ImportLayout({
+export default async function AppGroupLayout({
   children,
 }: {
   children: ReactNode;

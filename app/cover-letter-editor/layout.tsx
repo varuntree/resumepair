@@ -9,8 +9,8 @@ import config from "@/config";
 /**
  * Cover Letter Editor Layout
  *
- * Protected layout for cover letter editing pages.
- * Includes Header, Sidebar, and Footer.
+ * Route-specific layout for Cover Letter Editor (within app group).
+ * Only ensures auth and renders children.
  */
 export default async function CoverLetterEditorLayout({
   children,

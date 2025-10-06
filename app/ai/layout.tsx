@@ -9,8 +9,8 @@ import config from "@/config";
 /**
  * AI Tools Layout
  *
- * Protected layout for AI generation and enhancement pages.
- * Includes Header, Sidebar, and Footer.
+ * Route-specific layout for AI tools (within app group).
+ * Only ensures auth and renders children.
  */
 export default async function AILayout({
   children,
