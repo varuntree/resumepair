@@ -342,7 +342,7 @@ pnpm add @tiptap/core@2.26.2 \
 **A**: With agentic engineering and parallel execution: 20-40 agent-days. Phase 5 (7 templates) can run fully parallel.
 
 ### Q: Can we extract all 12 RR templates?
-**A**: We could, but diminishing returns. 7 covers all layout patterns and styles. Can add more later.
+**A**: We could, but diminishing returns. 7 covers all layout patterns and styles.
 
 ### Q: What if PDF generation doesn't work well?
 **A**: We already use Puppeteer + Chromium (same as RR). Minor updates needed for rich text + themes.
