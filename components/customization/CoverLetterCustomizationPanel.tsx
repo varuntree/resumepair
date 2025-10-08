@@ -64,7 +64,7 @@ export function CoverLetterCustomizationPanel(): React.ReactElement {
     <div className="h-full flex flex-col min-h-0">
       <CustomizationHeader title="Customize Cover Letter" />
 
-      <div className="flex-1 min-h-0 p-6">
+      <div className="flex-1 min-h-0 px-6 pb-6 pt-0">
         <Card className="border-gray-200">
           <div className="p-6 space-y-6">
             <CustomizationTabs activeTab={activeTab} onTabChange={setActiveTab} />

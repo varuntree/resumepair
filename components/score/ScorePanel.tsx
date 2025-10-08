@@ -31,7 +31,7 @@ export function ScorePanel({ resumeId }: ScorePanelProps) {
   }
 
   return (
-    <div className="space-y-6 p-6" data-testid="score-panel">
+    <div className="space-y-6 px-6 pb-6 pt-0" data-testid="score-panel">
       {/* Job Description Input */}
       <Card>
         <CardHeader>
