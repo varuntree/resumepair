@@ -10,7 +10,8 @@
 import { streamObject } from 'ai'
 import { z } from 'zod'
 import { aiModel } from '@/libs/ai/provider'
-import { ResumeJsonSchema } from '@/libs/validation/resume'
+// Storage schema remains strict; for generation we use a permissive variant
+import { ResumeGenerationSchema } from '@/libs/validation/resume-generation'
 import { CoverLetterJsonSchema } from '@/libs/validation/cover-letter'
 import { normalizeResumeData, normalizeCoverLetterData } from '@/libs/repositories/normalizers'
 import type { ResumeJson } from '@/types/resume'
@@ -24,6 +25,8 @@ import { createOperation, calculateCost } from '@/libs/repositories/aiOperations
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
+// TEMP DEBUG LOGGING (remove after investigation)
+const DEBUG_AI_SERVER = true
 
 const UnifiedRequestSchema = z
   .object({
@@ -77,6 +80,17 @@ export async function POST(req: Request) {
     }
 
     const { docType, text, personalInfo, fileData, mimeType, editorData } = parsed.data
+    if (DEBUG_AI_SERVER) {
+      const safeInfo = {
+        docType,
+        hasText: Boolean(text && text.trim().length > 0),
+        textLen: text?.length || 0,
+        hasFile: Boolean(fileData),
+        hasEditorData: Boolean(editorData),
+        editorKeys: editorData ? Object.keys(editorData).slice(0, 20) : [],
+      }
+      console.log('[UnifiedAI] request', safeInfo)
+    }
 
     // If file provided, validate size
     let buffer: Uint8Array | null = null
@@ -110,7 +124,9 @@ export async function POST(req: Request) {
 
     // Decide schema + streaming config
     const isResume = docType === 'resume'
-    const schema = isResume ? ResumeJsonSchema : CoverLetterJsonSchema
+    // Use a permissive/coercive schema for generation to avoid hard stops
+    // Storage schema remains strict; we normalize after generation
+    const schema = isResume ? ResumeGenerationSchema : CoverLetterJsonSchema
 
     // Helper: build unified instruction text
     const editorHint = editorData
@@ -124,6 +140,7 @@ export async function POST(req: Request) {
     let result: ReturnType<typeof streamObject<any>>
 
     if (buffer) {
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
       const parts: Array<any> = []
 
       if (isResume) {
@@ -169,6 +186,7 @@ export async function POST(req: Request) {
         ? `${prompt}\n\nUse the structured fields below if present. Prefer explicit user-provided values when generating.\n${JSON.stringify(editorData).slice(0, 50_000)}`
         : prompt
 
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=text', { isResume, textLen: text.length, hasEditorData: Boolean(editorData) })
       result = streamObject({ model: aiModel, schema, prompt: finalPrompt, temperature: 0.6, maxRetries: 1 })
     } else {
       // editorData only
@@ -176,6 +194,7 @@ export async function POST(req: Request) {
         ? 'Generate a complete ResumeJson using only the provided structured fields. Fill reasonable gaps but do not fabricate personal identifiers.'
         : 'Generate a complete CoverLetterJson using only the provided structured fields. Fill reasonable gaps but keep placeholders if needed.'
       const prompt = `${base}\n\nSTRUCTURED DATA:\n${JSON.stringify(editorData).slice(0, 50_000)}`
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=editorData', { isResume, editorKeys: Object.keys(editorData || {}).slice(0, 20) })
       result = streamObject({ model: aiModel, schema, prompt, temperature: 0.5, maxRetries: 1 })
     }
 
@@ -189,18 +208,41 @@ export async function POST(req: Request) {
         const total = isResume ? resumeSections.length : clSections.length
 
         try {
+          if (DEBUG_AI_SERVER) console.log('[UnifiedAI] stream start', { isResume })
+          let updateCount = 0
           for await (const partial of result.partialObjectStream as AsyncIterable<Record<string, unknown>>) {
             Object.keys(partial).forEach((k) => {
               if ((isResume ? resumeSections : clSections).includes(k)) seen.add(k)
             })
 
             const progress = Math.min(seen.size / total, 0.95)
+            updateCount += 1
+            if (DEBUG_AI_SERVER) {
+              const keys = Object.keys(partial)
+              const counts = {
+                work: Array.isArray((partial as any).work) ? (partial as any).work.length : undefined,
+                education: Array.isArray((partial as any).education) ? (partial as any).education.length : undefined,
+                projects: Array.isArray((partial as any).projects) ? (partial as any).projects.length : undefined,
+                skills: Array.isArray((partial as any).skills) ? (partial as any).skills.length : undefined,
+              }
+              console.log('[UnifiedAI] partial', { updateCount, progress, keys, counts })
+            }
             controller.enqueue(encoder.encode(`event: progress\n` + `data: ${JSON.stringify({ type: 'progress', progress })}\n\n`))
             controller.enqueue(encoder.encode(`event: update\n` + `data: ${JSON.stringify({ type: 'update', data: partial })}\n\n`))
           }
 
           const finalObject = await result.object
           const duration = Date.now() - startTime
+          if (DEBUG_AI_SERVER) {
+            const keys = Object.keys(finalObject as Record<string, unknown>)
+            const counts = {
+              work: Array.isArray((finalObject as any).work) ? (finalObject as any).work.length : undefined,
+              education: Array.isArray((finalObject as any).education) ? (finalObject as any).education.length : undefined,
+              projects: Array.isArray((finalObject as any).projects) ? (finalObject as any).projects.length : undefined,
+              skills: Array.isArray((finalObject as any).skills) ? (finalObject as any).skills.length : undefined,
+            }
+            console.log('[UnifiedAI] complete (raw)', { duration, updateCount, keys, counts })
+          }
 
           // Usage + quota tracking
           try {
@@ -225,6 +267,16 @@ export async function POST(req: Request) {
           const normalizedFinal = isResume
             ? normalizeResumeData(finalObject as ResumeJson)
             : normalizeCoverLetterData(finalObject as CoverLetterJson)
+          if (DEBUG_AI_SERVER) {
+            const keys = Object.keys(normalizedFinal as Record<string, unknown>)
+            const counts = {
+              work: Array.isArray((normalizedFinal as any).work) ? (normalizedFinal as any).work.length : undefined,
+              education: Array.isArray((normalizedFinal as any).education) ? (normalizedFinal as any).education.length : undefined,
+              projects: Array.isArray((normalizedFinal as any).projects) ? (normalizedFinal as any).projects.length : undefined,
+              skills: Array.isArray((normalizedFinal as any).skills) ? (normalizedFinal as any).skills.length : undefined,
+            }
+            console.log('[UnifiedAI] complete (normalized)', { keys, counts })
+          }
 
           controller.enqueue(
             encoder.encode(

@@ -204,15 +204,17 @@ STRICT REQUIREMENTS:
 9. EDUCATION: Include relevant education and certifications
 10. CONSISTENCY: Use present tense for current roles, past tense for previous roles
 11. ATS OPTIMIZATION: Use standard section headers, avoid graphics or tables
+12. OUTPUT KEYS: Always include top-level arrays for education, projects, and skills (use [] if unknown)
+13. LAYOUT FIELDS: Do not include settings or appearance unless necessary. If included, margins must be pixel values between 8 and 144 (not inches)
 
 OUTPUT FORMAT:
 Generate a complete ResumeJson object with:
 - profile: Complete contact information
 - summary: 2-3 sentence professional summary highlighting key qualifications
-- work: 3-4 relevant work experiences with compelling bullet points
-- education: Relevant degrees and institutions
-- skills: Categorized skills matching job requirements
-- projects: 2-3 projects demonstrating required skills
+- work: 3-4 relevant work experiences with compelling bullet points (array; [] if unknown)
+- education: Relevant degrees and institutions (array; [] if unknown)
+- skills: Categorized skills matching job requirements (array; [] if unknown)
+- projects: 2-3 projects demonstrating required skills (array; [] if unknown)
 - certifications: Relevant certifications (if applicable to the role)
 
 Focus on creating a resume that would realistically match this job posting while being truthful and impactful.`;

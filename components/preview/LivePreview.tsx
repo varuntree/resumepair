@@ -50,7 +50,12 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   // RAF-batched update handler
   React.useEffect(() => {
     if (!document) return
-    if (lastDocRef.current === document) return
+
+    const hasDocumentChanged = lastDocRef.current !== document
+    const isInitialRender = previewData === null
+
+    if (!hasDocumentChanged && !isInitialRender) return
+
     lastDocRef.current = document
 
     // Save scroll position before update
@@ -61,6 +66,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
     // Cancel any pending RAF
     if (rafIdRef.current) {
       cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
     }
 
     // Schedule update in next frame
@@ -91,9 +97,10 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
     return () => {
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current)
+        rafIdRef.current = null
       }
     }
-  }, [document])
+  }, [document, previewData])
 
   // Show loading skeleton
   if (isLoading || !artboardDocument) {

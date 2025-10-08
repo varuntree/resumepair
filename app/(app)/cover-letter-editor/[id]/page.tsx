@@ -246,7 +246,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
       }
       sidebar={
         <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as 'ai' | 'editor')} className="h-full flex flex-col min-h-0">
-          <TabsList className="w-full rounded-none border-b flex-shrink-0">
+          <TabsList className="w-full rounded-none border-b flex-shrink-0 bg-transparent p-0">
             <TabsTrigger value="ai" className="flex-1">AI Tool</TabsTrigger>
             <TabsTrigger value="editor" className="flex-1">Traditional Editor</TabsTrigger>
           </TabsList>
@@ -268,7 +268,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto scroll-smooth">
                 <div className="pr-2 space-y-6">
-                  <SectionAccordion id="from" title="Your Information" icon={sections[0].iconLarge} defaultOpen>
+                  <SectionAccordion id="from" title="Your Information" icon={sections[0].iconLarge} defaultOpen={false}>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -304,7 +304,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
                     </div>
                   </SectionAccordion>
 
-                  <SectionAccordion id="to" title="Recipient Information" icon={sections[1].iconLarge} defaultOpen>
+                  <SectionAccordion id="to" title="Recipient Information" icon={sections[1].iconLarge} defaultOpen={false}>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -338,7 +338,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
                     </div>
                   </SectionAccordion>
 
-                  <SectionAccordion id="salutation" title="Salutation" icon={sections[2].iconLarge} defaultOpen>
+                  <SectionAccordion id="salutation" title="Salutation" icon={sections[2].iconLarge} defaultOpen={false}>
                     <div className="space-y-4">
                       <Select
                         value={coverLetter.salutation}
@@ -357,7 +357,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
                     </div>
                   </SectionAccordion>
 
-                  <SectionAccordion id="body" title="Letter Body" icon={sections[3].iconLarge} defaultOpen>
+                  <SectionAccordion id="body" title="Letter Body" icon={sections[3].iconLarge} defaultOpen={false}>
                     <div className="space-y-4">
                       <RichTextEditor
                         value={coverLetter.body}
@@ -367,7 +367,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
                     </div>
                   </SectionAccordion>
 
-                  <SectionAccordion id="closing" title="Closing" icon={sections[4].iconLarge} defaultOpen>
+                  <SectionAccordion id="closing" title="Closing" icon={sections[4].iconLarge} defaultOpen={false}>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="closing-phrase">Closing Phrase</Label>
@@ -400,14 +400,13 @@ export default function CoverLetterEditorPage(): React.ReactElement {
           </TabsContent>
         </Tabs>
       }
-      sidebarClassName="w-[420px]"
       sidebarMobileVisible
     >
       <Tabs value={activeTab} onValueChange={(v) => {
         const next = v as 'preview' | 'customize'
         if (next !== activeTab) setActiveTab(next)
       }} className="h-full flex flex-col min-h-0">
-        <TabsList className="w-full rounded-none border-b flex-shrink-0">
+        <TabsList className="w-full rounded-none border-b flex-shrink-0 bg-transparent p-0">
           <TabsTrigger value="preview" className="flex-1"><Eye className="h-4 w-4 mr-2" />Preview</TabsTrigger>
           <TabsTrigger value="customize" className="flex-1"><Palette className="h-4 w-4 mr-2" />Customize</TabsTrigger>
         </TabsList>

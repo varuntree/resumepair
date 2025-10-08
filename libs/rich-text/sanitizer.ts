@@ -19,7 +19,8 @@ import DOMPurify from 'isomorphic-dompurify'
  * No links or embedded content for security
  */
 export const COVER_LETTER_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'br'],
+  // Allow both semantic and legacy tags produced by execCommand
+  ALLOWED_TAGS: ['p', 'strong', 'em', 'u', 'b', 'i', 'ul', 'ol', 'li', 'br'],
   ALLOWED_ATTR: [],
   KEEP_CONTENT: true, // Preserve text when stripping tags
   RETURN_DOM: false, // Return string, not DOM

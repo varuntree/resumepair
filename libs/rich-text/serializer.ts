@@ -81,7 +81,11 @@ export function parseHtmlToBlocks(html: string): RichTextBlock[] {
  */
 function parseInlineContent(element: Element): TextRun[] {
   const runs: TextRun[] = []
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
+  // Use the element's ownerDocument to avoid WrongDocument errors
+  const walker = (element.ownerDocument || document).createTreeWalker(
+    element,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
+  )
 
   let currentRun: TextRun | null = null
   let node = walker.nextNode()
@@ -133,8 +137,8 @@ function getMarksFromAncestors(textNode: Text): ('bold' | 'italic' | 'underline'
 
   while (parent) {
     const tagName = parent.tagName.toLowerCase()
-    if (tagName === 'strong') marks.push('bold')
-    if (tagName === 'em') marks.push('italic')
+    if (tagName === 'strong' || tagName === 'b') marks.push('bold')
+    if (tagName === 'em' || tagName === 'i') marks.push('italic')
     if (tagName === 'u') marks.push('underline')
 
     parent = parent.parentElement

@@ -181,7 +181,7 @@ export default function EditorPage(): React.ReactElement {
       }
       sidebar={
         <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as 'ai' | 'editor')} className="h-full flex flex-col min-h-0">
-          <TabsList className="w-full rounded-none border-b flex-shrink-0">
+          <TabsList className="w-full rounded-none border-b flex-shrink-0 bg-transparent p-0">
             <TabsTrigger value="ai" className="flex-1">AI Tool</TabsTrigger>
             <TabsTrigger value="editor" className="flex-1">Traditional Editor</TabsTrigger>
           </TabsList>
@@ -207,43 +207,43 @@ export default function EditorPage(): React.ReactElement {
                   onChange={handleChange}
                   containerClassName="pr-2 space-y-6"
                 >
-                  <SectionAccordion id="profile" title="Profile" icon={sections[0].iconLarge} defaultOpen>
+                  <SectionAccordion id="profile" title="Profile" icon={sections[0].iconLarge} defaultOpen={false}>
                     <ProfileSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="summary" title="Professional Summary" icon={sections[1].iconLarge} defaultOpen>
+                  <SectionAccordion id="summary" title="Professional Summary" icon={sections[1].iconLarge} defaultOpen={false}>
                     <SummarySection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="work" title="Work Experience" icon={sections[2].iconLarge} defaultOpen>
+                  <SectionAccordion id="work" title="Work Experience" icon={sections[2].iconLarge} defaultOpen={false}>
                     <WorkSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="education" title="Education" icon={sections[3].iconLarge} defaultOpen>
+                  <SectionAccordion id="education" title="Education" icon={sections[3].iconLarge} defaultOpen={false}>
                     <EducationSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="projects" title="Projects" icon={sections[4].iconLarge} defaultOpen>
+                  <SectionAccordion id="projects" title="Projects" icon={sections[4].iconLarge} defaultOpen={false}>
                     <ProjectsSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="skills" title="Skills" icon={sections[5].iconLarge} defaultOpen>
+                  <SectionAccordion id="skills" title="Skills" icon={sections[5].iconLarge} defaultOpen={false}>
                     <SkillsSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="certifications" title="Certifications" icon={sections[6].iconLarge} defaultOpen>
+                  <SectionAccordion id="certifications" title="Certifications" icon={sections[6].iconLarge} defaultOpen={false}>
                     <CertificationsSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="awards" title="Awards" icon={sections[7].iconLarge} defaultOpen>
+                  <SectionAccordion id="awards" title="Awards" icon={sections[7].iconLarge} defaultOpen={false}>
                     <AwardsSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="languages" title="Languages" icon={sections[8].iconLarge} defaultOpen>
+                  <SectionAccordion id="languages" title="Languages" icon={sections[8].iconLarge} defaultOpen={false}>
                     <LanguagesSection />
                   </SectionAccordion>
 
-                  <SectionAccordion id="extras" title="Additional Sections" icon={sections[9].iconLarge} defaultOpen>
+                  <SectionAccordion id="extras" title="Additional Sections" icon={sections[9].iconLarge} defaultOpen={false}>
                     <ExtrasSection />
                   </SectionAccordion>
                 </EditorForm>
@@ -252,14 +252,13 @@ export default function EditorPage(): React.ReactElement {
           </TabsContent>
         </Tabs>
       }
-      sidebarClassName="w-[420px]"
       sidebarMobileVisible
     >
       <Tabs value={activeTab} onValueChange={(v) => {
         const next = v as 'preview' | 'customize' | 'score'
         if (next !== activeTab) setActiveTab(next)
       }} className="h-full flex flex-col min-h-0">
-        <TabsList className="w-full rounded-none border-b flex-shrink-0">
+        <TabsList className="w-full rounded-none border-b flex-shrink-0 bg-transparent p-0">
           <TabsTrigger value="preview" className="flex-1"><Eye className="h-4 w-4 mr-2" />Preview</TabsTrigger>
           <TabsTrigger value="customize" className="flex-1"><Palette className="h-4 w-4 mr-2" />Customize</TabsTrigger>
           <TabsTrigger value="score" className="flex-1"><BarChart3 className="h-4 w-4 mr-2" />Score</TabsTrigger>
@@ -291,4 +290,3 @@ export default function EditorPage(): React.ReactElement {
     </EditorLayout>
   )
 }
-

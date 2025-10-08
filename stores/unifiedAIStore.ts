@@ -12,6 +12,28 @@ import type { CoverLetterJson } from '@/types/cover-letter'
 
 export type UnifiedDocType = 'resume' | 'cover-letter'
 
+// TEMP DEBUG LOGGING (remove after investigation)
+const DEBUG_AI_CLIENT = true
+
+function summarizeSectionCounts(obj: any): string {
+  if (!obj || typeof obj !== 'object') return 'null'
+  const safeLen = (x: any) => (Array.isArray(x) ? x.length : (x ? 1 : 0))
+  const parts: string[] = []
+  try {
+    parts.push(`keys:${Object.keys(obj).join(',')}`)
+    parts.push(`work:${safeLen(obj.work)}`)
+    parts.push(`education:${safeLen(obj.education)}`)
+    parts.push(`projects:${safeLen(obj.projects)}`)
+    parts.push(`skills:${safeLen(obj.skills)}`)
+    parts.push(`certs:${safeLen(obj.certifications)}`)
+    parts.push(`awards:${safeLen(obj.awards)}`)
+    parts.push(`languages:${safeLen(obj.languages)}`)
+  } catch {
+    // ignore
+  }
+  return parts.join(' | ')
+}
+
 type UnifiedIdle = {
   docType: null
   partial: null
@@ -59,6 +81,15 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
   error: null,
   abortController: null,
 
+  /**
+   * Deep-merge helper for accumulating streaming partials
+   * - Arrays: replaced by incoming array
+   * - Objects: merged recursively
+   * - Primitives: replaced by incoming value
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _deepMerge: undefined as any,
+
   async start({ docType, text, personalInfo, file, editorData }) {
     // Encode file if present
     let base64: string | undefined
@@ -77,6 +108,18 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
     }
 
     const abortController = new AbortController()
+    if (DEBUG_AI_CLIENT) {
+      // Avoid logging PII, only lengths and flags
+      const info = {
+        docType,
+        hasText: Boolean(text && text.trim().length > 0),
+        textLen: text?.length || 0,
+        hasFile: Boolean(file),
+        fileSize: file?.size || 0,
+        hasEditorData: Boolean(editorData),
+      }
+      console.debug('[UnifiedAIStore] start()', info)
+    }
     set({
       docType,
       isStreaming: true,
@@ -114,6 +157,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
       const decoder = new TextDecoder()
       let buffer = ''
 
+      let updateCount = 0
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -128,16 +172,57 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
               const data = JSON.parse(line.slice(6))
               switch (data.type) {
                 case 'progress':
-                  set({ progress: Math.round((data.progress || 0) * 100) })
-                  break
-                case 'update':
-                  if (docType === 'resume') {
-                    set({ partial: data.data as ResumeJson } as any)
-                  } else {
-                    set({ partial: data.data as CoverLetterJson } as any)
+                  {
+                    const pct = Math.round((data.progress || 0) * 100)
+                    if (DEBUG_AI_CLIENT && (pct % 5 === 0 || pct >= 95)) {
+                      console.debug('[UnifiedAIStore] progress', pct)
+                    }
+                    set({ progress: pct })
                   }
                   break
+                case 'update':
+                  set((state) => {
+                    // Local deep-merge to accumulate partials
+                    const deepMerge = (target: any, source: any): any => {
+                      if (target == null) return source
+                      if (source == null) return target
+                      // Replace arrays entirely
+                      if (Array.isArray(target) && Array.isArray(source)) return source
+                      // Merge plain objects
+                      if (
+                        typeof target === 'object' && !Array.isArray(target) &&
+                        typeof source === 'object' && !Array.isArray(source)
+                      ) {
+                        const result: any = { ...target }
+                        for (const key of Object.keys(source)) {
+                          result[key] = deepMerge((target as any)[key], (source as any)[key])
+                        }
+                        return result
+                      }
+                      // Primitives or mismatched types: replace
+                      return source
+                    }
+
+                    const nextPartial = deepMerge(state.partial ?? {}, data.data)
+                    updateCount += 1
+                    if (DEBUG_AI_CLIENT) {
+                      const incomingKeys = Object.keys(data.data || {})
+                      console.debug('[UnifiedAIStore] update', {
+                        updateCount,
+                        incomingKeys,
+                        summary: summarizeSectionCounts(nextPartial),
+                      })
+                    }
+                    return { partial: nextPartial } as any
+                  })
+                  break
                 case 'complete':
+                  if (DEBUG_AI_CLIENT) {
+                    console.debug('[UnifiedAIStore] complete', {
+                      updateCount,
+                      summary: summarizeSectionCounts(data.data),
+                    })
+                  }
                   if (docType === 'resume') {
                     set({ final: data.data as ResumeJson, partial: data.data as ResumeJson, isStreaming: false, progress: 100 } as any)
                   } else {
@@ -145,6 +230,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                   }
                   break
                 case 'error':
+                  if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] error', data)
                   set({ error: data.message || 'Generation failed', isStreaming: false })
                   break
               }
@@ -155,20 +241,23 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
         }
       }
 
+      if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] stream end')
       set({ isStreaming: false, abortController: null })
     } catch (err) {
       if ((err as any)?.name === 'AbortError') return
       set({ error: err instanceof Error ? err.message : 'Request failed', isStreaming: false, abortController: null })
-    }
+      }
   },
 
   cancel() {
     const ac = get().abortController
     if (ac) ac.abort()
+    if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] cancel()')
     set({ isStreaming: false, progress: 0, abortController: null })
   },
 
   reset() {
+    if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] reset()')
     set({
       docType: null,
       isStreaming: false,

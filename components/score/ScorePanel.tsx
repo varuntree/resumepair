@@ -31,16 +31,16 @@ export function ScorePanel({ resumeId }: ScorePanelProps) {
   }
 
   return (
-    <div className="space-y-6 px-6 pb-6 pt-0" data-testid="score-panel">
+    <div className="space-y-5 px-4 pb-6 pt-0" data-testid="score-panel">
       {/* Job Description Input */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-4 py-3">
           <CardTitle>Job Description (Optional)</CardTitle>
           <CardDescription>
             Paste a job description to get keyword match analysis and tailored suggestions
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 pb-4">
           <Textarea
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}

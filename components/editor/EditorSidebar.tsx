@@ -51,7 +51,7 @@ export function EditorSidebar({
   }
 
   return (
-    <Accordion type="single" collapsible defaultValue="sections">
+    <Accordion type="single" collapsible>
       <AccordionItem value="sections" className="border-none">
         <AccordionTrigger className="py-2 px-3 hover:no-underline">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">

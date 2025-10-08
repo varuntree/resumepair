@@ -96,7 +96,11 @@ export function RichTextToolbar({
   }, [disabled, editorRef, onCommand, updateActiveStates])
 
   return (
-    <div className="flex items-center gap-1 mb-2 p-2 border border-input rounded-md bg-muted/30">
+    <div
+      className="flex items-center gap-1 mb-2 p-2 border border-input rounded-md bg-muted/30"
+      // Prevent toolbar clicks from stealing focus so selection remains intact
+      onMouseDown={(e) => e.preventDefault()}
+    >
       {/* Bold */}
       <Button
         type="button"

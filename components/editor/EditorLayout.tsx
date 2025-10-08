@@ -33,9 +33,11 @@ export function EditorLayout({
         {sidebar && (
           <aside className={cn(
             sidebarMobileVisible ? 'flex flex-col' : 'hidden lg:flex lg:flex-col',
-            'w-60 border-r border-border',
+            'border-r border-border',
             'bg-muted/30',
             'flex-shrink-0 h-full overflow-hidden',
+            'basis-full max-w-full',
+            'lg:basis-1/2 lg:max-w-[50%]',
             sidebarClassName
           )}>
             {/* Let the sidebar content manage its own scroll regions */}
@@ -44,7 +46,7 @@ export function EditorLayout({
         )}
 
         {/* Editor Content */}
-        <main className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <main className="flex-1 overflow-hidden flex flex-col min-h-0 basis-full max-w-full lg:basis-1/2 lg:max-w-[50%]">
           {children}
         </main>
       </div>

@@ -105,9 +105,9 @@ export function CoverLetterCustomizationPanel(): React.ReactElement {
         onReset={() => commit(createDefaultCoverLetterAppearance(document?.settings?.pageSize ?? 'Letter'))}
       />
 
-      <div className="flex-1 min-h-0 px-6 pb-6 pt-0">
+      <div className="flex-1 min-h-0 px-4 pb-4 pt-0">
         <Card className="border-gray-200">
-          <div className="space-y-8 p-6">
+          <div className="space-y-6 p-4">
             <section className="space-y-4">
               <header>
                 <h3 className="text-sm font-medium text-gray-900">Quick Palettes</h3>

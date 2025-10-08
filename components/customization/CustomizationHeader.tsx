@@ -23,7 +23,7 @@ interface CustomizationHeaderProps {
 export function CustomizationHeader({ title, onReset, disabled }: CustomizationHeaderProps): React.ReactElement {
 
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+    <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
       <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
       <Button
         variant="outline"
