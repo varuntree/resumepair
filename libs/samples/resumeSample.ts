@@ -5,7 +5,7 @@
  */
 
 import type { ResumeJson } from '@/types/resume'
-import { createDefaultSettings } from '@/types/resume'
+import { createDefaultSettings, createDefaultAppearance } from '@/types/resume'
 
 export const resumeSample: ResumeJson = {
   profile: {
@@ -21,7 +21,7 @@ export const resumeSample: ResumeJson = {
     ],
   },
   summary:
-    'Engineer with 8+ years building scalable web platforms. Focus on TypeScript, React, Node.js, performance, and DX.',
+    '<p>Engineer with 8+ years building scalable web platforms. Focus on TypeScript, React, Node.js, performance, and DX.</p><ul><li>Lead cross-functional squads delivering multi-region SaaS.</li><li>Mentor engineers on accessibility and DX best practices.</li></ul>',
   work: [
     {
       company: 'Acme Corp',
@@ -76,9 +76,31 @@ export const resumeSample: ResumeJson = {
     },
   ],
   skills: [
-    { category: 'Languages', items: ['TypeScript', 'JavaScript', 'SQL', 'Python'] },
-    { category: 'Frameworks', items: ['React', 'Next.js', 'Express'] },
-    { category: 'Cloud/DB', items: ['Vercel', 'Supabase', 'PostgreSQL'] },
+    {
+      category: 'Languages',
+      items: [
+        { name: 'TypeScript', level: 5 },
+        { name: 'JavaScript', level: 5 },
+        { name: 'SQL', level: 4 },
+        { name: 'Python', level: 3 },
+      ],
+    },
+    {
+      category: 'Frameworks',
+      items: [
+        { name: 'React', level: 5 },
+        { name: 'Next.js', level: 4 },
+        { name: 'Express', level: 3 },
+      ],
+    },
+    {
+      category: 'Cloud/DB',
+      items: [
+        { name: 'Vercel', level: 4 },
+        { name: 'Supabase', level: 4 },
+        { name: 'PostgreSQL', level: 3 },
+      ],
+    },
   ],
   certifications: [
     { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon', date: '2020-10' },
@@ -95,6 +117,7 @@ export const resumeSample: ResumeJson = {
     showIcons: true,
     sectionOrder: ['profile', 'summary', 'work', 'projects', 'education', 'skills'],
   },
+  appearance: createDefaultAppearance('Letter'),
 }
 
 export default resumeSample

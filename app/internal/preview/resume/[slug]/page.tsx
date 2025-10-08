@@ -8,21 +8,21 @@
 
 import * as React from 'react'
 import { useParams } from 'next/navigation'
-import { getTemplate } from '@/libs/templates/registry'
 import resumeSample from '@/libs/samples/resumeSample'
+import { ArtboardRenderer } from '@/libs/reactive-artboard/renderer/ArtboardRenderer'
+import { mapResumeToArtboardDocument } from '@/libs/reactive-artboard/mappers'
+import { getResumeTemplateMetadata } from '@/libs/reactive-artboard/catalog'
+import { createDefaultAppearance } from '@/types/resume'
 
 export default function ResumePreviewPage(): React.ReactElement {
   const params = useParams()
   const slug = (params?.slug as string) || ''
 
-  let component: React.ComponentType<any> | null = null
-  let defaults: any | null = null
+  let metadata: ReturnType<typeof getResumeTemplateMetadata> | null = null
   try {
-    const t = getTemplate(slug as any)
-    component = t.component
-    defaults = t.defaults
+    metadata = getResumeTemplateMetadata(slug as any)
   } catch {
-    component = null
+    metadata = null
   }
 
   React.useEffect(() => {
@@ -37,7 +37,20 @@ export default function ResumePreviewPage(): React.ReactElement {
     }
   }, [])
 
-  if (!component) {
+  const artboardDocument = React.useMemo(() => {
+    if (!metadata) return null
+    const baseAppearance =
+      resumeSample.appearance ?? createDefaultAppearance(resumeSample.settings?.pageSize ?? 'Letter')
+    return mapResumeToArtboardDocument({
+      ...resumeSample,
+      appearance: {
+        ...baseAppearance,
+        template: metadata.id,
+      },
+    })
+  }, [metadata])
+
+  if (!metadata || !artboardDocument) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-red-600">Unknown template: {slug}</p>
@@ -45,11 +58,10 @@ export default function ResumePreviewPage(): React.ReactElement {
     )
   }
 
-  const TemplateComp = component
   return (
     <div id="preview-root" className="min-h-screen w-full flex items-start justify-center bg-white">
       <div style={{ width: 816, marginTop: 16 }}>
-        <TemplateComp data={resumeSample} customizations={defaults || undefined} mode="preview" />
+        <ArtboardRenderer document={artboardDocument} />
       </div>
     </div>
   )

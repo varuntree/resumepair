@@ -1,23 +1,32 @@
 'use client'
 
 import * as React from 'react'
+import { useFormContext } from 'react-hook-form'
 import { TextField } from '../fields/TextField'
-import { SelectField } from '../fields/SelectField'
 import { ArrayField } from '../fields/ArrayField'
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form'
+import { Slider } from '@/components/ui/slider'
+
+const LANGUAGE_LEVELS = [
+  { value: 1, label: 'Elementary' },
+  { value: 2, label: 'Conversational' },
+  { value: 3, label: 'Professional' },
+  { value: 4, label: 'Fluent' },
+  { value: 5, label: 'Native' },
+]
 
 export function LanguagesSection(): React.ReactElement {
+  const { control } = useFormContext()
   const emptyLanguage = {
     name: '',
-    level: '',
+    level: 'Conversational',
   }
-
-  const proficiencyOptions = [
-    { value: 'Native', label: 'Native' },
-    { value: 'Fluent', label: 'Fluent' },
-    { value: 'Professional', label: 'Professional Working Proficiency' },
-    { value: 'Conversational', label: 'Conversational' },
-    { value: 'Elementary', label: 'Elementary' },
-  ]
 
   return (
     <div className="space-y-6">
@@ -26,6 +35,11 @@ export function LanguagesSection(): React.ReactElement {
         label="Languages"
         emptyItem={emptyLanguage}
         maxItems={10}
+        renderSummary={(item) => (
+          <span className="text-sm text-muted-foreground">
+            {item.name || 'Language'} — {item.level || 'Conversational'}
+          </span>
+        )}
       >
         {(index) => (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -35,16 +49,44 @@ export function LanguagesSection(): React.ReactElement {
               placeholder="English"
               required
             />
-            <SelectField
+            <FormField
+              control={control}
               name={`languages.${index}.level`}
-              label="Proficiency Level"
-              options={proficiencyOptions}
-              placeholder="Select level"
-              required
+              render={({ field }) => {
+                const value = toSliderValue(field.value as string | undefined)
+                return (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Proficiency</FormLabel>
+                      <span className="text-xs text-muted-foreground">{fromSliderValue(value)}</span>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        value={[value]}
+                        min={1}
+                        max={5}
+                        step={1}
+                        onValueChange={([next]) => field.onChange(fromSliderValue(next))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
             />
           </div>
         )}
       </ArrayField>
     </div>
   )
+}
+
+function toSliderValue(label: string | undefined): number {
+  const found = LANGUAGE_LEVELS.find((entry) => entry.label === label)
+  return found ? found.value : 2
+}
+
+function fromSliderValue(value: number): string {
+  const found = LANGUAGE_LEVELS.find((entry) => entry.value === value)
+  return found ? found.label : LANGUAGE_LEVELS[1].label
 }

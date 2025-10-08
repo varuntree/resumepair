@@ -13,18 +13,20 @@ import { ResumeJson } from '@/types/resume'
  */
 export function calculateFormatScore(resume: ResumeJson): number {
   let score = 0
+  const typography = resume.appearance?.typography
 
   // Check 1: Uses design tokens? (5 pts)
-  // Simplified: Check if fontFamily is set
-  if (resume.settings?.fontFamily) score += 5
+  // Simplified: Check if fontFamily is explicitly set in appearance
+  if (typography?.fontFamily) score += 5
 
   // Check 2: Line spacing reasonable? (5 pts)
-  const lineSpacing = resume.settings?.lineSpacing || 1.15
-  if (lineSpacing >= 1.0 && lineSpacing <= 1.5) score += 5
+  const lineSpacing = typography?.lineHeight ?? resume.settings?.lineSpacing ?? 1.4
+  if (lineSpacing >= 1.0 && lineSpacing <= 2.0) score += 5
 
   // Check 3: Font size readable? (5 pts)
-  const fontScale = resume.settings?.fontSizeScale || 1.0
-  if (fontScale >= 0.9 && fontScale <= 1.2) score += 5
+  const fontSizePx = typography?.fontSize ?? Math.round(16 * (resume.settings?.fontSizeScale || 1))
+  const fontSizePt = fontSizePx * (72 / 96)
+  if (fontSizePt >= 10 && fontSizePt <= 14) score += 5
 
   return score
 }

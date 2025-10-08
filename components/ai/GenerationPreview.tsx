@@ -9,13 +9,15 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { FileText } from 'lucide-react';
+import { useEffect, useRef } from 'react'
+import { FileText } from 'lucide-react'
+import { getSkillLevelLabel } from '@/libs/utils'
+import type { ResumeTemplateId } from '@/types/resume'
 
 interface GenerationPreviewProps {
   resume: any | null;
   isGenerating: boolean;
-  template: string;
+  template: ResumeTemplateId;
 }
 
 export default function GenerationPreview({
@@ -172,11 +174,26 @@ export default function GenerationPreview({
                 <div key={index}>
                   <p className="text-sm font-medium">{skillGroup.category}:</p>
                   <p className="text-sm text-muted-foreground">
-                    {skillGroup.items.join(', ')}
+                    {formatSkillList(skillGroup.items)}
                   </p>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Languages */}
+        {resume.languages && resume.languages.length > 0 && (
+          <div className="mb-6">
+            <h2 className="mb-3 text-lg font-semibold">Languages</h2>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              {resume.languages.map((language: any, index: number) => (
+                <li key={index}>
+                  {language.name}
+                  {language.level ? ` — ${language.level}` : ''}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -220,4 +237,20 @@ export default function GenerationPreview({
       </div>
     </div>
   );
+}
+
+function formatSkillList(items: any[] = []): string {
+  return items
+    .map((item) => {
+      if (!item) return ''
+      if (typeof item === 'string') return item
+      const name = item.name ?? ''
+      if (!name) return ''
+      if (typeof item.level === 'number') {
+        return `${name} (${getSkillLevelLabel(item.level)})`
+      }
+      return name
+    })
+    .filter((value) => value.length > 0)
+    .join(', ')
 }

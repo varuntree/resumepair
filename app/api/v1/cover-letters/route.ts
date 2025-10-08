@@ -71,7 +71,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       return apiError(400, 'Invalid input', validation.error.flatten())
     }
 
-    const { title, template_id, linked_resume_id } = validation.data
+    const { title, linked_resume_id } = validation.data
 
     // Create default cover letter data
     const userEmail = user.email || user.user_metadata?.email || ''

@@ -13,11 +13,11 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import type { TemplateMetadata } from '@/types/template'
+import type { ResumeTemplateMetadata } from '@/libs/reactive-artboard/catalog'
 import { TemplateLivePreview } from './TemplateLivePreview'
 
 interface TemplateCardProps {
-  template: TemplateMetadata
+  template: ResumeTemplateMetadata
 }
 
 /**

@@ -51,14 +51,7 @@ export function CoverLetterVersionHistory({
   const [restoreVersion, setRestoreVersion] = React.useState<number | null>(null)
   const [isRestoring, setIsRestoring] = React.useState(false)
 
-  // Fetch versions when dialog opens
-  React.useEffect(() => {
-    if (isOpen && !versions.length) {
-      fetchVersions()
-    }
-  }, [isOpen])
-
-  const fetchVersions = async (): Promise<void> => {
+  const fetchVersions = React.useCallback(async (): Promise<void> => {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/v1/cover-letters/${coverLetterId}/versions`)
@@ -78,7 +71,14 @@ export function CoverLetterVersionHistory({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [coverLetterId, toast])
+
+  // Fetch versions when dialog opens
+  React.useEffect(() => {
+    if (isOpen && versions.length === 0) {
+      fetchVersions()
+    }
+  }, [fetchVersions, isOpen, versions.length])
 
   const handleRestoreClick = (versionNumber: number): void => {
     setRestoreVersion(versionNumber)

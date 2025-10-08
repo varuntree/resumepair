@@ -8,6 +8,5 @@
 
 export { LivePreview } from './LivePreview'
 export { PreviewContainer } from './PreviewContainer'
-export { TemplateRenderer } from './TemplateRenderer'
 export { PreviewError } from './PreviewError'
 export { PreviewSkeleton } from './PreviewSkeleton'

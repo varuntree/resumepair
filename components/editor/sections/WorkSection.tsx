@@ -28,6 +28,17 @@ export function WorkSection(): React.ReactElement {
         label="Experience"
         emptyItem={emptyWork}
         maxItems={15}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">
+              {item.role || 'Role'}
+              {item.company ? ` @ ${item.company}` : ''}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {formatWorkDates(item.startDate, item.endDate)}
+            </p>
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">
@@ -70,6 +81,11 @@ export function WorkSection(): React.ReactElement {
               label="Description Points"
               emptyItem={emptyBullet}
               maxItems={10}
+              renderSummary={(value: string) => (
+                <span className="text-sm text-muted-foreground line-clamp-1">
+                  {value || 'Empty bullet'}
+                </span>
+              )}
             >
               {(bulletIndex) => (
                 <TextAreaField
@@ -87,6 +103,9 @@ export function WorkSection(): React.ReactElement {
               label="Technologies"
               emptyItem={emptyTech}
               maxItems={20}
+              renderSummary={(value: string) => (
+                <span className="text-sm text-muted-foreground">{value || 'Technology'}</span>
+              )}
             >
               {(techIndex) => (
                 <TextField
@@ -101,4 +120,10 @@ export function WorkSection(): React.ReactElement {
       </ArrayField>
     </div>
   )
+}
+
+function formatWorkDates(start?: string, end?: string | null): string {
+  if (!start && !end) return 'Dates not set'
+  const endLabel = !end ? 'Present' : end === 'Present' ? 'Present' : end
+  return [start || 'N/A', endLabel].filter(Boolean).join(' → ')
 }

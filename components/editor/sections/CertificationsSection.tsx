@@ -19,6 +19,14 @@ export function CertificationsSection(): React.ReactElement {
         label="Certifications"
         emptyItem={emptyCertification}
         maxItems={10}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.name || 'Certification'}</p>
+            <p className="text-xs text-muted-foreground">
+              {item.issuer || 'Issuer'}{item.date ? ` • ${item.date}` : ''}
+            </p>
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">

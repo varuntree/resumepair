@@ -21,6 +21,17 @@ export function AwardsSection(): React.ReactElement {
         label="Awards"
         emptyItem={emptyAward}
         maxItems={10}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.name || 'Award'}</p>
+            <p className="text-xs text-muted-foreground">
+              {item.org || 'Organization'}{item.date ? ` • ${item.date}` : ''}
+            </p>
+            {item.summary && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{item.summary}</p>
+            )}
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">

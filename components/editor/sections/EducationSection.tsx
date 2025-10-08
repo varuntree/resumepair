@@ -25,6 +25,15 @@ export function EducationSection(): React.ReactElement {
         label="Education"
         emptyItem={emptyEducation}
         maxItems={10}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.degree || 'Degree'}</p>
+            <p className="text-xs text-muted-foreground">
+              {[item.school || 'School', item.field].filter(Boolean).join(' • ')}
+            </p>
+            <p className="text-xs text-muted-foreground">{formatEducationDates(item.startDate, item.endDate)}</p>
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">
@@ -65,6 +74,11 @@ export function EducationSection(): React.ReactElement {
               label="Details"
               emptyItem={emptyDetail}
               maxItems={5}
+              renderSummary={(value: string) => (
+                <span className="text-sm text-muted-foreground line-clamp-1">
+                  {value || 'Detail'}
+                </span>
+              )}
             >
               {(detailIndex) => (
                 <TextAreaField
@@ -81,4 +95,9 @@ export function EducationSection(): React.ReactElement {
       </ArrayField>
     </div>
   )
+}
+
+function formatEducationDates(start?: string, end?: string): string {
+  if (!start && !end) return 'Dates not set'
+  return [start || 'N/A', end || 'N/A'].join(' → ')
 }

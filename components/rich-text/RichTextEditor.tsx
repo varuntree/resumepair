@@ -25,6 +25,7 @@ export interface RichTextEditorProps {
   /** Current value as structured blocks */
   value: RichTextBlock[]
   /** Callback when content changes */
+  // eslint-disable-next-line no-unused-vars
   onChange: (blocks: RichTextBlock[]) => void
   /** Optional placeholder text */
   placeholder?: string

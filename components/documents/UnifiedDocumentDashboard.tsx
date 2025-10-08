@@ -19,15 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  FileText,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Copy,
-  Link2,
-  ExternalLink,
-} from 'lucide-react'
+import { FileText, MoreVertical, Pencil, Trash2, Link2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,13 +38,7 @@ interface UnifiedDocument {
   updated_at: string
 }
 
-interface UnifiedDocumentDashboardProps {
-  userId: string
-}
-
-export function UnifiedDocumentDashboard({
-  userId,
-}: UnifiedDocumentDashboardProps): React.ReactElement {
+export function UnifiedDocumentDashboard(): React.ReactElement {
   const router = useRouter()
   const { toast } = useToast()
 

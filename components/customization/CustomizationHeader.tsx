@@ -11,17 +11,16 @@
 import * as React from 'react'
 import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useTemplateStore } from '@/stores/templateStore'
-
 interface CustomizationHeaderProps {
   title: string
+  onReset?: () => void
+  disabled?: boolean
 }
 
 /**
  * Header component with title and reset button
  */
-export function CustomizationHeader({ title }: CustomizationHeaderProps): React.ReactElement {
-  const resetCustomizations = useTemplateStore((state) => state.resetCustomizations)
+export function CustomizationHeader({ title, onReset, disabled }: CustomizationHeaderProps): React.ReactElement {
 
   return (
     <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
@@ -29,8 +28,9 @@ export function CustomizationHeader({ title }: CustomizationHeaderProps): React.
       <Button
         variant="outline"
         size="sm"
-        onClick={resetCustomizations}
+        onClick={onReset}
         className="gap-2"
+        disabled={disabled || !onReset}
       >
         <RotateCcw className="h-4 w-4" />
         Reset to Defaults

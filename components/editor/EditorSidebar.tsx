@@ -28,6 +28,7 @@ export interface SectionItem {
 export interface EditorSidebarProps {
   sections: SectionItem[]
   activeSection?: string
+  // eslint-disable-next-line no-unused-vars
   onSectionClick: (value: string) => void
 }
 

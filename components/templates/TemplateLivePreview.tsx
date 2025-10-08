@@ -7,13 +7,14 @@
 'use client'
 
 import * as React from 'react'
-import { TemplateRenderer } from '@/components/preview/TemplateRenderer'
-import type { TemplateSlug } from '@/types/template'
-import { getTemplate } from '@/libs/templates/registry'
+import type { ResumeTemplateId, ResumeAppearance } from '@/types/resume'
+import { createDefaultAppearance } from '@/types/resume'
 import resumeSample from '@/libs/samples/resumeSample'
+import { mapResumeToArtboardDocument } from '@/libs/reactive-artboard/mappers'
+import { ArtboardRenderer } from '@/libs/reactive-artboard/renderer/ArtboardRenderer'
 
 interface TemplateLivePreviewProps {
-  templateId: TemplateSlug
+  templateId: ResumeTemplateId
   className?: string
   // Optional accessible label when preview not yet rendered
   ariaLabel?: string
@@ -72,6 +73,22 @@ export function TemplateLivePreview({ templateId, className = '', ariaLabel }: T
     schedule(() => setReady(true))
   }, [inView, ready])
 
+  const artboardDocument = React.useMemo(() => {
+    const baseAppearance: ResumeAppearance =
+      resumeSample.appearance ??
+      createDefaultAppearance(resumeSample.settings?.pageSize ?? 'Letter')
+
+    const previewResume = {
+      ...resumeSample,
+      appearance: {
+        ...baseAppearance,
+        template: templateId,
+      } as ResumeAppearance,
+    }
+
+    return mapResumeToArtboardDocument(previewResume)
+  }, [templateId])
+
   // Fallback skeleton until ready
   if (!ready) {
     return (
@@ -85,8 +102,6 @@ export function TemplateLivePreview({ templateId, className = '', ariaLabel }: T
     )
   }
 
-  // Render live preview scaled to fit
-  const { defaults } = getTemplate(templateId)
   return (
     <div ref={containerRef} className={`relative w-full h-full overflow-hidden ${className}`}>
       <div
@@ -98,7 +113,7 @@ export function TemplateLivePreview({ templateId, className = '', ariaLabel }: T
           willChange: 'transform',
         }}
       >
-        <TemplateRenderer templateId={templateId} data={resumeSample} customizations={defaults} mode="preview" />
+        <ArtboardRenderer document={artboardDocument} />
       </div>
     </div>
   )

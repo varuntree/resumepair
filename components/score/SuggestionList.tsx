@@ -14,6 +14,7 @@ import { Suggestion } from '@/types/scoring'
 
 interface SuggestionListProps {
   suggestions: Suggestion[]
+  // eslint-disable-next-line no-unused-vars
   onApply?: (suggestionId: string) => void
 }
 

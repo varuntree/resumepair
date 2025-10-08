@@ -24,16 +24,15 @@ import { Link2, Unlink } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export interface DocumentLinkerProps {
-  coverLetterId: string
   currentLinkedResumeId?: string | null
   resumes: Array<{ id: string; title: string }>
+  // eslint-disable-next-line no-unused-vars
   onLink: (resumeId: string, syncData: boolean) => Promise<void>
   onUnlink: () => Promise<void>
   disabled?: boolean
 }
 
 export function DocumentLinker({
-  coverLetterId,
   currentLinkedResumeId,
   resumes,
   onLink,

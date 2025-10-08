@@ -18,9 +18,6 @@ export {
   type PdfGenerationOptions,
 } from './pdfGenerator'
 
-// Template Rendering
-export { renderResumeTemplate, renderCoverLetterTemplate } from './templateRenderer'
-
 // Queue Management
 export {
   processExportJob,

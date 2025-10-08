@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useUnifiedAIStore } from '@/stores/unifiedAIStore'
+import type { ResumeJson } from '@/types/resume'
+import type { CoverLetterJson } from '@/types/cover-letter'
 import { useDocumentStore } from '@/stores/documentStore'
 import { useCoverLetterStore } from '@/stores/coverLetterStore'
 
@@ -64,13 +66,13 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
     if (docType === 'resume') {
       if (!resumeDoc || !isEqual(resumeDoc, data)) {
         startTransition(() => {
-          updateResume(data)
+          updateResume(data as Partial<ResumeJson>)
         })
       }
     } else {
       if (!coverDoc || !isEqual(coverDoc, data)) {
         startTransition(() => {
-          updateCover(data)
+          updateCover(data as Partial<CoverLetterJson>)
         })
       }
     }

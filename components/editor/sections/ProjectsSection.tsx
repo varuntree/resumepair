@@ -25,6 +25,14 @@ export function ProjectsSection(): React.ReactElement {
         label="Projects"
         emptyItem={emptyProject}
         maxItems={10}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.name || 'Project'}</p>
+            {item.summary && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{item.summary}</p>
+            )}
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">
@@ -55,6 +63,9 @@ export function ProjectsSection(): React.ReactElement {
               label="Highlights"
               emptyItem={emptyBullet}
               maxItems={8}
+              renderSummary={(value: string) => (
+                <span className="text-sm text-muted-foreground line-clamp-1">{value || 'Highlight'}</span>
+              )}
             >
               {(bulletIndex) => (
                 <TextAreaField
@@ -72,6 +83,9 @@ export function ProjectsSection(): React.ReactElement {
               label="Technologies"
               emptyItem={emptyTech}
               maxItems={15}
+              renderSummary={(value: string) => (
+                <span className="text-sm text-muted-foreground">{value || 'Technology'}</span>
+              )}
             >
               {(techIndex) => (
                 <TextField

@@ -22,8 +22,11 @@ import { useToast } from '@/hooks/use-toast'
 
 export interface BulkOperationsProps {
   selectedDocuments: string[]
+  // eslint-disable-next-line no-unused-vars
   onDelete: (documentIds: string[]) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   onArchive?: (documentIds: string[]) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   onExport?: (documentIds: string[]) => Promise<void>
   onClearSelection: () => void
 }

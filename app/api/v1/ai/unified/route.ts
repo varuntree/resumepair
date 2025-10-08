@@ -12,6 +12,9 @@ import { z } from 'zod'
 import { aiModel } from '@/libs/ai/provider'
 import { ResumeJsonSchema } from '@/libs/validation/resume'
 import { CoverLetterJsonSchema } from '@/libs/validation/cover-letter'
+import { normalizeResumeData, normalizeCoverLetterData } from '@/libs/repositories/normalizers'
+import type { ResumeJson } from '@/types/resume'
+import type { CoverLetterJson } from '@/types/cover-letter'
 import { buildGenerationPrompt, type PersonalInfo, buildPDFExtractionPrompt } from '@/libs/ai/prompts'
 import { buildCoverLetterGenerationPrompt } from '@/libs/ai/prompts/cover-letter'
 import { createClient } from '@/libs/supabase/server'
@@ -35,7 +38,6 @@ const UnifiedRequestSchema = z
       })
       .optional(),
     fileData: z.string().optional(), // base64
-    fileName: z.string().optional(),
     mimeType: z.literal('application/pdf').optional(),
     editorData: z.any().optional(),
   })
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const { docType, text, personalInfo, fileData, fileName, mimeType, editorData } = parsed.data
+    const { docType, text, personalInfo, fileData, mimeType, editorData } = parsed.data
 
     // If file provided, validate size
     let buffer: Uint8Array | null = null
@@ -220,7 +222,16 @@ export async function POST(req: Request) {
             console.warn('[UnifiedAI] usage/quota logging failed:', e)
           }
 
-          controller.enqueue(encoder.encode(`event: complete\n` + `data: ${JSON.stringify({ type: 'complete', data: finalObject, duration, docType })}\n\n`))
+          const normalizedFinal = isResume
+            ? normalizeResumeData(finalObject as ResumeJson)
+            : normalizeCoverLetterData(finalObject as CoverLetterJson)
+
+          controller.enqueue(
+            encoder.encode(
+              `event: complete\n` +
+                `data: ${JSON.stringify({ type: 'complete', data: normalizedFinal, duration, docType })}\n\n`
+            )
+          )
           controller.close()
         } catch (error) {
           console.error('[UnifiedAI] Stream error:', error)

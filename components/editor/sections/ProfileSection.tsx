@@ -72,6 +72,12 @@ export function ProfileSection(): React.ReactElement {
         label="Links"
         emptyItem={emptyLink}
         maxItems={10}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.label || item.type || 'Link'}</p>
+            {item.url && <p className="text-xs text-muted-foreground line-clamp-1">{item.url}</p>}
+          </div>
+        )}
       >
         {(index) => (
           <>

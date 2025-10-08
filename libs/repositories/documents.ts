@@ -14,6 +14,7 @@ import type {
   ResumeListParams,
   ResumeListResponse,
 } from '@/types/resume'
+import { normalizeResumeData } from './normalizers'
 
 /**
  * Get all resumes for a user with pagination and filtering
@@ -202,15 +203,19 @@ export async function createResume(
   title: string,
   data: ResumeJson
 ): Promise<Resume> {
+  const normalized = normalizeResumeData(data)
+  const templateId = normalized.appearance?.template ?? 'onyx'
+
   const { data: resume, error } = await supabase
     .from('resumes')
     .insert({
       user_id: userId,
       title,
       schema_version: 'resume.v1',
-      data,
+      data: normalized,
       version: 1,
       status: 'draft',
+      template_id: templateId,
     })
     .select()
     .single()
@@ -268,10 +273,25 @@ export async function updateResume(
   }
 
   // Update with optimistic concurrency check
+  let templateId: string | undefined
+  const updatePayload: Record<string, any> = {
+    ...updates,
+  }
+
+  if (updates.data) {
+    const normalized = normalizeResumeData(updates.data as ResumeJson)
+    updatePayload.data = normalized
+    templateId = normalized.appearance?.template
+  }
+
+  if (templateId) {
+    updatePayload.template_id = templateId
+  }
+
   const { data, error } = await supabase
     .from('resumes')
     .update({
-      ...updates,
+      ...updatePayload,
       version: currentVersion + 1,
       updated_at: new Date().toISOString(),
     })

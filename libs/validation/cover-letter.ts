@@ -85,6 +85,25 @@ export const CoverLetterSettingsSchema = z.object({
   includeDate: z.boolean().default(true),
 })
 
+export const CoverLetterAppearanceSchema = z.object({
+  theme: z.object({
+    background: z.string(),
+    text: z.string(),
+    primary: z.string(),
+  }),
+  typography: z.object({
+    fontFamily: z.string(),
+    fontSize: z.number().min(8).max(36),
+    lineHeight: z.number().min(1.0).max(2.0),
+  }),
+  layout: z.object({
+    pageFormat: z.enum(['A4', 'Letter']),
+    margin: z.number().min(8).max(160),
+    showPageNumbers: z.boolean(),
+  }),
+  customCss: z.string().max(20000).optional(),
+})
+
 /**
  * Complete cover letter JSON schema
  */
@@ -100,6 +119,7 @@ export const CoverLetterJsonSchema = z.object({
     .max(50, 'Cover letter body too long (max 50 blocks)'),
   closing: z.string().min(1, 'Closing is required').max(100, 'Closing too long'),
   settings: CoverLetterSettingsSchema,
+  appearance: CoverLetterAppearanceSchema.optional(),
 })
 
 /**
@@ -107,7 +127,6 @@ export const CoverLetterJsonSchema = z.object({
  */
 export const CoverLetterCreateInputSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  template_id: z.string().uuid('Invalid template ID').optional(),
   linked_resume_id: z.string().uuid('Invalid resume ID').optional(),
 })
 
@@ -116,7 +135,7 @@ export const CoverLetterCreateInputSchema = z.object({
  */
 export const CoverLetterUpdateInputSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long').optional(),
-  data: CoverLetterJsonSchema.partial().optional(),
+  data: CoverLetterJsonSchema.optional(),
   linked_resume_id: z.string().uuid('Invalid resume ID').nullable().optional(),
   version: z.number().int('Version must be an integer').min(1, 'Version must be at least 1'),
 })

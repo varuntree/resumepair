@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 
 interface JobDescriptionInputProps {
   value: string;
+  // eslint-disable-next-line no-unused-vars
   onChange: (value: string) => void;
   disabled?: boolean;
 }

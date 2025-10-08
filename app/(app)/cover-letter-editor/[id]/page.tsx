@@ -24,13 +24,12 @@ import {
   useCoverLetterStore,
   useCoverLetterTemporalStore,
 } from '@/stores/coverLetterStore'
-import { useCoverLetterTemplateId } from '@/stores/coverLetterTemplateStore'
 import { CoverLetterLivePreview } from '@/components/preview/CoverLetterLivePreview'
 import { UnifiedStreamOverlay } from '@/components/preview/UnifiedStreamOverlay'
 import UnifiedAITool from '@/components/ai/UnifiedAITool'
 import { CoverLetterCustomizationPanel } from '@/components/customization/CoverLetterCustomizationPanel'
 import { CoverLetterVersionHistory } from '@/components/editor/CoverLetterVersionHistory'
-import type { CoverLetterJson, RichTextBlock } from '@/types/cover-letter'
+import type { RichTextBlock } from '@/types/cover-letter'
 import type { SaveStatus } from '@/components/editor/EditorHeader'
 
 export default function CoverLetterEditorPage(): React.ReactElement {
@@ -56,7 +55,6 @@ export default function CoverLetterEditorPage(): React.ReactElement {
   } = useCoverLetterStore()
 
   const { undo, redo, clear, canUndo, canRedo} = useCoverLetterTemporalStore()
-  const templateId = useCoverLetterTemplateId()
 
   // Section definitions for cover letter
   const sections = React.useMemo(() => [
@@ -69,15 +67,12 @@ export default function CoverLetterEditorPage(): React.ReactElement {
 
   // Load document on mount
   React.useEffect(() => {
-    if (coverLetterId) {
-      loadDocument(coverLetterId)
-    }
-
+    if (!coverLetterId) return
+    loadDocument(coverLetterId)
     return () => {
       clear()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coverLetterId])
+  }, [coverLetterId, loadDocument, clear])
 
   // Show error toast
   React.useEffect(() => {
@@ -152,22 +147,6 @@ export default function CoverLetterEditorPage(): React.ReactElement {
     })
   }
 
-  const handleSubmit = async (): Promise<void> => {
-    try {
-      await saveDocument()
-      toast({
-        title: 'Saved',
-        description: 'Your cover letter has been saved',
-      })
-    } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to save changes',
-      })
-    }
-  }
-
   const handleExportPdf = async (): Promise<void> => {
     if (!coverLetter) return
 
@@ -179,7 +158,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          templateSlug: templateId,
+          templateSlug: 'classic-block',
           pageSize: coverLetter.settings.pageSize.toLowerCase(),
           quality: 'high',
         }),
@@ -436,7 +415,7 @@ export default function CoverLetterEditorPage(): React.ReactElement {
         <TabsContent value="preview" className="flex-1 mt-0 overflow-hidden flex flex-col min-h-0">
           <div className="border-b flex-shrink-0 p-4 bg-white flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              Template: <span className="font-medium capitalize">{templateId.replace('-', ' ')}</span>
+              Appearance: <span className="font-medium capitalize">{coverLetter.appearance?.layout.pageFormat ?? coverLetter.settings.pageSize}</span>
             </div>
             <Button
               onClick={handleExportPdf}

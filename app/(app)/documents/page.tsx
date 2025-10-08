@@ -12,7 +12,7 @@ export default async function DocumentsPage(): Promise<React.ReactElement> {
   if (!user) redirect('/signin')
   return (
     <div className="container mx-auto py-8 px-4">
-      <UnifiedDocumentDashboard userId={user.id} />
+      <UnifiedDocumentDashboard />
     </div>
   )
 }

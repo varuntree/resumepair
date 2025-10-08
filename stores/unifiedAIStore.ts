@@ -77,7 +77,15 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
     }
 
     const abortController = new AbortController()
-    set({ docType, isStreaming: true, progress: 0, partial: null, final: null, error: null, abortController })
+    set({
+      docType,
+      isStreaming: true,
+      progress: 0,
+      partial: null,
+      final: null,
+      error: null,
+      abortController,
+    } as Partial<UnifiedState>)
 
     try {
       const res = await fetch('/api/v1/ai/unified', {
@@ -161,6 +169,14 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
   },
 
   reset() {
-    set({ docType: null, isStreaming: false, progress: 0, partial: null, final: null, error: null, abortController: null })
+    set({
+      docType: null,
+      isStreaming: false,
+      progress: 0,
+      partial: null,
+      final: null,
+      error: null,
+      abortController: null,
+    } as Partial<UnifiedState>)
   },
 }))

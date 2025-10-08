@@ -18,6 +18,7 @@ import type { PersonalInfo } from '@/libs/ai/prompts';
 
 interface PersonalInfoFormProps {
   personalInfo?: PersonalInfo;
+  // eslint-disable-next-line no-unused-vars
   onChange: (info: Partial<PersonalInfo>) => void;
   disabled?: boolean;
 }

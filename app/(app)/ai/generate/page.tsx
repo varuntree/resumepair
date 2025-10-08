@@ -17,17 +17,16 @@ import { useUnifiedAIStore } from '@/stores/unifiedAIStore';
 import { useShallow } from 'zustand/react/shallow'
 
 export default function GeneratePage() {
-  const { isStreaming, partial, final, progress, reset } = useUnifiedAIStore(
+  const { isStreaming, partial, final, reset } = useUnifiedAIStore(
     useShallow((s: any) => ({
       isStreaming: s.isStreaming,
       partial: s.partial,
       final: s.final,
-      progress: s.progress,
       reset: s.reset,
     }))
   )
   const generatedResume = final || partial
-  const selectedTemplate = 'default'
+  const selectedTemplate = 'onyx'
 
   return (
     <div className="min-h-screen bg-background">

@@ -11,9 +11,7 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@/libs/supabase/server'
 import { getCoverLetter } from '@/libs/repositories/coverLetters'
 import { generateCoverLetterPdf } from '@/libs/exporters/pdfGenerator'
-import { getCoverLetterTemplate } from '@/libs/templates/cover-letter/registry'
 import { z } from 'zod'
-import type { CoverLetterTemplateSlug } from '@/types/cover-letter-template'
 
 // ============================================
 // RUNTIME CONFIG
@@ -27,11 +25,6 @@ export const maxDuration = 30 // 30 seconds timeout for PDF generation
 // ============================================
 
 const ExportPdfSchema = z.object({
-  templateSlug: z
-    .enum(['classic-block', 'modern-minimal', 'creative-bold', 'executive-formal'])
-    .optional()
-    .default('classic-block'),
-  pageSize: z.enum(['letter', 'a4']).optional().default('letter'),
   quality: z.enum(['standard', 'high']).optional().default('standard'),
 })
 
@@ -77,7 +70,7 @@ export async function POST(
       })
     }
 
-    const { templateSlug, pageSize, quality } = validation.data
+    const { quality } = validation.data
 
     // Fetch cover letter (RLS ensures ownership check)
     const coverLetter = await getCoverLetter(supabase, coverLetterId)
@@ -89,20 +82,8 @@ export async function POST(
       })
     }
 
-    // Verify template exists
-    try {
-      getCoverLetterTemplate(templateSlug as CoverLetterTemplateSlug)
-    } catch (error) {
-      return new Response(JSON.stringify({ error: `Template "${templateSlug}" not found` }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
     // Generate PDF
     const result = await generateCoverLetterPdf(coverLetter.data, {
-      templateSlug,
-      pageSize,
       quality,
     })
 

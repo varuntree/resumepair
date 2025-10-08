@@ -10,13 +10,13 @@
 
 import * as React from 'react'
 import { TemplateCard } from './TemplateCard'
-import { listTemplates } from '@/libs/templates/registry'
+import { listResumeTemplateMetadata } from '@/libs/reactive-artboard/catalog'
 
 /**
  * Template gallery grid component
  */
 export function TemplateGallery(): React.ReactElement {
-  const templates = listTemplates()
+  const templates = React.useMemo(() => listResumeTemplateMetadata(), [])
 
   return (
     <div className="w-full">
@@ -33,7 +33,7 @@ export function TemplateGallery(): React.ReactElement {
         {/* Template Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
           {templates.map((template) => (
-            <TemplateCard key={template.metadata.id} template={template.metadata} />
+            <TemplateCard key={template.id} template={template} />
           ))}
         </div>
 

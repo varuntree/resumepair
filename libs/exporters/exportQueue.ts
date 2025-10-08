@@ -88,9 +88,6 @@ export async function processExportJob(
     // Step 2: Generate PDF from resume data
     await updateProgress(supabase, jobId, 30)
     const pdfOptions: PdfGenerationOptions = {
-      templateSlug: job.options.templateSlug || 'minimal',
-      pageSize: job.options.pageSize || 'letter',
-      margins: job.options.margins,
       quality: job.options.quality || 'standard',
     }
 
@@ -132,12 +129,14 @@ export async function processExportJob(
     await updateProgress(supabase, jobId, 90)
 
     // Create history record FIRST
+    const templateSlug = `artboard/${document.data.appearance?.template || 'onyx'}`
+
     const historyParams: CreateExportHistoryParams = {
       user_id: job.user_id,
       document_id: job.document_id,
       document_version: document.version || 1,
       format: job.format,
-      template_slug: pdfOptions.templateSlug,
+      template_slug: templateSlug,
       file_name: fileName,
       file_path: storagePath,
       file_size: pdfResult.fileSize,

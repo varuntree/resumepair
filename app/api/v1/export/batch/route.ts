@@ -29,16 +29,6 @@ export const runtime = 'nodejs' // Required for Puppeteer
 
 const BatchExportSchema = z.object({
   documentIds: z.array(z.string().uuid()).min(1).max(10), // Max 10 documents per batch
-  templateSlug: z.string().min(1).optional().default('minimal'),
-  pageSize: z.enum(['letter', 'a4']).optional().default('letter'),
-  margins: z
-    .object({
-      top: z.number().min(0).max(2),
-      right: z.number().min(0).max(2),
-      bottom: z.number().min(0).max(2),
-      left: z.number().min(0).max(2),
-    })
-    .optional(),
   quality: z.enum(['standard', 'high']).optional().default('standard'),
 })
 
@@ -47,7 +37,6 @@ const BatchExportSchema = z.object({
 // ============================================
 
 const MAX_CONCURRENT_JOBS = 3
-const MAX_BATCH_SIZE = 10
 
 // ============================================
 // HANDLER
@@ -63,7 +52,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       return apiError(400, validation.error.message, undefined, 'VALIDATION_ERROR')
     }
 
-    const { documentIds, templateSlug, pageSize, margins, quality } = validation.data
+    const { documentIds, quality } = validation.data
 
     // Create Supabase client
     const supabase = createClient()
@@ -109,9 +98,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
           document_id: documentId,
           format: 'pdf',
           options: {
-            templateSlug,
-            pageSize,
-            margins,
             quality,
           },
         }

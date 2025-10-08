@@ -65,37 +65,23 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       return apiError(400, 'Validation failed', result.error.format())
     }
 
-    const { title, template_id } = result.data
+    const { title, template } = result.data
 
     // Get user profile for defaults
     const profile = await getProfile(supabase, user.id)
 
     // Get template data or use empty schema
     let initialData
-    if (template_id) {
-      // Fetch template (Phase 2.5 feature - not implemented yet)
-      // For now, use empty resume
-      initialData = createEmptyResume(
-        user.email || '',
-        profile.full_name || '',
-        {
-          locale: profile.locale,
-          dateFormat: profile.date_format,
-          pageSize: profile.page_size,
-        }
-      )
-    } else {
-      // Empty schema with defaults from user profile
-      initialData = createEmptyResume(
-        user.email || '',
-        profile.full_name || '',
-        {
-          locale: profile.locale,
-          dateFormat: profile.date_format,
-          pageSize: profile.page_size,
-        }
-      )
-    }
+    initialData = createEmptyResume(
+      user.email || '',
+      profile.full_name || '',
+      {
+        locale: profile.locale,
+        dateFormat: profile.date_format,
+        pageSize: profile.page_size,
+      },
+      template
+    )
 
     // Create resume
     const resume = await createResume(supabase, user.id, title, initialData)

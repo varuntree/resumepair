@@ -12,14 +12,14 @@
 import * as React from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useDocumentStore } from '@/stores/documentStore'
-import { useTemplateId, useCustomizations } from '@/stores/templateStore'
 import { PreviewContainer } from './PreviewContainer'
-import { TemplateRenderer } from './TemplateRenderer'
 import { PreviewError } from './PreviewError'
 import { PreviewSkeleton } from './PreviewSkeleton'
 import { PreviewControls } from './PreviewControls'
 import { saveScrollPosition, restoreScrollPosition } from '@/libs/utils/previewUtils'
 import type { ResumeJson } from '@/types/resume'
+import { ArtboardFrame } from './ArtboardFrame'
+import { mapResumeToArtboardDocument } from '@/libs/reactive-artboard'
 
 interface LivePreviewProps {
   documentId?: string
@@ -38,15 +38,14 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   const lastDocRef = React.useRef<ResumeJson | null>(null)
 
   // Shallow selector for document data
-  const document = useDocumentStore(
-    useShallow((state) => state.document)
-  )
+  const document = useDocumentStore(useShallow((state) => state.document))
 
   const isLoading = useDocumentStore((state) => state.isLoading)
 
-  // Get template ID and customizations from templateStore
-  const templateId = useTemplateId()
-  const customizations = useCustomizations()
+  const artboardDocument = React.useMemo(() => {
+    if (!previewData) return null
+    return mapResumeToArtboardDocument(previewData)
+  }, [previewData])
 
   // RAF-batched update handler
   React.useEffect(() => {
@@ -97,7 +96,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   }, [document])
 
   // Show loading skeleton
-  if (isLoading || !previewData) {
+  if (isLoading || !artboardDocument) {
     return (
       <PreviewContainer>
         <PreviewSkeleton />
@@ -111,12 +110,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
         {showControls && <div className="flex-shrink-0"><PreviewControls /></div>}
         <div className="flex-1 min-h-0">
           <PreviewContainer>
-            <TemplateRenderer
-              templateId={templateId}
-              data={previewData}
-              customizations={customizations}
-              mode="preview"
-            />
+            <ArtboardFrame document={artboardDocument} />
           </PreviewContainer>
         </div>
       </div>

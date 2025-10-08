@@ -9,10 +9,14 @@
 
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
-import { renderResumeTemplate, renderCoverLetterTemplate } from './templateRenderer'
 import { ResumeJson } from '@/types/resume'
 import { CoverLetterJson } from '@/types/cover-letter'
 import { ExportOptions } from '@/libs/repositories/exportJobs'
+import {
+  mapResumeToArtboardDocument,
+  mapCoverLetterToArtboardDocument,
+} from '@/libs/reactive-artboard'
+import { renderArtboardToHtml } from '@/libs/reactive-artboard/server/renderToHtml'
 
 // ============================================
 // TYPES
@@ -25,8 +29,7 @@ export interface PdfGenerationResult {
 }
 
 export interface PdfGenerationOptions {
-  templateSlug: string
-  pageSize: 'letter' | 'a4'
+  pageSize?: 'letter' | 'a4'
   margins?: {
     top: number
     right: number
@@ -34,7 +37,7 @@ export interface PdfGenerationOptions {
     left: number
   }
   quality?: 'standard' | 'high'
-  documentType?: 'resume' | 'cover-letter' // Added for cover letter support
+  documentType?: 'resume' | 'cover-letter'
 }
 
 // ============================================
@@ -53,6 +56,11 @@ const PDF_QUALITY_SETTINGS = {
     preferCSSPageSize: true,
     scale: 1,
   },
+}
+
+function pxToInches(px: number): number {
+  const inches = px / 96
+  return Math.max(0.1, Number(inches.toFixed(3)))
 }
 
 // ============================================
@@ -76,11 +84,8 @@ export async function generateResumePdf(
 
   try {
     // Step 1: Render HTML from template
-    const html = await renderResumeTemplate(resumeData, {
-      templateSlug: options.templateSlug,
-      pageSize: options.pageSize,
-      margins: options.margins,
-    })
+    const artboardDocument = mapResumeToArtboardDocument(resumeData)
+    const html = await renderArtboardToHtml(artboardDocument)
 
     // Step 2: Launch browser
     browser = await launchBrowser()
@@ -95,17 +100,18 @@ export async function generateResumePdf(
 
     // Step 4: Generate PDF
     const quality = options.quality || 'standard'
+    const pageFormat = artboardDocument.metadata.page.format === 'A4' ? 'A4' : 'Letter'
+    const marginInches = pxToInches(artboardDocument.metadata.page.margin)
+
     const pdfBuffer = await page.pdf({
       ...PDF_QUALITY_SETTINGS[quality],
-      format: options.pageSize === 'a4' ? 'A4' : 'Letter',
-      margin: options.margins
-        ? {
-            top: `${options.margins.top}in`,
-            right: `${options.margins.right}in`,
-            bottom: `${options.margins.bottom}in`,
-            left: `${options.margins.left}in`,
-          }
-        : undefined,
+      format: pageFormat,
+      margin: {
+        top: `${marginInches}in`,
+        right: `${marginInches}in`,
+        bottom: `${marginInches}in`,
+        left: `${marginInches}in`,
+      },
     })
 
     // Step 5: Calculate metadata
@@ -242,11 +248,8 @@ export async function generateCoverLetterPdf(
 
   try {
     // Step 1: Render HTML from template
-    const html = await renderCoverLetterTemplate(coverLetterData, {
-      templateSlug: options.templateSlug,
-      pageSize: options.pageSize,
-      margins: options.margins,
-    })
+    const artboardDocument = mapCoverLetterToArtboardDocument(coverLetterData)
+    const html = await renderArtboardToHtml(artboardDocument)
 
     // Step 2: Launch browser
     browser = await launchBrowser()
@@ -261,17 +264,18 @@ export async function generateCoverLetterPdf(
 
     // Step 4: Generate PDF
     const quality = options.quality || 'standard'
+    const pageFormat = artboardDocument.metadata.page.format === 'A4' ? 'A4' : 'Letter'
+    const marginInches = pxToInches(artboardDocument.metadata.page.margin)
+
     const pdfBuffer = await page.pdf({
       ...PDF_QUALITY_SETTINGS[quality],
-      format: options.pageSize === 'a4' ? 'A4' : 'Letter',
-      margin: options.margins
-        ? {
-            top: `${options.margins.top}in`,
-            right: `${options.margins.right}in`,
-            bottom: `${options.margins.bottom}in`,
-            left: `${options.margins.left}in`,
-          }
-        : undefined,
+      format: pageFormat,
+      margin: {
+        top: `${marginInches}in`,
+        right: `${marginInches}in`,
+        bottom: `${marginInches}in`,
+        left: `${marginInches}in`,
+      },
     })
 
     // Step 5: Calculate metadata

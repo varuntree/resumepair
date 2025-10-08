@@ -2,7 +2,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ResumeJsonSchema } from '@/libs/validation/resume'
 import type { ResumeJson } from '@/types/resume'
@@ -25,7 +25,7 @@ export function EditorForm({
   containerClassName,
 }: EditorFormProps): React.ReactElement {
   const methods = useForm<ResumeJson>({
-    resolver: zodResolver(ResumeJsonSchema),
+    resolver: zodResolver(ResumeJsonSchema) as Resolver<ResumeJson>,
     defaultValues: document,
     mode: 'onBlur',
   })

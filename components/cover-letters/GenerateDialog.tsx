@@ -30,7 +30,6 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Sparkles, FileText, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
@@ -45,6 +44,7 @@ export interface Resume {
 
 export interface GenerateDialogProps {
   resumes: Resume[]
+  // eslint-disable-next-line no-unused-vars
   onGenerate: (coverLetter: CoverLetterJson) => void
   triggerButton?: React.ReactNode
 }
@@ -63,14 +63,12 @@ export function GenerateDialog({
   const [tone, setTone] = React.useState<Tone>('formal')
   const [length, setLength] = React.useState<Length>('medium')
   const [isPreparing, setIsPreparing] = React.useState(false)
-  const { isStreaming, progress, partial, final, start, cancel, reset } = useUnifiedAIStore(
+  const { isStreaming, progress, final, start, reset } = useUnifiedAIStore(
     useShallow((s: any) => ({
       isStreaming: s.isStreaming,
       progress: s.progress,
-      partial: s.partial,
       final: s.final,
       start: s.start,
-      cancel: s.cancel,
       reset: s.reset,
     }))
   )
@@ -106,7 +104,9 @@ export function GenerateDialog({
             const skills = Array.isArray(r?.skills?.items) ? r.skills.items.slice(0, 12).map((s: any) => s.name).join(', ') : ''
             resumeContext = `\n\nCandidate context (from selected resume):\n${summary}${topWork ? `\nWork:\n${topWork}` : ''}${skills ? `\nSkills: ${skills}` : ''}`
           }
-        } catch {}
+        } catch (resumeError) {
+          console.error('Failed to fetch resume context for cover letter generation:', resumeError)
+        }
       }
 
       const desiredParagraphs = length === 'short' ? 3 : length === 'medium' ? 4 : 5

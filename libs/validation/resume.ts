@@ -89,9 +89,14 @@ export const ProjectSchema = z.object({
 /**
  * Skill group schema
  */
+const SkillItemSchema = z.object({
+  name: z.string().min(1, 'Skill name is required'),
+  level: z.number().min(0).max(5).optional(),
+})
+
 export const SkillGroupSchema = z.object({
   category: z.string().min(1, 'Category is required'),
-  items: z.array(z.string()),
+  items: z.array(SkillItemSchema),
 })
 
 /**
@@ -146,6 +151,28 @@ export const ResumeSettingsSchema = z.object({
   pageSize: z.enum(['A4', 'Letter']),
 })
 
+const ResumeTemplateIdSchema = z.enum(['onyx', 'modern', 'creative', 'technical'])
+
+export const ResumeAppearanceSchema = z.object({
+  template: ResumeTemplateIdSchema.default('onyx'),
+  theme: z.object({
+    background: z.string(),
+    text: z.string(),
+    primary: z.string(),
+  }),
+  typography: z.object({
+    fontFamily: z.string(),
+    fontSize: z.number().min(8).max(36),
+    lineHeight: z.number().min(1.0).max(2.0),
+  }),
+  layout: z.object({
+    pageFormat: z.enum(['A4', 'Letter']),
+    margin: z.number().min(8).max(144),
+    showPageNumbers: z.boolean(),
+  }),
+  customCss: z.string().max(20000).optional(),
+})
+
 /**
  * Complete ResumeJson schema
  */
@@ -161,6 +188,7 @@ export const ResumeJsonSchema = z.object({
   languages: z.array(LanguageSchema).optional(),
   extras: z.array(ExtraSchema).optional(),
   settings: ResumeSettingsSchema,
+  appearance: ResumeAppearanceSchema.optional(),
 })
 
 /**
@@ -171,7 +199,7 @@ export const CreateResumeSchema = z.object({
     .string()
     .min(1, 'Title is required')
     .max(100, 'Title too long (max 100 characters)'),
-  template_id: z.string().uuid('Invalid template ID').optional(),
+  template: ResumeTemplateIdSchema.optional(),
 })
 
 /**
@@ -183,7 +211,7 @@ export const UpdateResumeSchema = z.object({
     .min(1, 'Title is required')
     .max(100, 'Title too long (max 100 characters)')
     .optional(),
-  data: ResumeJsonSchema.partial().optional(),
+  data: ResumeJsonSchema.optional(),
   version: z.number().int().positive('Version must be positive'),
 })
 

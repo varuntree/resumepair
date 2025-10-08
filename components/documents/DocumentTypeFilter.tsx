@@ -15,6 +15,7 @@ export type DocumentType = 'all' | 'resume' | 'cover_letter'
 
 export interface DocumentTypeFilterProps {
   value: DocumentType
+  // eslint-disable-next-line no-unused-vars
   onChange: (value: DocumentType) => void
   resumeCount: number
   coverLetterCount: number

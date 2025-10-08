@@ -7,7 +7,7 @@
  * Runtime: Node (for storage operations)
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@/libs/supabase/server'
 import { apiSuccess, apiError } from '@/libs/api-utils'
 import {

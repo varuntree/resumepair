@@ -7,6 +7,7 @@
  */
 
 import { ResumeJson } from '@/types/resume'
+import { normalizeSkillNames } from '@/libs/utils'
 import { ScoreBreakdown, ScoreBreakdownDetails } from '@/types/scoring'
 import { calculateATSScore } from './atsChecker'
 import { calculateKeywordScore, extractSimpleKeywords } from './keywordMatcher'
@@ -140,14 +141,16 @@ function extractResumeTextLower(resume: ResumeJson): string {
   const parts: string[] = []
   if (resume.profile.fullName) parts.push(resume.profile.fullName)
   if (resume.profile.headline) parts.push(resume.profile.headline)
-  if (resume.summary) parts.push(resume.summary)
+  if (resume.summary) parts.push(stripHtml(resume.summary))
   resume.work?.forEach((job) => {
     if (job.company) parts.push(job.company)
     if (job.role) parts.push(job.role)
     job.descriptionBullets?.forEach((b) => parts.push(b))
     job.techStack?.forEach((t) => parts.push(t))
   })
-  resume.skills?.forEach((sg) => sg.items.forEach((s) => parts.push(s)))
+  resume.skills?.forEach((sg) => {
+    parts.push(...normalizeSkillNames(sg.items || []))
+  })
   return parts.join(' ').toLowerCase()
 }
 
@@ -168,4 +171,8 @@ function countQuantifiableMetrics(bullets: string[]): number {
   const text = bullets.join(' ')
   const patterns = [/\d+%/, /\$[\d,]+/, /\d+\s+(users?|customers?|projects?)/i]
   return patterns.filter((p) => p.test(text)).length
+}
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]+>/g, ' ')
 }

@@ -15,7 +15,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   FileText,
@@ -77,7 +77,6 @@ interface UserProfile {
 
 export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [quota, setQuota] = useState<QuotaData | null>(null)
   const [isLoading, setIsLoading] = useState(true)

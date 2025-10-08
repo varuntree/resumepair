@@ -72,10 +72,17 @@ export interface Project {
 /**
  * Skill group
  */
+export interface SkillItem {
+  name: string
+  level?: number // 0-5 scale
+}
+
 export interface SkillGroup {
   category: string // e.g., "Programming", "Tools", "Soft Skills"
-  items: string[]
+  items: SkillItem[]
 }
+
+export type ResumeTemplateId = 'onyx' | 'modern' | 'creative' | 'technical'
 
 /**
  * Certification entry
@@ -129,6 +136,26 @@ export interface ResumeSettings {
   pageSize: 'A4' | 'Letter' // US: Letter, others: A4
 }
 
+export interface ResumeAppearance {
+  template: ResumeTemplateId
+  theme: {
+    background: string
+    text: string
+    primary: string
+  }
+  typography: {
+    fontFamily: string
+    fontSize: number
+    lineHeight: number
+  }
+  layout: {
+    pageFormat: 'A4' | 'Letter'
+    margin: number
+    showPageNumbers: boolean
+  }
+  customCss?: string
+}
+
 /**
  * Complete Resume JSON structure (canonical schema)
  */
@@ -144,6 +171,7 @@ export interface ResumeJson {
   languages?: Language[]
   extras?: Extra[]
   settings: ResumeSettings
+  appearance?: ResumeAppearance
 }
 
 /**
@@ -196,7 +224,7 @@ export interface ResumeTemplate {
  */
 export interface ResumeCreateInput {
   title: string
-  template_id?: string
+  template?: ResumeTemplateId
 }
 
 /**
@@ -204,7 +232,7 @@ export interface ResumeCreateInput {
  */
 export interface ResumeUpdateInput {
   title?: string
-  data?: Partial<ResumeJson>
+  data?: ResumeJson
   version: number // Required for optimistic locking
 }
 
@@ -251,22 +279,53 @@ export function createDefaultSettings(
   }
 }
 
+export function createDefaultAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): ResumeAppearance {
+  return {
+    template: 'onyx',
+    theme: {
+      background: '#ffffff',
+      text: '#111827',
+      primary: '#2563eb',
+    },
+    typography: {
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: 16,
+      lineHeight: 1.4,
+    },
+    layout: {
+      pageFormat: pageSize,
+      margin: 48,
+      showPageNumbers: false,
+    },
+    customCss: undefined,
+  }
+}
+
 /**
  * Create empty ResumeJson
  */
 export function createEmptyResume(
   email: string,
   fullName?: string,
-  settings?: Partial<ResumeSettings>
+  settings?: Partial<ResumeSettings>,
+  template?: ResumeTemplateId
 ): ResumeJson {
+  const mergedSettings = {
+    ...createDefaultSettings(),
+    ...settings,
+  }
+
+  const appearance = createDefaultAppearance(mergedSettings.pageSize)
+  if (template) {
+    appearance.template = template
+  }
+
   return {
     profile: {
       fullName: fullName || '',
       email: email,
     },
-    settings: {
-      ...createDefaultSettings(),
-      ...settings,
-    },
+    settings: mergedSettings,
+    appearance,
   }
 }

@@ -27,7 +27,7 @@ export function UnifiedStreamOverlay(): React.ReactElement | null {
     <div className="absolute inset-0 z-40 bg-background/60 backdrop-blur-sm pointer-events-none will-change-transform">
       <div className="h-full p-4 pointer-events-auto">
         {docType === 'resume' ? (
-          <GenerationPreview resume={data} isGenerating={isStreaming} template="default" />
+          <GenerationPreview resume={data} isGenerating={isStreaming} template="onyx" />
         ) : (
           <div className="h-full overflow-auto rounded-lg border bg-card p-6">
             <h2 className="mb-2 text-lg font-semibold">Cover Letter (Streaming)</h2>

@@ -13,13 +13,16 @@ import { SAFE_FONTS } from './constants'
  * Calculate ATS Readiness Score (0-30 points)
  */
 export function calculateATSScore(resume: ResumeJson): number {
+  const appearance = resume.appearance
+  const fontFamily = appearance?.typography?.fontFamily || resume.settings?.fontFamily || 'Inter'
+  const fontSizePx = appearance?.typography?.fontSize || Math.round(16 * (resume.settings?.fontSizeScale || 1))
   const checks = {
     hasStandardSections: hasWorkAndEducation(resume), // 5 pts
     noPhotos: !resume.profile.photo, // 5 pts
-    safeFont: isSafeFont(resume.settings?.fontFamily || 'Inter'), // 5 pts
+    safeFont: isSafeFont(fontFamily), // 5 pts
     simpleLayout: true, // 5 pts (assume our templates are simple)
     pdfFormat: true, // 5 pts (always true for our exports)
-    readableText: isReadableText(resume.settings?.fontSizeScale || 1.0), // 3 pts
+    readableText: isReadableText(fontSizePx), // 3 pts
     properHeadings: hasSectionTitles(resume), // 2 pts
   }
 
@@ -49,10 +52,9 @@ function isSafeFont(font: string): boolean {
 /**
  * Check if text is readable (font size >= 10pt)
  */
-function isReadableText(fontScale: number): boolean {
-  const baseFontSize = 11 // Base font size in points
-  const actualSize = baseFontSize * fontScale
-  return actualSize >= 10
+function isReadableText(fontSizePx: number): boolean {
+  const points = fontSizePx * (72 / 96) // convert px to pt (assuming 96 dpi)
+  return points >= 10
 }
 
 /**

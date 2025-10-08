@@ -29,16 +29,6 @@ export const runtime = 'nodejs' // Required for Puppeteer
 
 const ExportPdfSchema = z.object({
   documentId: z.string().uuid('Invalid document ID'),
-  templateSlug: z.string().min(1, 'Template slug is required').optional().default('minimal'),
-  pageSize: z.enum(['letter', 'a4']).optional().default('letter'),
-  margins: z
-    .object({
-      top: z.number().min(0).max(2),
-      right: z.number().min(0).max(2),
-      bottom: z.number().min(0).max(2),
-      left: z.number().min(0).max(2),
-    })
-    .optional(),
   quality: z.enum(['standard', 'high']).optional().default('standard'),
 })
 
@@ -62,7 +52,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       return apiError(400, validation.error.message, undefined, 'VALIDATION_ERROR')
     }
 
-    const { documentId, templateSlug, pageSize, margins, quality } = validation.data
+    const { documentId, quality } = validation.data
 
     // Create Supabase client
     const supabase = createClient()
@@ -96,9 +86,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       document_id: documentId,
       format: 'pdf',
       options: {
-        templateSlug,
-        pageSize,
-        margins,
         quality,
       },
     }

@@ -84,6 +84,25 @@ export interface CoverLetterSettings {
   includeDate: boolean // Toggle date field
 }
 
+export interface CoverLetterAppearance {
+  theme: {
+    background: string
+    text: string
+    primary: string
+  }
+  typography: {
+    fontFamily: string
+    fontSize: number
+    lineHeight: number
+  }
+  layout: {
+    pageFormat: 'A4' | 'Letter'
+    margin: number
+    showPageNumbers: boolean
+  }
+  customCss?: string
+}
+
 /**
  * Complete Cover Letter JSON structure (canonical schema)
  */
@@ -96,6 +115,7 @@ export interface CoverLetterJson {
   body: RichTextBlock[] // Rich text content (paragraphs + lists)
   closing: string // e.g., "Sincerely,", "Best regards,"
   settings: CoverLetterSettings
+  appearance?: CoverLetterAppearance
 }
 
 /**
@@ -135,7 +155,6 @@ export interface CoverLetterVersion {
  */
 export interface CoverLetterCreateInput {
   title: string
-  template_id?: string
   linked_resume_id?: string // Optional: link to existing resume
 }
 
@@ -144,7 +163,7 @@ export interface CoverLetterCreateInput {
  */
 export interface CoverLetterUpdateInput {
   title?: string
-  data?: Partial<CoverLetterJson>
+  data?: CoverLetterJson
   linked_resume_id?: string | null
   version: number // Required for optimistic locking
 }
@@ -192,6 +211,27 @@ export function createDefaultCoverLetterSettings(
   }
 }
 
+export function createDefaultCoverLetterAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): CoverLetterAppearance {
+  return {
+    theme: {
+      background: '#ffffff',
+      text: '#1f2937',
+      primary: '#1d4ed8',
+    },
+    typography: {
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: 16,
+      lineHeight: 1.5,
+    },
+    layout: {
+      pageFormat: pageSize,
+      margin: 64,
+      showPageNumbers: false,
+    },
+    customCss: undefined,
+  }
+}
+
 /**
  * Create empty cover letter JSON
  */
@@ -200,6 +240,11 @@ export function createEmptyCoverLetter(
   fullName?: string,
   settings?: Partial<CoverLetterSettings>
 ): CoverLetterJson {
+  const mergedSettings = {
+    ...createDefaultCoverLetterSettings(),
+    ...settings,
+  }
+
   return {
     from: {
       fullName: fullName || 'Your Name',
@@ -237,10 +282,8 @@ export function createEmptyCoverLetter(
       },
     ],
     closing: 'Sincerely,',
-    settings: {
-      ...createDefaultCoverLetterSettings(),
-      ...settings,
-    },
+    settings: mergedSettings,
+    appearance: createDefaultCoverLetterAppearance(mergedSettings.pageSize),
   }
 }
 
@@ -265,5 +308,6 @@ export function createCoverLetterFromResume(
       ...createDefaultCoverLetterSettings(),
       ...settings,
     },
+    appearance: createDefaultCoverLetterAppearance((settings?.pageSize || 'Letter') as 'A4' | 'Letter'),
   }
 }

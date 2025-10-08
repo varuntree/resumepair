@@ -1,6 +1,6 @@
 # Prime Command
 
-Get complete context of the Interior Design Generator codebase.
+Get complete context of the resumepair Generator codebase.
 
 ## Instructions
 

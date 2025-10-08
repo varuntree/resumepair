@@ -42,6 +42,7 @@ export interface DocumentOption {
 export interface PackageCreatorProps {
   resumes: DocumentOption[]
   coverLetters: DocumentOption[]
+  // eslint-disable-next-line no-unused-vars
   onCreate: (data: {
     name: string
     resumeId: string

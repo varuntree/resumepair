@@ -6,22 +6,17 @@
 
 import * as React from 'react'
 import { useParams } from 'next/navigation'
-import { getCoverLetterTemplate } from '@/libs/templates/cover-letter/registry'
 import coverLetterSample from '@/libs/samples/coverLetterSample'
+import { mapCoverLetterToArtboardDocument } from '@/libs/reactive-artboard/mappers'
+import { ArtboardRenderer } from '@/libs/reactive-artboard/renderer/ArtboardRenderer'
+
+const SUPPORTED_COVER_LETTER_TEMPLATES = new Set(['onyx'])
 
 export default function CoverLetterPreviewPage(): React.ReactElement {
   const params = useParams()
   const slug = (params?.slug as string) || ''
 
-  let component: React.ComponentType<any> | null = null
-  let defaults: any | null = null
-  try {
-    const t = getCoverLetterTemplate(slug as any)
-    component = t.component
-    defaults = t.defaults
-  } catch {
-    component = null
-  }
+  const templateId = SUPPORTED_COVER_LETTER_TEMPLATES.has(slug) ? slug : null
 
   React.useEffect(() => {
     const markReady = () => {
@@ -35,7 +30,9 @@ export default function CoverLetterPreviewPage(): React.ReactElement {
     }
   }, [])
 
-  if (!component) {
+  const artboardDocument = React.useMemo(() => mapCoverLetterToArtboardDocument(coverLetterSample), [])
+
+  if (!templateId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-red-600">Unknown template: {slug}</p>
@@ -43,11 +40,10 @@ export default function CoverLetterPreviewPage(): React.ReactElement {
     )
   }
 
-  const TemplateComp = component
   return (
     <div id="preview-root" className="min-h-screen w-full flex items-start justify-center bg-white">
       <div style={{ width: 816, marginTop: 16 }}>
-        <TemplateComp data={coverLetterSample} customizations={defaults || undefined} mode="preview" />
+        <ArtboardRenderer document={artboardDocument} />
       </div>
     </div>
   )

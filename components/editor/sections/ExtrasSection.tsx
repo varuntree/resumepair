@@ -18,6 +18,14 @@ export function ExtrasSection(): React.ReactElement {
         label="Custom Sections"
         emptyItem={emptyExtra}
         maxItems={5}
+        renderSummary={(item) => (
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">{item.title || 'Section'}</p>
+            {item.content && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{item.content}</p>
+            )}
+          </div>
+        )}
       >
         {(index) => (
           <div className="space-y-4">

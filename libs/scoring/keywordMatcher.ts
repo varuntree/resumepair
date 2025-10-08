@@ -8,6 +8,7 @@
 
 import { ResumeJson } from '@/types/resume'
 import { TECH_KEYWORDS } from './constants'
+import { normalizeSkillNames } from '@/libs/utils'
 
 /**
  * Calculate Keyword Match Score (0-25 points)
@@ -73,7 +74,7 @@ function extractResumeText(resume: ResumeJson): string {
   if (resume.profile.headline) parts.push(resume.profile.headline)
 
   // Summary
-  if (resume.summary) parts.push(resume.summary)
+  if (resume.summary) parts.push(stripHtml(resume.summary))
 
   // Work experience
   resume.work?.forEach((job) => {
@@ -86,7 +87,7 @@ function extractResumeText(resume: ResumeJson): string {
 
   // Skills
   resume.skills?.forEach((skillGroup) => {
-    skillGroup.items.forEach((skill) => parts.push(skill))
+    parts.push(...normalizeSkillNames(skillGroup.items || []))
   })
 
   // Projects
@@ -105,4 +106,8 @@ function extractResumeText(resume: ResumeJson): string {
   })
 
   return parts.join(' ')
+}
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]+>/g, ' ')
 }

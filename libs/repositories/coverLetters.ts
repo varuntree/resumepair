@@ -15,6 +15,7 @@ import type {
   CoverLetterListParams,
   CoverLetterListResponse,
 } from '@/types/cover-letter'
+import { normalizeCoverLetterData } from './normalizers'
 
 /**
  * Get all cover letters for a user with pagination and filtering
@@ -203,16 +204,18 @@ export async function createCoverLetter(
   data: CoverLetterJson,
   linkedResumeId?: string
 ): Promise<CoverLetter> {
+  const normalized = normalizeCoverLetterData(data)
   const { data: coverLetter, error } = await supabase
     .from('cover_letters')
     .insert({
       user_id: userId,
       title,
       schema_version: 'cover-letter.v1',
-      data,
+      data: normalized,
       linked_resume_id: linkedResumeId || null,
       version: 1,
       status: 'draft',
+      template_id: 'onyx',
     })
     .select()
     .single()
@@ -238,11 +241,17 @@ export async function updateCoverLetter(
   updates: Partial<Pick<CoverLetter, 'title' | 'data' | 'status' | 'linked_resume_id'>>,
   currentVersion: number
 ): Promise<CoverLetter> {
+  const payload: Record<string, any> = { ...updates }
+
+  if (updates.data) {
+    payload.data = normalizeCoverLetterData(updates.data as CoverLetterJson)
+  }
+
   // Update with optimistic concurrency check
   const { data, error } = await supabase
     .from('cover_letters')
     .update({
-      ...updates,
+      ...payload,
       version: currentVersion + 1,
       updated_at: new Date().toISOString(),
     })
