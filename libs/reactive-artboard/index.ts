@@ -1,3 +1,7 @@
 export * from './types'
 export { ArtboardRenderer } from './renderer/ArtboardRenderer'
 export { mapResumeToArtboardDocument, mapCoverLetterToArtboardDocument } from './mappers'
+export { useArtboardStore } from './store/artboard'
+export { mapResumeJsonToResumeData } from './adapters'
+export type { ResumeData } from './schema'
+export * from './components'

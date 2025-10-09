@@ -82,7 +82,19 @@ export interface SkillGroup {
   items: SkillItem[]
 }
 
-export type ResumeTemplateId = 'onyx' | 'modern' | 'creative' | 'technical'
+export type ResumeTemplateId =
+  | 'azurill'
+  | 'bronzor'
+  | 'chikorita'
+  | 'ditto'
+  | 'gengar'
+  | 'glalie'
+  | 'kakuna'
+  | 'leafish'
+  | 'nosepass'
+  | 'onyx'
+  | 'pikachu'
+  | 'rhyhorn'
 
 /**
  * Certification entry
@@ -138,6 +150,7 @@ export interface ResumeSettings {
 
 export interface ResumeAppearance {
   template: ResumeTemplateId
+  layout: string[][][]
   theme: {
     background: string
     text: string
@@ -148,7 +161,7 @@ export interface ResumeAppearance {
     fontSize: number
     lineHeight: number
   }
-  layout: {
+  layout_settings: {
     pageFormat: 'A4' | 'Letter'
     margin: number
     showPageNumbers: boolean
@@ -279,9 +292,19 @@ export function createDefaultSettings(
   }
 }
 
+export function createDefaultLayout(): string[][][] {
+  return [
+    [
+      ['profiles', 'summary', 'experience', 'education', 'projects', 'volunteer', 'references'],
+      ['skills', 'interests', 'certifications', 'awards', 'publications', 'languages'],
+    ],
+  ]
+}
+
 export function createDefaultAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): ResumeAppearance {
   return {
     template: 'onyx',
+    layout: createDefaultLayout(),
     theme: {
       background: '#ffffff',
       text: '#111827',
@@ -292,7 +315,7 @@ export function createDefaultAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): R
       fontSize: 16,
       lineHeight: 1.4,
     },
-    layout: {
+    layout_settings: {
       pageFormat: pageSize,
       margin: 48,
       showPageNumbers: false,

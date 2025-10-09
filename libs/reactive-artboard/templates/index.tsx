@@ -1,20 +1,36 @@
 import type { ComponentType } from 'react'
 import { ArtboardDocument } from '../types'
-import { ModernTemplate } from './modern'
-import { CreativeTemplate } from './creative'
-import { TechnicalTemplate } from './technical'
-import { OnyxTemplate } from './onyx'
 import { CoverLetterTemplate } from './coverLetter'
+import { AzurillTemplate } from './azurill'
+import { BronzorTemplate } from './bronzor'
+import { ChikoritaTemplate } from './chikorita'
+import { DittoTemplate } from './ditto'
+import { GengarTemplate } from './gengar'
+import { GlalieTemplate } from './glalie'
+import { KakunaTemplate } from './kakuna'
+import { LeafishTemplate } from './leafish'
+import { NosepassTemplate } from './nosepass'
+import { OnyxTemplate } from './onyx'
+import { PikachuTemplate } from './pikachu'
+import { RhyhornTemplate } from './rhyhorn'
 
 type TemplateComponent = ComponentType<{ document: ArtboardDocument }>
 
 const registry: Record<string, TemplateComponent> = {
+  azurill: AzurillTemplate,
+  bronzor: BronzorTemplate,
+  chikorita: ChikoritaTemplate,
+  ditto: DittoTemplate,
+  gengar: GengarTemplate,
+  glalie: GlalieTemplate,
+  kakuna: KakunaTemplate,
+  leafish: LeafishTemplate,
+  nosepass: NosepassTemplate,
   onyx: OnyxTemplate,
-  modern: ModernTemplate,
-  creative: CreativeTemplate,
-  technical: TechnicalTemplate,
+  pikachu: PikachuTemplate,
+  rhyhorn: RhyhornTemplate,
   'cover-letter': CoverLetterTemplate,
-  default: OnyxTemplate,
+  default: KakunaTemplate,
 }
 
 export function getTemplateRenderer(template: string): TemplateComponent {

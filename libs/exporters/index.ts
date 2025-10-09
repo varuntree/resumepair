@@ -9,7 +9,9 @@
 // PDF Generation
 export {
   generateResumePdf,
+  generateResumePdfWithRetry,
   generateCoverLetterPdf,
+  generateCoverLetterPdfWithRetry,
   validatePdfBuffer,
   generateExportFilename,
   generateCoverLetterFilename,

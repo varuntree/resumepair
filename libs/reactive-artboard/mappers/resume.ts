@@ -1,5 +1,5 @@
 import type { ResumeJson, SkillGroup, ResumeAppearance } from '@/types/resume'
-import { createDefaultAppearance } from '@/types/resume'
+import { createDefaultAppearance, createDefaultLayout } from '@/types/resume'
 import { ArtboardDocument, ArtboardRichTextBlock, ArtboardSection, ArtboardMetadata } from '../types'
 
 const DEFAULT_COLORS = {
@@ -124,6 +124,7 @@ export function mapResumeToArtboardDocument(resume: ResumeJson): ArtboardDocumen
     },
     sections,
     metadata,
+    layout: resolveLayout(resume),
   }
 }
 
@@ -137,7 +138,7 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
     fontSize: Math.round(16 * (resume.settings.fontSizeScale || 1)),
     lineHeight: resume.settings.lineSpacing || 1.4,
   }
-  const layout = appearance.layout ?? {
+  const layout = appearance.layout_settings ?? {
     pageFormat: resume.settings.pageSize || 'Letter',
     margin: 48,
     showPageNumbers: false,
@@ -167,6 +168,14 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
     },
     customCss: appearance.customCss,
   }
+}
+
+function resolveLayout(resume: ResumeJson): string[][][] {
+  const appearance = resume.appearance
+  if (appearance?.layout && appearance.layout.length > 0) {
+    return appearance.layout
+  }
+  return createDefaultLayout()
 }
 
 function appearanceTemplate(resume: ResumeJson): string {

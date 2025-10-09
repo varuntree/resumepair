@@ -10,7 +10,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@/libs/supabase/server'
 import { getCoverLetter } from '@/libs/repositories/coverLetters'
-import { generateCoverLetterPdf } from '@/libs/exporters/pdfGenerator'
+import { generateCoverLetterPdfWithRetry } from '@/libs/exporters/pdfGenerator'
 import { z } from 'zod'
 
 // ============================================
@@ -83,8 +83,19 @@ export async function POST(
     }
 
     // Generate PDF
-    const result = await generateCoverLetterPdf(coverLetter.data, {
+    const result = await generateCoverLetterPdfWithRetry(coverLetter.data, {
       quality,
+      context: {
+        documentId: coverLetter.id,
+        userId: user.id,
+      },
+    })
+
+    console.info('[PDF] cover-letter export complete', {
+      documentId: coverLetter.id,
+      userId: user.id,
+      pageCount: result.pageCount,
+      size: result.fileSize,
     })
 
     // Generate filename

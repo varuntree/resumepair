@@ -28,6 +28,9 @@
       ],
       "@dnd-kit/sortable": [
         "libs/dnd-kit/sortable"
+      ],
+      "pdf-lib": [
+        "libs/vendor/pdf-lib"
       ]
     },
     "plugins": [
@@ -40,6 +43,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [

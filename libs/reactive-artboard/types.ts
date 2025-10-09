@@ -82,4 +82,5 @@ export type ArtboardDocument = {
   profile: ArtboardProfile
   sections: ArtboardSection[]
   metadata: ArtboardMetadata
+  layout: string[][][]
 }

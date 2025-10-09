@@ -27,8 +27,14 @@ export function ArtboardFrame({ document }: ArtboardFrameProps): React.ReactElem
     if (!doc || !win) return
 
     if (!rootRef.current) {
+      const origin = window.location.origin
       doc.open()
-      doc.write(`<!DOCTYPE html><html><head><style>html,body{margin:0;padding:0;background:transparent;}</style></head><body><div id="artboard-root"></div></body></html>`)
+      doc.write(
+        `<!DOCTYPE html><html><head>` +
+          `<link rel="stylesheet" href="${origin}/artboard/tailwind.css" />` +
+          `<style>html,body{margin:0;padding:0;background:transparent;}</style>` +
+          `</head><body><div id="artboard-root"></div></body></html>`
+      )
       doc.close()
       const mountNode = doc.getElementById('artboard-root')
       if (!mountNode) {

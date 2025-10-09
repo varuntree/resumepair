@@ -728,6 +728,17 @@ export function buildArtboardStyles(
       --artboard-font-family: ${metadata.typography.fontFamily};
       --artboard-font-size: ${metadata.typography.fontSize}px;
       --artboard-line-height: ${metadata.typography.lineHeight};
+      --background: ${metadata.colors.background};
+      --foreground: ${metadata.colors.text};
+      --primary: ${metadata.colors.primary};
+      --primary-foreground: ${metadata.colors.background};
+      --secondary: ${metadata.colors.primary};
+      --secondary-foreground: ${metadata.colors.background};
+      --muted: ${metadata.colors.text};
+      --muted-foreground: ${metadata.colors.text};
+      --accent: ${metadata.colors.primary};
+      --accent-foreground: ${metadata.colors.background};
+      --border: rgba(0,0,0,0.1);
     }
   `
 

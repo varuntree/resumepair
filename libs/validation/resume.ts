@@ -151,10 +151,39 @@ export const ResumeSettingsSchema = z.object({
   pageSize: z.enum(['A4', 'Letter']),
 })
 
-const ResumeTemplateIdSchema = z.enum(['onyx', 'modern', 'creative', 'technical'])
+const ResumeTemplateIdSchema = z.enum([
+  'azurill',
+  'bronzor',
+  'chikorita',
+  'ditto',
+  'gengar',
+  'glalie',
+  'kakuna',
+  'leafish',
+  'nosepass',
+  'onyx',
+  'pikachu',
+  'rhyhorn',
+])
+
+const LayoutMatrixSchema = z
+  .array(z.array(z.array(z.string().min(1))))
+  .min(1)
+
+const LayoutSettingsSchema = z.object({
+  pageFormat: z.enum(['A4', 'Letter']),
+  margin: z.number().min(8).max(144),
+  showPageNumbers: z.boolean(),
+})
 
 export const ResumeAppearanceSchema = z.object({
   template: ResumeTemplateIdSchema.default('onyx'),
+  layout: LayoutMatrixSchema.default([
+    [
+      ['summary', 'work', 'education', 'projects'],
+      ['skills', 'certifications', 'languages', 'awards'],
+    ],
+  ]),
   theme: z.object({
     background: z.string(),
     text: z.string(),
@@ -165,11 +194,7 @@ export const ResumeAppearanceSchema = z.object({
     fontSize: z.number().min(8).max(36),
     lineHeight: z.number().min(1.0).max(2.0),
   }),
-  layout: z.object({
-    pageFormat: z.enum(['A4', 'Letter']),
-    margin: z.number().min(8).max(144),
-    showPageNumbers: z.boolean(),
-  }),
+  layout_settings: LayoutSettingsSchema,
   customCss: z.string().max(20000).optional(),
 })
 

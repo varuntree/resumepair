@@ -268,7 +268,7 @@ export async function POST(req: Request) {
             ? normalizeResumeData(finalObject as ResumeJson)
             : normalizeCoverLetterData(finalObject as CoverLetterJson)
           if (DEBUG_AI_SERVER) {
-            const keys = Object.keys(normalizedFinal as Record<string, unknown>)
+            const keys = Object.keys(normalizedFinal as unknown as Record<string, unknown>)
             const counts = {
               work: Array.isArray((normalizedFinal as any).work) ? (normalizedFinal as any).work.length : undefined,
               education: Array.isArray((normalizedFinal as any).education) ? (normalizedFinal as any).education.length : undefined,

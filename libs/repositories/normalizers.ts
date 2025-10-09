@@ -1,14 +1,34 @@
-import { createDefaultAppearance, type ResumeJson, type SkillGroup, type ResumeTemplateId } from '@/types/resume'
+import {
+  createDefaultAppearance,
+  createDefaultLayout,
+  createDefaultSettings,
+  type ResumeJson,
+  type SkillGroup,
+  type ResumeTemplateId,
+} from '@/types/resume'
 import { createDefaultCoverLetterAppearance, type CoverLetterJson } from '@/types/cover-letter'
 
-const RESUME_TEMPLATES: ResumeTemplateId[] = ['onyx', 'modern', 'creative', 'technical']
+const RESUME_TEMPLATES: ResumeTemplateId[] = [
+  'azurill',
+  'bronzor',
+  'chikorita',
+  'ditto',
+  'gengar',
+  'glalie',
+  'kakuna',
+  'leafish',
+  'nosepass',
+  'onyx',
+  'pikachu',
+  'rhyhorn',
+]
 const LANGUAGE_LEVELS = new Set(['Elementary', 'Conversational', 'Professional', 'Fluent', 'Native'])
 
 function coerceTemplate(template?: string | null): ResumeTemplateId {
   if (!template) return 'onyx'
   const lower = template.toLowerCase()
   const found = RESUME_TEMPLATES.find((value) => value === lower)
-  return found ?? 'onyx'
+  return (found ?? 'onyx') as ResumeTemplateId
 }
 
 function normalizeSkillGroup(group: SkillGroup | Record<string, any>): SkillGroup | null {
@@ -51,11 +71,22 @@ function normalizeLanguages(languages: ResumeJson['languages']): ResumeJson['lan
 }
 
 export function normalizeResumeData(data: ResumeJson): ResumeJson {
-  const pageSize = data.settings?.pageSize ?? data.appearance?.layout?.pageFormat ?? 'Letter'
+  const pageSize = data.settings?.pageSize ?? data.appearance?.layout_settings?.pageFormat ?? 'Letter'
+  // Ensure settings exist to satisfy storage schema and preview mapping
+  const baseSettings = createDefaultSettings(undefined, undefined, pageSize as 'A4' | 'Letter')
+  const settings = {
+    ...baseSettings,
+    ...(data as any).settings,
+    pageSize: (data as any).settings?.pageSize ?? baseSettings.pageSize,
+  }
   const baseAppearance = createDefaultAppearance(pageSize as 'A4' | 'Letter')
   const appearance = {
     ...baseAppearance,
     ...data.appearance,
+    template: coerceTemplate((data.appearance as any)?.template),
+    layout: Array.isArray(data.appearance?.layout) && data.appearance?.layout.length
+      ? (data.appearance?.layout as string[][][])
+      : baseAppearance.layout ?? createDefaultLayout(),
     theme: {
       ...baseAppearance.theme,
       ...(data.appearance?.theme ?? {}),
@@ -63,17 +94,28 @@ export function normalizeResumeData(data: ResumeJson): ResumeJson {
     typography: {
       ...baseAppearance.typography,
       ...(data.appearance?.typography ?? {}),
-      fontSize: clampNumber(data.appearance?.typography?.fontSize ?? baseAppearance.typography.fontSize, 8, 36),
-      lineHeight: clampNumber(data.appearance?.typography?.lineHeight ?? baseAppearance.typography.lineHeight, 1.0, 2.0),
+      fontSize: clampNumber(
+        data.appearance?.typography?.fontSize ?? baseAppearance.typography.fontSize,
+        8,
+        36
+      ),
+      lineHeight: clampNumber(
+        data.appearance?.typography?.lineHeight ?? baseAppearance.typography.lineHeight,
+        1.0,
+        2.0
+      ),
     },
-    layout: {
-      ...baseAppearance.layout,
-      ...(data.appearance?.layout ?? {}),
-      margin: clampNumber(data.appearance?.layout?.margin ?? baseAppearance.layout.margin, 8, 144),
-      pageFormat: (data.appearance?.layout?.pageFormat === 'A4' ? 'A4' : 'Letter') as 'A4' | 'Letter',
+    layout_settings: {
+      ...baseAppearance.layout_settings,
+      ...(data.appearance?.layout_settings ?? {}),
+      margin: clampNumber(
+        data.appearance?.layout_settings?.margin ?? baseAppearance.layout_settings.margin,
+        8,
+        144
+      ),
+      pageFormat: (data.appearance?.layout_settings?.pageFormat === 'A4' ? 'A4' : 'Letter') as 'A4' | 'Letter',
     },
   }
-  appearance.template = coerceTemplate((data.appearance as any)?.template)
 
   const skills = data.skills
     ?.map((group) => normalizeSkillGroup(group))
@@ -81,6 +123,7 @@ export function normalizeResumeData(data: ResumeJson): ResumeJson {
 
   return {
     ...data,
+    settings,
     appearance,
     skills,
     languages: normalizeLanguages(data.languages),

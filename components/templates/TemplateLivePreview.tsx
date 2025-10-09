@@ -10,8 +10,12 @@ import * as React from 'react'
 import type { ResumeTemplateId, ResumeAppearance } from '@/types/resume'
 import { createDefaultAppearance } from '@/types/resume'
 import resumeSample from '@/libs/samples/resumeSample'
-import { mapResumeToArtboardDocument } from '@/libs/reactive-artboard/mappers'
 import { ArtboardRenderer } from '@/libs/reactive-artboard/renderer/ArtboardRenderer'
+import {
+  mapResumeToArtboardDocument,
+  mapResumeJsonToResumeData,
+  useArtboardStore,
+} from '@/libs/reactive-artboard'
 
 interface TemplateLivePreviewProps {
   templateId: ResumeTemplateId
@@ -28,6 +32,7 @@ export function TemplateLivePreview({ templateId, className = '', ariaLabel }: T
   const [inView, setInView] = React.useState(false)
   const [scale, setScale] = React.useState(0.5)
   const [ready, setReady] = React.useState(false)
+  const setResumeData = useArtboardStore((state) => state.setResume)
 
   // Observe visibility to defer heavy rendering
   React.useEffect(() => {
@@ -73,21 +78,27 @@ export function TemplateLivePreview({ templateId, className = '', ariaLabel }: T
     schedule(() => setReady(true))
   }, [inView, ready])
 
-  const artboardDocument = React.useMemo(() => {
+  const previewResume = React.useMemo(() => {
     const baseAppearance: ResumeAppearance =
       resumeSample.appearance ??
       createDefaultAppearance(resumeSample.settings?.pageSize ?? 'Letter')
 
-    const previewResume = {
+    return {
       ...resumeSample,
       appearance: {
         ...baseAppearance,
         template: templateId,
       } as ResumeAppearance,
     }
-
-    return mapResumeToArtboardDocument(previewResume)
   }, [templateId])
+
+  const artboardDocument = React.useMemo(() => {
+    return mapResumeToArtboardDocument(previewResume)
+  }, [previewResume])
+
+  React.useEffect(() => {
+    setResumeData(mapResumeJsonToResumeData(previewResume))
+  }, [previewResume, setResumeData])
 
   // Fallback skeleton until ready
   if (!ready) {

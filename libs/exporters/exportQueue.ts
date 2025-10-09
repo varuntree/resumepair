@@ -21,7 +21,7 @@ import {
 } from '@/libs/repositories/exportHistory'
 import { getResume } from '@/libs/repositories/documents'
 import {
-  generateResumePdf,
+  generateResumePdfWithRetry,
   generateExportFilename,
   calculateStoragePath,
   validatePdfBuffer,
@@ -89,9 +89,13 @@ export async function processExportJob(
     await updateProgress(supabase, jobId, 30)
     const pdfOptions: PdfGenerationOptions = {
       quality: job.options.quality || 'standard',
+      context: {
+        documentId: job.document_id,
+        userId: job.user_id,
+      },
     }
 
-    const pdfResult = await generateResumePdf(document.data, pdfOptions)
+    const pdfResult = await generateResumePdfWithRetry(document.data, pdfOptions)
 
     // Validate PDF buffer
     if (!validatePdfBuffer(pdfResult.buffer)) {

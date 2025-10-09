@@ -1,0 +1,1 @@
+export { mapResumeJsonToResumeData } from './resumeData'

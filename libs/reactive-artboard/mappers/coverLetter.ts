@@ -67,6 +67,7 @@ export function mapCoverLetterToArtboardDocument(letter: CoverLetterJson): Artbo
     },
     sections,
     metadata,
+    layout: [[['sender', 'meta', 'recipient', 'body', 'closing']]],
   }
 }
 

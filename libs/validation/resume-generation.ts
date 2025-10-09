@@ -25,7 +25,7 @@ import {
 
 // Build a permissive appearance schema with margin coercion/clamping
 const GenerationAppearanceSchema = ResumeAppearanceSchema.extend({
-  layout: ResumeAppearanceSchema.shape.layout.extend({
+  layout_settings: ResumeAppearanceSchema.shape.layout_settings.extend({
     // Accept numbers like 0.75 (inches) and coerce to px (≈96 dpi), then clamp
     margin: z
       .coerce
@@ -38,14 +38,16 @@ const GenerationAppearanceSchema = ResumeAppearanceSchema.extend({
 export const ResumeGenerationSchema = z.object({
   profile: ProfileSchema,
   summary: z.string().optional(),
-  work: z.array(WorkExperienceSchema).default([]),
-  education: z.array(EducationSchema).default([]),
-  projects: z.array(ProjectSchema).default([]),
-  skills: z.array(SkillGroupSchema).default([]),
-  certifications: z.array(CertificationSchema).default([]),
-  awards: z.array(AwardSchema).default([]),
-  languages: z.array(LanguageSchema).default([]),
-  extras: z.array(ExtraSchema).default([]),
+  // Encourage the model to include these sections; require at least one item
+  work: z.array(WorkExperienceSchema).min(1),
+  education: z.array(EducationSchema).min(1),
+  projects: z.array(ProjectSchema).min(1),
+  skills: z.array(SkillGroupSchema).min(1),
+  // Optional sections may be empty but should not block completion
+  certifications: z.array(CertificationSchema).optional().default([]),
+  awards: z.array(AwardSchema).optional().default([]),
+  languages: z.array(LanguageSchema).optional().default([]),
+  extras: z.array(ExtraSchema).optional().default([]),
   // Settings intentionally omitted here (handled by editor & normalization)
   // If model includes appearance, accept permissively with margin coercion
   appearance: GenerationAppearanceSchema.optional(),
@@ -53,4 +55,3 @@ export const ResumeGenerationSchema = z.object({
 }).passthrough()
 
 export type ResumeGeneration = z.infer<typeof ResumeGenerationSchema>
-

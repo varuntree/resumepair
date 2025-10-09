@@ -117,7 +117,10 @@ export const resumeSample: ResumeJson = {
     showIcons: true,
     sectionOrder: ['profile', 'summary', 'work', 'projects', 'education', 'skills'],
   },
-  appearance: createDefaultAppearance('Letter'),
+  appearance: {
+    ...createDefaultAppearance('Letter'),
+    template: 'kakuna',
+  },
 }
 
 export default resumeSample

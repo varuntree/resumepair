@@ -19,7 +19,7 @@ import { PreviewControls } from './PreviewControls'
 import { saveScrollPosition, restoreScrollPosition } from '@/libs/utils/previewUtils'
 import type { ResumeJson } from '@/types/resume'
 import { ArtboardFrame } from './ArtboardFrame'
-import { mapResumeToArtboardDocument } from '@/libs/reactive-artboard'
+import { mapResumeToArtboardDocument, mapResumeJsonToResumeData, useArtboardStore } from '@/libs/reactive-artboard'
 
 interface LivePreviewProps {
   documentId?: string
@@ -41,6 +41,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   const document = useDocumentStore(useShallow((state) => state.document))
 
   const isLoading = useDocumentStore((state) => state.isLoading)
+  const setResumeData = useArtboardStore((state) => state.setResume)
 
   const artboardDocument = React.useMemo(() => {
     if (!previewData) return null
@@ -75,6 +76,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
 
       // Update preview data only when reference changes
       setPreviewData(document)
+      setResumeData(mapResumeJsonToResumeData(document))
 
       // Restore scroll position after render
       if (containerRef.current && scrollPositionRef.current) {
@@ -100,7 +102,7 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
         rafIdRef.current = null
       }
     }
-  }, [document, previewData])
+  }, [document, previewData, setResumeData])
 
   // Show loading skeleton
   if (isLoading || !artboardDocument) {

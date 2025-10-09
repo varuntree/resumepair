@@ -19,16 +19,24 @@ import { useDocumentStore } from '@/stores/documentStore'
 import { listResumeTemplateMetadata } from '@/libs/reactive-artboard/catalog'
 import { createDefaultAppearance, createDefaultSettings } from '@/types/resume'
 import type { ResumeAppearance, ResumeTemplateId } from '@/types/resume'
+  import { normalizeResumeData } from '@/libs/repositories/normalizers'
 import { CustomizationHeader } from './CustomizationHeader'
+import { TypographySection } from './TypographySection'
+import { LayoutEditor } from './LayoutEditor'
 
 export function CustomizationPanel(): React.ReactElement {
   const document = useDocumentStore((state) => state.document)
   const updateDocument = useDocumentStore((state) => state.updateDocument)
 
   const appearance = React.useMemo<ResumeAppearance>(() => {
-    const base = document?.appearance
-    if (base) return base
     const pageSize = document?.settings?.pageSize ?? 'Letter'
+    if (document) {
+      try {
+        return (normalizeResumeData(document).appearance ?? createDefaultAppearance(pageSize)) as ResumeAppearance
+      } catch {
+        return createDefaultAppearance(pageSize)
+      }
+    }
     return createDefaultAppearance(pageSize)
   }, [document])
 
@@ -63,21 +71,24 @@ export function CustomizationPanel(): React.ReactElement {
     })
   }
 
-  const handleTypographyChange = (key: keyof ResumeAppearance['typography'], value: string | number) => {
-    commit({
-      ...appearance,
-      typography: {
-        ...appearance.typography,
-        [key]: value,
-      },
-    })
-  }
+  const handleTypographyUpdate = React.useCallback(
+    (updates: Partial<ResumeAppearance['typography']>) => {
+      commit({
+        ...appearance,
+        typography: {
+          ...appearance.typography,
+          ...updates,
+        },
+      })
+    },
+    [appearance, commit]
+  )
 
   const handleMarginChange = (value: number) => {
     commit({
       ...appearance,
-      layout: {
-        ...appearance.layout,
+      layout_settings: {
+        ...appearance.layout_settings,
         margin: value,
       },
     })
@@ -87,8 +98,8 @@ export function CustomizationPanel(): React.ReactElement {
     commit(
       {
         ...appearance,
-        layout: {
-          ...appearance.layout,
+        layout_settings: {
+          ...appearance.layout_settings,
           pageFormat: value,
         },
       },
@@ -249,75 +260,11 @@ export function CustomizationPanel(): React.ReactElement {
               </div>
             </section>
 
-            <section className="space-y-4">
-              <header>
-                <h3 className="text-sm font-medium text-gray-900">Typography</h3>
-                <p className="text-sm text-gray-500">Font family, size, and line height.</p>
-              </header>
-              <div className="space-y-3">
-                <Label className="text-xs uppercase tracking-wide text-gray-500">Suggestions</Label>
-                <div className="flex flex-wrap gap-2">
-                  {FONT_SUGGESTIONS.map((font) => (
-                    <button
-                      key={font}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => handleTypographyChange('fontFamily', font)}
-                      style={{ fontFamily: font }}
-                      className={`rounded-md border px-3 py-1.5 text-sm transition ${
-                        appearance.typography.fontFamily.toLowerCase() === font.toLowerCase()
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-200 hover:border-primary/40'
-                      }`}
-                    >
-                      {font}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium" htmlFor="font-family">
-                    Font Family
-                  </Label>
-                  <Input
-                    id="font-family"
-                    type="text"
-                    value={appearance.typography.fontFamily}
-                    onChange={(e) => handleTypographyChange('fontFamily', e.target.value)}
-                    disabled={disabled}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Base Size</Label>
-                    <span className="text-sm text-gray-600">{appearance.typography.fontSize}px</span>
-                  </div>
-                  <Slider
-                    value={[appearance.typography.fontSize]}
-                    onValueChange={([value]) => handleTypographyChange('fontSize', value)}
-                    min={12}
-                    max={24}
-                    step={1}
-                    disabled={disabled}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Line Height</Label>
-                    <span className="text-sm text-gray-600">{appearance.typography.lineHeight.toFixed(2)}</span>
-                  </div>
-                  <Slider
-                    value={[appearance.typography.lineHeight]}
-                    onValueChange={([value]) => handleTypographyChange('lineHeight', Number(value.toFixed(2)))}
-                    min={1.0}
-                    max={2.0}
-                    step={0.05}
-                    disabled={disabled}
-                  />
-                </div>
-              </div>
-            </section>
+                        <TypographySection
+              value={appearance.typography}
+              disabled={disabled}
+              onChange={handleTypographyUpdate}
+            />
 
             <section className="space-y-4">
               <header>
@@ -335,7 +282,7 @@ export function CustomizationPanel(): React.ReactElement {
                         onClick={() => handlePageFormat(format)}
                         disabled={disabled}
                         className={`rounded-md border px-3 py-2 text-sm ${
-                          appearance.layout.pageFormat === format
+                          appearance.layout_settings.pageFormat === format
                             ? 'border-primary text-primary'
                             : 'border-gray-300 text-gray-600'
                         }`}
@@ -348,10 +295,10 @@ export function CustomizationPanel(): React.ReactElement {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">Margin</Label>
-                    <span className="text-sm text-gray-600">{appearance.layout.margin}px</span>
+                    <span className="text-sm text-gray-600">{appearance.layout_settings.margin}px</span>
                   </div>
                   <Slider
-                    value={[appearance.layout.margin]}
+                    value={[appearance.layout_settings.margin]}
                     onValueChange={([value]) => handleMarginChange(value)}
                     min={24}
                     max={96}
@@ -368,12 +315,12 @@ export function CustomizationPanel(): React.ReactElement {
                   </div>
                   <Switch
                     id="show-page-numbers"
-                    checked={appearance.layout.showPageNumbers}
+                    checked={appearance.layout_settings.showPageNumbers}
                     onCheckedChange={(checked) =>
                       commit({
                         ...appearance,
-                        layout: {
-                          ...appearance.layout,
+                        layout_settings: {
+                          ...appearance.layout_settings,
                           showPageNumbers: checked,
                         },
                       })
@@ -381,6 +328,7 @@ export function CustomizationPanel(): React.ReactElement {
                     disabled={disabled}
                   />
                 </div>
+                <LayoutEditor disabled={disabled} />
               </div>
             </section>
 
@@ -431,8 +379,6 @@ const COLOR_PRESETS = [
     theme: { background: '#0f172a', text: '#e2e8f0', primary: '#fb7185' },
   },
 ]
-
-const FONT_SUGGESTIONS = ['Inter', 'Source Sans 3', 'Roboto', 'Lora', 'Georgia']
 
 function matchesTheme(a: ResumeAppearance['theme'], b: ResumeAppearance['theme']): boolean {
   return a.background === b.background && a.text === b.text && a.primary === b.primary
