@@ -93,6 +93,19 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
       setPreviewData(document)
       setResumeData(mapResumeJsonToResumeData(document))
 
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          const keys = Object.keys(document as any)
+          console.debug('[Preview] apply document', {
+            keys,
+            hasWork: Array.isArray((document as any).work) && ((document as any).work?.length || 0) > 0,
+            hasEducation: Array.isArray((document as any).education) && ((document as any).education?.length || 0) > 0,
+            hasProjects: Array.isArray((document as any).projects) && ((document as any).projects?.length || 0) > 0,
+            hasSkills: Array.isArray((document as any).skills) && ((document as any).skills?.length || 0) > 0,
+          })
+        } catch {}
+      }
+
       // Restore scroll position after render
       if (containerRef.current && scrollPositionRef.current) {
         restoreScrollPosition(containerRef.current, scrollPositionRef.current)

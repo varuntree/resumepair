@@ -166,6 +166,17 @@ export function createDocumentStore<T extends Record<string, any>>(
             ? !isEqual(nextDocument, state.originalDocument)
             : true
 
+          if (process.env.NODE_ENV !== 'production') {
+            try {
+              console.debug('[DocumentStore] updateDocument', {
+                apiEndpoint,
+                documentId: state.documentId,
+                isDirty,
+                keys: Object.keys(updates || {}),
+              })
+            } catch {}
+          }
+
           set({
             document: nextDocument,
             isDirty,
@@ -250,6 +261,20 @@ export function createDocumentStore<T extends Record<string, any>>(
               if (parsed.success) {
                 updates.data = document
                 didIncludeData = true
+              } else {
+                const errorSummary = parsed.error.errors
+                  .map((e) => `${e.path.join('.')}: ${e.message}`)
+                  .slice(0, 3)
+                  .join('; ')
+                console.error('[DocumentStore] Save validation failed:', {
+                  documentId,
+                  errors: parsed.error.errors,
+                })
+                set({
+                  saveError: new Error(`Document validation failed: ${errorSummary}`),
+                  isSaving: false,
+                })
+                return
               }
             }
 
@@ -258,6 +283,17 @@ export function createDocumentStore<T extends Record<string, any>>(
             if (updateKeys.length === 0) {
               set({ isSaving: false })
               return
+            }
+
+            if (process.env.NODE_ENV !== 'production') {
+              try {
+                console.debug('[DocumentStore] saveDocument.request', {
+                  apiEndpoint,
+                  documentId,
+                  includeData: didIncludeData,
+                  includeTitle: typeof updates.title === 'string',
+                })
+              } catch {}
             }
 
             const response = await fetch(`${apiEndpoint}/${documentId}`, {
@@ -289,6 +325,33 @@ export function createDocumentStore<T extends Record<string, any>>(
               saveError: null,
               hasChanges: didIncludeData ? false : get().hasChanges,
             })
+
+            if (process.env.NODE_ENV !== 'production') {
+              try {
+                console.debug('[DocumentStore] saveDocument.response', {
+                  documentId,
+                  updatedVersion: updatedDoc.version,
+                  includedData: didIncludeData,
+                })
+              } catch {}
+            }
+
+            // Emit custom save event for coordination (e.g., UnifiedAITool reset)
+            try {
+              if (didIncludeData && documentId) {
+                window.dispatchEvent(
+                  new CustomEvent('document:saved', {
+                    detail: {
+                      documentId,
+                      docType: apiEndpoint.includes('cover-letter') ? 'cover-letter' : 'resume',
+                      timestamp: Date.now(),
+                    },
+                  })
+                )
+              }
+            } catch {
+              // ignore (server-side render or no window)
+            }
           } catch (error) {
             console.error('Save failed:', error)
             set({

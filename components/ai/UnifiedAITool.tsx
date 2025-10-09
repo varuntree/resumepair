@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useMemo, useState, startTransition } from 'react'
+import { useMemo, useState, startTransition, useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import isEqual from 'lodash/isEqual'
 import JobDescriptionInput from './JobDescriptionInput'
@@ -56,6 +56,16 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
 
   const onGenerate = async () => {
     if (!canGenerate || isStreaming) return
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        console.debug('[UnifiedAITool] onGenerate', {
+          docType,
+          hasText: Boolean(text && text.trim().length > 0),
+          hasFile: Boolean(file),
+          hasEditorData: Boolean(editorData),
+        })
+      } catch {}
+    }
     await start({ docType, text, personalInfo, file, editorData })
   }
 
@@ -63,6 +73,15 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
     if (storeDocType && storeDocType !== docType) return
     const data = final || partial
     if (!data) return
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        console.debug('[UnifiedAITool] onApply', {
+          docType,
+          hasFinal: Boolean(final),
+          hasPartial: Boolean(partial),
+        })
+      } catch {}
+    }
     if (docType === 'resume') {
       if (!resumeDoc || !isEqual(resumeDoc, data)) {
         startTransition(() => {
@@ -76,8 +95,35 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
         })
       }
     }
-    reset()
   }
+
+  // Reset AI state only after save confirmation to avoid preview flicker
+  useEffect(() => {
+    const handleSaved = (event: Event) => {
+      const e = event as CustomEvent
+      const savedDocType = e?.detail?.docType
+      if (savedDocType === docType && (final || partial)) {
+        if (process.env.NODE_ENV !== 'production') {
+          try {
+            console.debug('[UnifiedAITool] document:saved received; resetting AI state', {
+              docType,
+              detail: e.detail,
+            })
+          } catch {}
+        }
+        // Clear AI store once data is safely saved to server
+        reset()
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('document:saved', handleSaved)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('document:saved', handleSaved)
+      }
+    }
+  }, [docType, final, partial, reset])
 
   return (
     <div className="space-y-4">

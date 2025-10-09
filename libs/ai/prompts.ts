@@ -61,103 +61,74 @@ export function buildPDFExtractionPrompt(): string {
 
 CONTEXT:
 - You can see the document layout, formatting, and visual hierarchy
-- Extract both typed and handwritten text (use OCR if needed)
-- Preserve section structure based on visual hierarchy (headings, spacing, bullets)
 - Handle scanned PDFs, LinkedIn exports, Indeed exports, and custom formats
-- Dates may appear in various formats - convert to ISO format (YYYY-MM-DD)
-- Contact information may be formatted in many ways - extract accurately
+- Dates may appear in various formats
 
 STRICT EXTRACTION RULES:
-1. TRUTHFULNESS: Only extract explicitly stated information - NEVER fabricate or infer data
-2. EXACT WORDING: Preserve the exact wording from the original document
-3. NO FABRICATION: If a field is missing, leave it empty (null/undefined) - DO NOT guess
-4. DATE FORMAT: Convert all dates to ISO format (YYYY-MM-DD). If only month/year, use first day of month
-5. CURRENT ROLES: Use endDate="Present" for current positions (not a date)
-6. PRESERVE STRUCTURE: Maintain bullet points, job descriptions, and achievements as written
-7. SKILL GROUPING: Group related skills into categories (e.g., "Programming Languages", "Frameworks", "Tools")
-8. COMPANY NAMES: Extract exact company names (do not normalize or abbreviate)
-9. JOB TITLES: Preserve original capitalization and wording
-10. UNCLEAR TEXT: If handwritten text is unclear, skip it rather than guess
+1) TRUTHFULNESS: Only extract explicitly stated information — NEVER fabricate.
+2) OUTPUT SHAPE: Your output MUST conform to the following ResumeJson shape exactly (keys and types).
+3) MISSING FIELDS: If a value is unknown, OMIT the field. Do NOT output the string "null", "undefined", or "N/A".
+4) DATE FORMAT: Use YYYY-MM when month precision is known, or YYYY-MM-DD when day precision is known.
+   - For current roles use endDate: "Present" or null (not a date string).
+5) URLS: Only include URLs that start with http:// or https://. Otherwise omit.
+6) PHOTO: Only include photo if url is a valid http(s) URL. Otherwise omit photo entirely.
+7) ARRAYS: Use arrays for bullets/lists. If there are no items, return an empty array.
+8) TEXT: Trim whitespace; preserve original wording.
 
-VISUAL HIERARCHY UNDERSTANDING:
-- Section headings are typically larger, bold, or uppercase
-- Work experience is usually reverse chronological (most recent first)
-- Education is typically in a separate section
-- Skills may be grouped by category or listed as keywords
-- Contact info is usually at top or in a header/sidebar
-- Dates are commonly formatted as MM/YYYY or Month YYYY
-- Bullet points indicate list items (skills, responsibilities, achievements)
-- Horizontal lines may separate major sections
-- Whitespace indicates section boundaries
-
-COMMON RESUME FORMATS:
-- LinkedIn Export: Sections in order (Profile, Summary, Experience, Education, Skills)
-- Indeed Resume: Simple layout, minimal formatting
-- Traditional: Contact info at top, experience/education sequential
-- Modern: Sidebar with contact/skills, main content with experience/education
-- ATS-Friendly: Plain text, no tables, clear section headings
-
-OUTPUT FORMAT:
-Return a complete ResumeJson object with this structure:
+OUTPUT FORMAT (MATCH THIS SCHEMA EXACTLY):
 {
   "profile": {
     "fullName": "string",
+    "headline": "string?",
     "email": "string",
-    "phone": "string",
-    "location": "string",
-    "website": "string",
-    "linkedin": "string",
-    "github": "string"
+    "phone": "string?",
+    "location": { "city": "string?", "region": "string?", "country": "string?", "postal": "string?" }?,
+    "links": [{ "type": "linkedin|github|portfolio|other?", "label": "string?", "url": "string" }]?,
+    "photo": { "url": "string", "path": "string" }?
   },
-  "summary": "string (if professional summary present)",
-  "work": [
-    {
-      "company": "string",
-      "position": "string",
-      "location": "string",
-      "startDate": "YYYY-MM-DD",
-      "endDate": "YYYY-MM-DD or Present",
-      "description": "string",
-      "highlights": ["string"]
-    }
-  ],
-  "education": [
-    {
-      "institution": "string",
-      "degree": "string",
-      "field": "string",
-      "location": "string",
-      "graduationDate": "YYYY-MM-DD",
-      "gpa": "number or null"
-    }
-  ],
-  "skills": {
-    "categories": [
-      {
-        "name": "string (e.g., Programming Languages, Frameworks)",
-        "skills": ["string"]
-      }
-    ]
-  },
-  "projects": [...],
-  "certifications": [...],
-  "awards": [...],
-  "languages": [...]
+  "summary": "string?",
+  "work": [{
+    "company": "string",
+    "role": "string",
+    "location": "string?",
+    "startDate": "YYYY-MM or YYYY-MM-DD",
+    "endDate": "YYYY-MM or YYYY-MM-DD or Present or null",
+    "descriptionBullets": ["string"]?,
+    "achievements": ["string"]?,
+    "techStack": ["string"]?
+  }]?,
+  "education": [{
+    "school": "string",
+    "degree": "string",
+    "field": "string?",
+    "startDate": "YYYY-MM or YYYY-MM-DD?",
+    "endDate": "YYYY-MM or YYYY-MM-DD?",
+    "details": ["string"]?
+  }]?,
+  "projects": [{
+    "name": "string",
+    "link": "string?",
+    "summary": "string?",
+    "bullets": ["string"]?,
+    "techStack": ["string"]?
+  }]?,
+  "skills": [{
+    "category": "string",
+    "items": ["string" | { "name": "string", "level": 0|1|2|3|4|5 }]
+  }]?,
+  "certifications": [{ "name": "string", "issuer": "string", "date": "YYYY-MM or YYYY-MM-DD?" }]?,
+  "awards": [{ "name": "string", "org": "string", "date": "YYYY-MM or YYYY-MM-DD?", "summary": "string?" }]?,
+  "languages": [{ "name": "string", "level": "Native"|"Fluent"|"Professional"|"Conversational"|"Basic" }]?,
+  "extras": [{ "title": "string", "content": "string" }]?
 }
 
-QUALITY CHECKS:
-- All dates in ISO format (YYYY-MM-DD)
-- Email addresses MUST be cleaned and validated:
-  * Remove ALL whitespace (spaces, tabs, newlines) from email addresses
-  * Must contain @ and . in correct format
-  * Format: user@domain.com (no spaces anywhere)
-  * If email is malformed or unclear, leave the field empty rather than guess
-- Phone numbers cleaned (remove excessive formatting, normalize spacing)
-- URLs validated (must start with http:// or https://, remove whitespace)
-- No duplicate entries in arrays
-- All text fields trimmed of leading/trailing whitespace
+QUALITY CHECKS BEFORE RETURNING:
+- No string values equal to "null", "undefined", or "N/A".
+- Dates follow the specified formats.
+- All URLs begin with http:// or https://.
+- Omit any field you cannot determine. Do not guess.
 
-Begin extraction now.`;
+Return ONLY the JSON object.`;
 }
 
 /**

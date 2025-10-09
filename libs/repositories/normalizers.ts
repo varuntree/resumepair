@@ -121,13 +121,65 @@ export function normalizeResumeData(data: ResumeJson): ResumeJson {
     ?.map((group) => normalizeSkillGroup(group))
     .filter(Boolean) as SkillGroup[] | undefined
 
-  return {
+  // Fill missing required fields and coerce dates to storage format
+  const coerced: ResumeJson = {
     ...data,
     settings,
     appearance,
     skills,
     languages: normalizeLanguages(data.languages),
   }
+
+  // Ensure profile.email is present (placeholder to satisfy validation if missing)
+  let didInsertEmailPlaceholder = false
+  if (!coerced.profile) {
+    // minimal safety: create profile if absent
+    // @ts-expect-error - defensive assignment for malformed inputs
+    coerced.profile = { fullName: '', email: 'user@example.com' }
+    didInsertEmailPlaceholder = true
+  } else if (!coerced.profile.email || coerced.profile.email.trim() === '') {
+    coerced.profile.email = 'user@example.com'
+    didInsertEmailPlaceholder = true
+  }
+
+  // Coerce dates: allow YYYY-MM from generation → YYYY-MM-DD (use day 01)
+  const fixMonthOnly = (value?: string | null): string | null | undefined => {
+    if (!value) return value
+    if (value === 'Present') return value
+    if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`
+    return value
+  }
+
+  let coercedWorkDates = 0
+  if (Array.isArray(coerced.work)) {
+    coerced.work = coerced.work.map((w: any) => ({
+      ...w,
+      startDate: (() => { const v = fixMonthOnly(w?.startDate); if (v !== w?.startDate) coercedWorkDates += 1; return v })(),
+      endDate: (() => { const v = fixMonthOnly(w?.endDate); if (v !== w?.endDate) coercedWorkDates += 1; return v })(),
+    }))
+  }
+
+  let coercedEducationDates = 0
+  if (Array.isArray(coerced.education)) {
+    coerced.education = coerced.education.map((e: any) => ({
+      ...e,
+      startDate: (() => { const v = fixMonthOnly(e?.startDate); if (v !== e?.startDate) coercedEducationDates += 1; return v })(),
+      endDate: (() => { const v = fixMonthOnly(e?.endDate); if (v !== e?.endDate) coercedEducationDates += 1; return v })(),
+    }))
+  }
+
+  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') {
+    try {
+      console.debug('[Normalizer] normalizeResumeData', {
+        didInsertEmailPlaceholder,
+        coercedWorkDates,
+        coercedEducationDates,
+        template: appearance.template,
+      })
+    } catch {}
+  }
+
+  return coerced
 }
 
 export function normalizeCoverLetterData(data: CoverLetterJson): CoverLetterJson {

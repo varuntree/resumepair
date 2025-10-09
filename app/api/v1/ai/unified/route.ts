@@ -28,6 +28,16 @@ export const maxDuration = 60
 // TEMP DEBUG LOGGING (remove after investigation)
 const DEBUG_AI_SERVER = true
 
+// Create a trace ID for correlating logs across events
+function createTraceId(): string {
+  try {
+    // @ts-ignore - crypto exists in Edge runtime
+    return crypto.randomUUID()
+  } catch {
+    return `trace_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  }
+}
+
 // Edge-safe base64 -> Uint8Array (avoids Node Buffer)
 function base64ToUint8Array(base64: string): Uint8Array {
   const binaryString = atob(base64)
@@ -65,21 +75,31 @@ function sanitizeResumeData(data: any): any {
     }
 
     // Clean phone: remove excessive whitespace (keep single spaces between parts)
-    if (profile.phone && typeof profile.phone === 'string') {
-      profile.phone = profile.phone.replace(/\s+/g, ' ').trim()
+    if (typeof profile.phone === 'string') {
+      const p = profile.phone.trim()
+      if (!p || /^null$/i.test(p) || /^undefined$/i.test(p) || /^n\/?a$/i.test(p)) delete profile.phone
+      else profile.phone = p.replace(/\s+/g, ' ').trim()
     }
 
     // Clean location: normalize whitespace
-    if (profile.location && typeof profile.location === 'string') {
-      profile.location = profile.location.replace(/\s+/g, ' ').trim()
+    if (typeof profile.location === 'string') {
+      const loc = profile.location.trim()
+      if (!loc || /^null$/i.test(loc) || /^undefined$/i.test(loc)) delete profile.location
+      else profile.location = loc.replace(/\s+/g, ' ').trim()
     }
 
-    // Clean URLs in photo/website/social
-    if (profile.photo?.url && typeof profile.photo.url === 'string') {
-      profile.photo.url = profile.photo.url.trim()
+    // Clean URLs in photo/website/social: drop photo if invalid
+    if (profile.photo && typeof profile.photo === 'object') {
+      const url = typeof profile.photo.url === 'string' ? profile.photo.url.trim() : ''
+      if (!/^https?:\/\//i.test(url)) {
+        delete profile.photo
+      } else {
+        profile.photo.url = url
+      }
     }
     if (profile.website && typeof profile.website === 'string') {
-      profile.website = profile.website.trim()
+      const w = profile.website.trim()
+      profile.website = /^https?:\/\//i.test(w) ? w : undefined
     }
 
     sanitized.profile = profile
@@ -87,28 +107,39 @@ function sanitizeResumeData(data: any): any {
 
   // Sanitize work experience URLs and locations
   if (Array.isArray(sanitized.work)) {
-    sanitized.work = sanitized.work.map((item: any) => ({
-      ...item,
-      location: item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location,
-      url: item.url ? String(item.url).trim() : item.url,
-    }))
+    sanitized.work = sanitized.work.map((item: any) => {
+      const next = { ...item }
+      next.location = item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location
+      next.url = item.url ? String(item.url).trim() : item.url
+      // Clean dates: treat 'null'/'undefined' as missing
+      const cleanDate = (v: any) => (typeof v === 'string' && (/^null$/i.test(v) || /^undefined$/i.test(v))) ? undefined : v
+      next.startDate = cleanDate(item.startDate)
+      next.endDate = cleanDate(item.endDate)
+      return next
+    })
   }
 
   // Sanitize education URLs and locations
   if (Array.isArray(sanitized.education)) {
-    sanitized.education = sanitized.education.map((item: any) => ({
-      ...item,
-      location: item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location,
-      url: item.url ? String(item.url).trim() : item.url,
-    }))
+    sanitized.education = sanitized.education.map((item: any) => {
+      const next = { ...item }
+      next.location = item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location
+      next.url = item.url ? String(item.url).trim() : item.url
+      const cleanDate = (v: any) => (typeof v === 'string' && (/^null$/i.test(v) || /^undefined$/i.test(v))) ? undefined : v
+      next.startDate = cleanDate(item.startDate)
+      next.endDate = cleanDate(item.endDate)
+      return next
+    })
   }
 
   // Sanitize project URLs
   if (Array.isArray(sanitized.projects)) {
-    sanitized.projects = sanitized.projects.map((item: any) => ({
-      ...item,
-      url: item.url ? String(item.url).trim() : item.url,
-    }))
+    sanitized.projects = sanitized.projects.map((item: any) => {
+      const next = { ...item }
+      next.url = item.url ? String(item.url).trim() : item.url
+      if (typeof next.url === 'string' && !/^https?:\/\//i.test(next.url)) next.url = undefined
+      return next
+    })
   }
 
   return sanitized
@@ -187,6 +218,7 @@ const UnifiedRequestSchema = z
 
 export async function POST(req: Request) {
   const startTime = Date.now()
+  const traceId = createTraceId()
 
   try {
     // Auth + quota
@@ -197,7 +229,7 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser()
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized', message: 'Authentication required' }),
+        JSON.stringify({ success: false, error: 'Unauthorized', message: 'Authentication required', traceId }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       )
     }
@@ -210,6 +242,7 @@ export async function POST(req: Request) {
           success: false,
           error: 'Invalid request',
           message: parsed.error.errors[0]?.message || 'Validation failed',
+          traceId,
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       )
@@ -225,7 +258,7 @@ export async function POST(req: Request) {
         hasEditorData: Boolean(editorData),
         editorKeys: editorData ? Object.keys(editorData).slice(0, 20) : [],
       }
-      console.log('[UnifiedAI] request', safeInfo)
+      console.log('[UnifiedAI]', traceId, 'request', safeInfo)
     }
 
     // If file provided, validate size
@@ -234,7 +267,7 @@ export async function POST(req: Request) {
       const b = base64ToUint8Array(fileData)
       if (b.byteLength > 10 * 1024 * 1024) {
         return new Response(
-          JSON.stringify({ success: false, error: 'File too large', message: 'PDF must be under 10MB' }),
+          JSON.stringify({ success: false, error: 'File too large', message: 'PDF must be under 10MB', traceId }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         )
       }
@@ -250,6 +283,7 @@ export async function POST(req: Request) {
           error: 'Quota exceeded',
           message: quota.error || 'Daily quota exceeded',
           resetAt: quota.resetAt.toISOString(),
+          traceId,
         }),
         { status: 429, headers: { 'Content-Type': 'application/json' } }
       )
@@ -276,7 +310,7 @@ export async function POST(req: Request) {
     let result: any
 
     if (buffer) {
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
       const parts: Array<any> = []
 
       if (isResume) {
@@ -314,9 +348,10 @@ export async function POST(req: Request) {
         model: aiModel,
         schema: schema as any,
         messages: [{ role: 'user', content: parts }],
-        temperature: isResume ? 0.5 : 0.6,
-        maxRetries: 1,
-        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+        temperature: isResume ? 0.3 : 0.6,
+        topP: isResume ? 0.9 : 0.95,
+        maxRetries: 2,
+        maxOutputTokens: isResume ? 15000 : 2500
       })
     } else if (text && text.trim().length > 0) {
       // Text-only
@@ -329,14 +364,15 @@ export async function POST(req: Request) {
         ? `${prompt}\n\nUse the structured fields below if present. Prefer explicit user-provided values when generating.\n${JSON.stringify(editorData).slice(0, 50_000)}`
         : prompt
 
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=text', { isResume, textLen: text.length, hasEditorData: Boolean(editorData) })
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=text', { isResume, textLen: text.length, hasEditorData: Boolean(editorData) })
       result = streamObject({
         model: aiModel,
         schema: schema as any,
         prompt: finalPrompt,
-        temperature: 0.6,
-        maxRetries: 1,
-        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+        temperature: isResume ? 0.3 : 0.6,
+        topP: isResume ? 0.9 : 0.95,
+        maxRetries: 2,
+        maxOutputTokens: isResume ? 15000 : 2500
       })
     } else {
       // editorData only
@@ -344,14 +380,15 @@ export async function POST(req: Request) {
         ? 'Generate a complete ResumeJson using only the provided structured fields. Fill reasonable gaps but do not fabricate personal identifiers.'
         : 'Generate a complete CoverLetterJson using only the provided structured fields. Fill reasonable gaps but keep placeholders if needed.'
       const prompt = `${base}\n\nSTRUCTURED DATA:\n${JSON.stringify(editorData).slice(0, 50_000)}`
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=editorData', { isResume, editorKeys: Object.keys(editorData || {}).slice(0, 20) })
+      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=editorData', { isResume, editorKeys: Object.keys(editorData || {}).slice(0, 20) })
       result = streamObject({
         model: aiModel,
         schema: schema as any,
         prompt,
-        temperature: 0.5,
-        maxRetries: 1,
-        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+        temperature: 0.3,
+        topP: 0.9,
+        maxRetries: 2,
+        maxOutputTokens: isResume ? 15000 : 2500
       })
     }
 
@@ -365,7 +402,7 @@ export async function POST(req: Request) {
         const total = isResume ? resumeSections.length : clSections.length
 
         try {
-          if (DEBUG_AI_SERVER) console.log('[UnifiedAI] stream start', { isResume })
+          if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'stream start', { isResume })
           let updateCount = 0
           for await (const partial of result.partialObjectStream as AsyncIterable<Record<string, unknown>>) {
             Object.keys(partial).forEach((k) => {
@@ -382,10 +419,14 @@ export async function POST(req: Request) {
                 projects: Array.isArray((partial as any).projects) ? (partial as any).projects.length : undefined,
                 skills: Array.isArray((partial as any).skills) ? (partial as any).skills.length : undefined,
               }
-              console.log('[UnifiedAI] partial', { updateCount, progress, keys, counts })
+              console.log('[UnifiedAI]', traceId, 'partial', { updateCount, progress, keys, counts })
             }
-            controller.enqueue(encoder.encode(`event: progress\n` + `data: ${JSON.stringify({ type: 'progress', progress })}\n\n`))
-            controller.enqueue(encoder.encode(`event: update\n` + `data: ${JSON.stringify({ type: 'update', data: partial })}\n\n`))
+            controller.enqueue(encoder.encode(
+              `event: progress\n` + `data: ${JSON.stringify({ type: 'progress', progress, traceId })}\n\n`
+            ))
+            controller.enqueue(encoder.encode(
+              `event: update\n` + `data: ${JSON.stringify({ type: 'update', data: partial, traceId })}\n\n`
+            ))
           }
 
           // Graceful validation with sanitization and error recovery
@@ -408,7 +449,7 @@ export async function POST(req: Request) {
                 languages: Array.isArray((rawObject as any).languages) ? (rawObject as any).languages.length : undefined,
                 extras: Array.isArray((rawObject as any).extras) ? (rawObject as any).extras.length : undefined,
               }
-              console.log('[UnifiedAI] complete (raw)', { updateCount, keys, counts })
+              console.log('[UnifiedAI]', traceId, 'complete (raw)', { updateCount, keys, counts })
             }
 
             // Apply sanitization before final validation
@@ -422,7 +463,7 @@ export async function POST(req: Request) {
           } catch (validationError) {
             // Validation failed - this is a critical issue
             // The AI SDK throws when schema validation fails
-            console.error('[UnifiedAI] Validation failed, attempting recovery:', validationError)
+            console.error('[UnifiedAI]', traceId, 'Validation failed, attempting recovery:', validationError)
 
             // Check if this is a validation error with partial data we can recover
             if (validationError && typeof validationError === 'object' && 'text' in validationError) {
@@ -439,14 +480,14 @@ export async function POST(req: Request) {
                 validationWarnings.push('Some fields were auto-corrected due to validation errors. Please review the extracted data.')
 
                 if (DEBUG_AI_SERVER) {
-                  console.log('[UnifiedAI] Recovery successful with sanitization', {
+                  console.log('[UnifiedAI]', traceId, 'Recovery successful with sanitization', {
                     hasData: !!finalObject,
                     keys: Object.keys(finalObject || {})
                   })
                 }
               } catch (parseError) {
                 // Couldn't recover - re-throw original error
-                console.error('[UnifiedAI] Recovery failed:', parseError)
+                console.error('[UnifiedAI]', traceId, 'Recovery failed:', parseError)
                 throw validationError
               }
             } else {
@@ -474,7 +515,7 @@ export async function POST(req: Request) {
               success: true,
             })
           } catch (e) {
-            console.warn('[UnifiedAI] usage/quota logging failed:', e)
+            console.warn('[UnifiedAI]', traceId, 'usage/quota logging failed:', e)
           }
 
           const normalizedFinal = isResume
@@ -492,7 +533,7 @@ export async function POST(req: Request) {
               languages: Array.isArray((normalizedFinal as any).languages) ? (normalizedFinal as any).languages.length : undefined,
               extras: Array.isArray((normalizedFinal as any).extras) ? (normalizedFinal as any).extras.length : undefined,
             }
-            console.log('[UnifiedAI] complete (normalized)', { keys, counts })
+            console.log('[UnifiedAI]', traceId, 'complete (normalized)', { keys, counts })
           }
 
           // Send complete event with optional warnings
@@ -500,13 +541,14 @@ export async function POST(req: Request) {
             type: 'complete',
             data: normalizedFinal,
             duration,
-            docType
+            docType,
+            traceId,
           }
 
           if (validationWarnings.length > 0) {
             completePayload.warnings = validationWarnings
             if (DEBUG_AI_SERVER) {
-              console.log('[UnifiedAI] Sending completion with warnings:', validationWarnings)
+              console.log('[UnifiedAI]', traceId, 'Sending completion with warnings:', validationWarnings)
             }
           }
 
@@ -518,7 +560,7 @@ export async function POST(req: Request) {
           )
           controller.close()
         } catch (error) {
-          console.error('[UnifiedAI] Stream error:', error)
+          console.error('[UnifiedAI]', traceId, 'Stream error:', error)
           const message = error instanceof Error ? error.message : 'Streaming failed'
 
           // Log failed op
@@ -534,7 +576,7 @@ export async function POST(req: Request) {
             // Ignore quota/operation logging errors so generation response still streams
           }
 
-          controller.enqueue(encoder.encode(`event: error\n` + `data: ${JSON.stringify({ type: 'error', message })}\n\n`))
+          controller.enqueue(encoder.encode(`event: error\n` + `data: ${JSON.stringify({ type: 'error', message, traceId })}\n\n`))
           controller.close()
         }
       },
@@ -546,12 +588,13 @@ export async function POST(req: Request) {
         'Cache-Control': 'no-cache, no-transform',
         Connection: 'keep-alive',
         'X-Accel-Buffering': 'no',
+        'X-Trace-Id': traceId,
       },
     })
   } catch (error) {
-    console.error('[UnifiedAI] Request error:', error)
+    console.error('[UnifiedAI]', traceId, 'Request error:', error)
     const message = error instanceof Error ? error.message : 'Internal error'
-    return new Response(JSON.stringify({ success: false, error: 'Internal server error', message }), {
+    return new Response(JSON.stringify({ success: false, error: 'Internal server error', message, traceId }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

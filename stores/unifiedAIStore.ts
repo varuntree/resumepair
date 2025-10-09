@@ -158,6 +158,9 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}))
+        if (DEBUG_AI_CLIENT) {
+          console.debug('[UnifiedAIStore] HTTP error', { status: res.status, payload })
+        }
         throw new Error(payload.message || `HTTP ${res.status}`)
       }
 
@@ -185,7 +188,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                   {
                     const pct = Math.round((data.progress || 0) * 100)
                     if (DEBUG_AI_CLIENT && (pct % 5 === 0 || pct >= 95)) {
-                      console.debug('[UnifiedAIStore] progress', pct)
+                      console.debug('[UnifiedAIStore] progress', { pct, traceId: data.traceId })
                     }
                     set({ progress: pct })
                   }
@@ -221,6 +224,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                         updateCount,
                         incomingKeys,
                         summary: summarizeSectionCounts(nextPartial),
+                        traceId: (data as any).traceId,
                       })
                     }
                     return { partial: nextPartial } as any
@@ -231,6 +235,8 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                     console.debug('[UnifiedAIStore] complete', {
                       updateCount,
                       summary: summarizeSectionCounts(data.data),
+                      traceId: data.traceId,
+                      duration: data.duration,
                     })
                   }
                   if (docType === 'resume') {
@@ -255,6 +261,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
       set({ isStreaming: false, abortController: null })
     } catch (err) {
       if ((err as any)?.name === 'AbortError') return
+      if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] exception', err)
       set({ error: err instanceof Error ? err.message : 'Request failed', isStreaming: false, abortController: null })
       }
   },
