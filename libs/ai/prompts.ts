@@ -147,10 +147,15 @@ Return a complete ResumeJson object with this structure:
 
 QUALITY CHECKS:
 - All dates in ISO format (YYYY-MM-DD)
-- Email addresses validated (contains @)
-- Phone numbers cleaned (remove formatting, keep digits and +)
-- URLs validated (must start with http/https)
+- Email addresses MUST be cleaned and validated:
+  * Remove ALL whitespace (spaces, tabs, newlines) from email addresses
+  * Must contain @ and . in correct format
+  * Format: user@domain.com (no spaces anywhere)
+  * If email is malformed or unclear, leave the field empty rather than guess
+- Phone numbers cleaned (remove excessive formatting, normalize spacing)
+- URLs validated (must start with http:// or https://, remove whitespace)
 - No duplicate entries in arrays
+- All text fields trimmed of leading/trailing whitespace
 
 Begin extraction now.`;
 }

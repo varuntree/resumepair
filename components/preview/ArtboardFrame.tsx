@@ -4,18 +4,36 @@ import * as React from 'react'
 import { createRoot, Root } from 'react-dom/client'
 import { ArtboardRenderer, ArtboardDocument } from '@/libs/reactive-artboard'
 
+// eslint-disable-next-line no-unused-vars
+type PageOffsetsListener = (offsets: number[]) => void
+type FrameMetrics = { offsets: number[]; pageWidth: number; pageHeight: number }
+// eslint-disable-next-line no-unused-vars
+type FrameMetricsListener = (metrics: FrameMetrics) => void
+
 interface ArtboardFrameProps {
   document: ArtboardDocument
+  onPagesMeasured?: PageOffsetsListener
+  onFrameMetrics?: FrameMetricsListener
 }
 
 /**
  * Embeds the artboard renderer inside an iframe to isolate styles.
  * Auto-resizes the frame based on rendered content height.
  */
-export function ArtboardFrame({ document }: ArtboardFrameProps): React.ReactElement {
+export function ArtboardFrame({ document, onPagesMeasured, onFrameMetrics }: ArtboardFrameProps): React.ReactElement {
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
   const rootRef = React.useRef<Root | null>(null)
   const [height, setHeight] = React.useState<number>(0)
+  const pagesMeasuredRef = React.useRef<PageOffsetsListener | undefined>(onPagesMeasured)
+  const frameMetricsRef = React.useRef<FrameMetricsListener | undefined>(onFrameMetrics)
+
+  // Keep latest callbacks without re-running the mount effect
+  React.useEffect(() => {
+    pagesMeasuredRef.current = onPagesMeasured
+  }, [onPagesMeasured])
+  React.useEffect(() => {
+    frameMetricsRef.current = onFrameMetrics
+  }, [onFrameMetrics])
 
   // Mount React root inside the iframe
   React.useLayoutEffect(() => {
@@ -46,9 +64,21 @@ export function ArtboardFrame({ document }: ArtboardFrameProps): React.ReactElem
 
     rootRef.current.render(<ArtboardRenderer document={document} />)
 
+    const measurePages = () => {
+      const pages = Array.from(doc.querySelectorAll('[data-page]')) as HTMLElement[]
+      const offsets = pages.map((page) => page.offsetTop)
+      pagesMeasuredRef.current?.(offsets)
+      const first = pages[0] as HTMLElement | undefined
+      const rect = first?.getBoundingClientRect()
+      const pageWidth = rect?.width ?? doc.documentElement.clientWidth
+      const pageHeight = rect?.height ?? doc.documentElement.clientHeight
+      frameMetricsRef.current?.({ offsets, pageWidth, pageHeight })
+    }
+
     const updateHeight = () => {
       const next = doc.documentElement.scrollHeight
       setHeight((prev) => (prev !== next ? next : prev))
+      measurePages()
     }
 
     updateHeight()

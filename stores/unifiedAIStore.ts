@@ -102,9 +102,19 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
         set({ error: 'PDF must be under 10MB' })
         return
       }
+      // Encode PDF to base64 for transmission
+      // Use chunked approach to avoid "Maximum call stack size exceeded" error
+      // that occurs when spreading large byte arrays into String.fromCharCode()
       const buf = await file.arrayBuffer()
-      const bytes = Array.from(new Uint8Array(buf))
-      base64 = btoa(String.fromCharCode(...bytes))
+      const bytes = new Uint8Array(buf)
+      const CHUNK_SIZE = 8192  // Process 8KB at a time to stay well under argument limit
+
+      let binary = ''
+      for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+        const chunk = bytes.subarray(i, i + CHUNK_SIZE)
+        binary += String.fromCharCode(...chunk)
+      }
+      base64 = btoa(binary)
     }
 
     const abortController = new AbortController()

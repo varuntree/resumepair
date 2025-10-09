@@ -1,6 +1,7 @@
 import type { ResumeJson, SkillGroup, ResumeAppearance } from '@/types/resume'
 import { createDefaultAppearance, createDefaultLayout } from '@/types/resume'
 import { ArtboardDocument, ArtboardRichTextBlock, ArtboardSection, ArtboardMetadata } from '../types'
+import { DEFAULT_PAGE_FORMAT, normalizePageFormat } from '../constants/page'
 
 const DEFAULT_COLORS = {
   background: '#ffffff',
@@ -139,10 +140,16 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
     lineHeight: resume.settings.lineSpacing || 1.4,
   }
   const layout = appearance.layout_settings ?? {
-    pageFormat: resume.settings.pageSize || 'Letter',
+    pageFormat: resume.settings.pageSize || DEFAULT_PAGE_FORMAT,
     margin: 48,
     showPageNumbers: false,
   }
+  const resolvedMargin =
+    typeof layout.margin === 'number'
+      ? layout.margin
+      : Number.isFinite(Number(layout.margin))
+      ? Number(layout.margin)
+      : 48
 
   const colorTheme = resume.settings.colorTheme?.toLowerCase()
   const themeColors = COLOR_THEMES[colorTheme ?? ''] || DEFAULT_COLORS
@@ -162,8 +169,8 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
       lineHeight: typography.lineHeight ?? (resume.settings.lineSpacing || 1.4),
     },
     page: {
-      format: layout.pageFormat ?? 'Letter',
-      margin: layout.margin ?? 48,
+      format: normalizePageFormat(layout.pageFormat ?? DEFAULT_PAGE_FORMAT),
+      margin: resolvedMargin,
       showPageNumbers: layout.showPageNumbers ?? false,
     },
     customCss: appearance.customCss,

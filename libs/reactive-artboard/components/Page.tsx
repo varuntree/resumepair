@@ -2,13 +2,13 @@
 
 import { cn } from '../utils'
 import { useArtboardStore } from '../store/artboard'
-
-const MM_TO_PX = 3.78
-
-const pageSizeMap = {
-  a4: { width: 210, height: 297 },
-  letter: { width: 215.9, height: 279.4 },
-}
+import {
+  DEFAULT_PAGE_FORMAT,
+  MM_TO_PX,
+  PAGE_SIZE_MM,
+  normalizePageFormat,
+  type PageFormat,
+} from '../constants/page'
 
 type PageProps = {
   mode?: 'preview' | 'builder'
@@ -18,8 +18,8 @@ type PageProps = {
 
 export function Page({ mode = 'preview', pageNumber, children }: PageProps) {
   const page = useArtboardStore((state) => state.resume.metadata.page)
-  const format = page.format in pageSizeMap ? page.format : 'a4'
-  const size = pageSizeMap[format as keyof typeof pageSizeMap]
+  const format = normalizePageFormat(page.format)
+  const size = PAGE_SIZE_MM[format]
 
   return (
     <div
@@ -28,6 +28,9 @@ export function Page({ mode = 'preview', pageNumber, children }: PageProps) {
       style={{
         width: `${size.width * MM_TO_PX}px`,
         minHeight: `${size.height * MM_TO_PX}px`,
+        height: `${size.height * MM_TO_PX}px`,
+        maxHeight: `${size.height * MM_TO_PX}px`,
+        overflow: 'hidden',
         backgroundColor: 'var(--artboard-color-background)',
         color: 'var(--artboard-color-text)',
       }}
@@ -46,4 +49,4 @@ export function Page({ mode = 'preview', pageNumber, children }: PageProps) {
   )
 }
 
-export { MM_TO_PX }
+export { MM_TO_PX, PAGE_SIZE_MM }

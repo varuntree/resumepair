@@ -1,5 +1,4 @@
 import type { ComponentType } from 'react'
-import { ArtboardDocument } from '../types'
 import { CoverLetterTemplate } from './coverLetter'
 import { AzurillTemplate } from './azurill'
 import { BronzorTemplate } from './bronzor'
@@ -13,8 +12,9 @@ import { NosepassTemplate } from './nosepass'
 import { OnyxTemplate } from './onyx'
 import { PikachuTemplate } from './pikachu'
 import { RhyhornTemplate } from './rhyhorn'
+import type { TemplateProps } from '../types/template'
 
-type TemplateComponent = ComponentType<{ document: ArtboardDocument }>
+type TemplateComponent = ComponentType<TemplateProps>
 
 const registry: Record<string, TemplateComponent> = {
   azurill: AzurillTemplate,

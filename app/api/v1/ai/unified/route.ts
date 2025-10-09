@@ -28,6 +28,142 @@ export const maxDuration = 60
 // TEMP DEBUG LOGGING (remove after investigation)
 const DEBUG_AI_SERVER = true
 
+// Edge-safe base64 -> Uint8Array (avoids Node Buffer)
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64)
+  const length = binaryString.length
+  const bytes = new Uint8Array(length)
+  for (let i = 0; i < length; i += 1) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
+}
+
+/**
+ * Sanitize common data quality issues from AI-extracted resume data
+ * Handles: malformed emails, invalid URLs, whitespace issues
+ */
+function sanitizeResumeData(data: any): any {
+  if (!data || typeof data !== 'object') return data
+
+  const sanitized = { ...data }
+
+  // Sanitize profile fields
+  if (sanitized.profile) {
+    const profile = { ...sanitized.profile }
+
+    // Clean email: remove all whitespace, validate basic format
+    if (profile.email && typeof profile.email === 'string') {
+      const cleaned = profile.email.replace(/\s+/g, '')
+      // Basic validation: must have @ and . and reasonable length
+      if (cleaned.includes('@') && cleaned.includes('.') && cleaned.length >= 5 && cleaned.length <= 100) {
+        profile.email = cleaned
+      } else {
+        // Invalid email - remove the field entirely (undefined passes optional validation)
+        delete profile.email
+      }
+    }
+
+    // Clean phone: remove excessive whitespace (keep single spaces between parts)
+    if (profile.phone && typeof profile.phone === 'string') {
+      profile.phone = profile.phone.replace(/\s+/g, ' ').trim()
+    }
+
+    // Clean location: normalize whitespace
+    if (profile.location && typeof profile.location === 'string') {
+      profile.location = profile.location.replace(/\s+/g, ' ').trim()
+    }
+
+    // Clean URLs in photo/website/social
+    if (profile.photo?.url && typeof profile.photo.url === 'string') {
+      profile.photo.url = profile.photo.url.trim()
+    }
+    if (profile.website && typeof profile.website === 'string') {
+      profile.website = profile.website.trim()
+    }
+
+    sanitized.profile = profile
+  }
+
+  // Sanitize work experience URLs and locations
+  if (Array.isArray(sanitized.work)) {
+    sanitized.work = sanitized.work.map((item: any) => ({
+      ...item,
+      location: item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location,
+      url: item.url ? String(item.url).trim() : item.url,
+    }))
+  }
+
+  // Sanitize education URLs and locations
+  if (Array.isArray(sanitized.education)) {
+    sanitized.education = sanitized.education.map((item: any) => ({
+      ...item,
+      location: item.location ? String(item.location).replace(/\s+/g, ' ').trim() : item.location,
+      url: item.url ? String(item.url).trim() : item.url,
+    }))
+  }
+
+  // Sanitize project URLs
+  if (Array.isArray(sanitized.projects)) {
+    sanitized.projects = sanitized.projects.map((item: any) => ({
+      ...item,
+      url: item.url ? String(item.url).trim() : item.url,
+    }))
+  }
+
+  return sanitized
+}
+
+/**
+ * Sanitize cover letter data
+ */
+function sanitizeCoverLetterData(data: any): any {
+  if (!data || typeof data !== 'object') return data
+
+  const sanitized = { ...data }
+
+  // Sanitize from field
+  if (sanitized.from) {
+    const from = { ...sanitized.from }
+
+    // Clean email
+    if (from.email && typeof from.email === 'string') {
+      const cleaned = from.email.replace(/\s+/g, '')
+      if (cleaned.includes('@') && cleaned.includes('.') && cleaned.length >= 5 && cleaned.length <= 100) {
+        from.email = cleaned
+      } else {
+        delete from.email
+      }
+    }
+
+    // Clean phone
+    if (from.phone && typeof from.phone === 'string') {
+      from.phone = from.phone.replace(/\s+/g, ' ').trim()
+    }
+
+    sanitized.from = from
+  }
+
+  // Sanitize to field
+  if (sanitized.to) {
+    const to = { ...sanitized.to }
+
+    // Clean email
+    if (to.email && typeof to.email === 'string') {
+      const cleaned = to.email.replace(/\s+/g, '')
+      if (cleaned.includes('@') && cleaned.includes('.') && cleaned.length >= 5 && cleaned.length <= 100) {
+        to.email = cleaned
+      } else {
+        delete to.email
+      }
+    }
+
+    sanitized.to = to
+  }
+
+  return sanitized
+}
+
 const UnifiedRequestSchema = z
   .object({
     docType: z.enum(['resume', 'cover-letter']),
@@ -95,8 +231,8 @@ export async function POST(req: Request) {
     // If file provided, validate size
     let buffer: Uint8Array | null = null
     if (fileData) {
-      const b = Buffer.from(fileData, 'base64')
-      if (b.length > 10 * 1024 * 1024) {
+      const b = base64ToUint8Array(fileData)
+      if (b.byteLength > 10 * 1024 * 1024) {
         return new Response(
           JSON.stringify({ success: false, error: 'File too large', message: 'PDF must be under 10MB' }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -137,7 +273,7 @@ export async function POST(req: Request) {
     // 1) PDF present -> use multimodal messages (text + file [+ optional extra text])
     // 2) Text only -> use existing prompt builders
     // 3) Editor data only -> use generic instruction text
-    let result: ReturnType<typeof streamObject<any>>
+    let result: any
 
     if (buffer) {
       if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
@@ -174,7 +310,14 @@ export async function POST(req: Request) {
         parts.push({ type: 'file', data: buffer, mediaType: mimeType || 'application/pdf' })
       }
 
-      result = streamObject({ model: aiModel, schema, messages: [{ role: 'user', content: parts }], temperature: isResume ? 0.5 : 0.6, maxRetries: 1 })
+      result = streamObject({
+        model: aiModel,
+        schema: schema as any,
+        messages: [{ role: 'user', content: parts }],
+        temperature: isResume ? 0.5 : 0.6,
+        maxRetries: 1,
+        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+      })
     } else if (text && text.trim().length > 0) {
       // Text-only
       const prompt = isResume
@@ -187,7 +330,14 @@ export async function POST(req: Request) {
         : prompt
 
       if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=text', { isResume, textLen: text.length, hasEditorData: Boolean(editorData) })
-      result = streamObject({ model: aiModel, schema, prompt: finalPrompt, temperature: 0.6, maxRetries: 1 })
+      result = streamObject({
+        model: aiModel,
+        schema: schema as any,
+        prompt: finalPrompt,
+        temperature: 0.6,
+        maxRetries: 1,
+        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+      })
     } else {
       // editorData only
       const base = isResume
@@ -195,7 +345,14 @@ export async function POST(req: Request) {
         : 'Generate a complete CoverLetterJson using only the provided structured fields. Fill reasonable gaps but keep placeholders if needed.'
       const prompt = `${base}\n\nSTRUCTURED DATA:\n${JSON.stringify(editorData).slice(0, 50_000)}`
       if (DEBUG_AI_SERVER) console.log('[UnifiedAI] mode=editorData', { isResume, editorKeys: Object.keys(editorData || {}).slice(0, 20) })
-      result = streamObject({ model: aiModel, schema, prompt, temperature: 0.5, maxRetries: 1 })
+      result = streamObject({
+        model: aiModel,
+        schema: schema as any,
+        prompt,
+        temperature: 0.5,
+        maxRetries: 1,
+        maxOutputTokens: isResume ? 6500 : 2500  // Resume needs ~6k tokens for all 10 sections
+      })
     }
 
     // SSE stream
@@ -231,18 +388,74 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(`event: update\n` + `data: ${JSON.stringify({ type: 'update', data: partial })}\n\n`))
           }
 
-          const finalObject = await result.object
-          const duration = Date.now() - startTime
-          if (DEBUG_AI_SERVER) {
-            const keys = Object.keys(finalObject as Record<string, unknown>)
-            const counts = {
-              work: Array.isArray((finalObject as any).work) ? (finalObject as any).work.length : undefined,
-              education: Array.isArray((finalObject as any).education) ? (finalObject as any).education.length : undefined,
-              projects: Array.isArray((finalObject as any).projects) ? (finalObject as any).projects.length : undefined,
-              skills: Array.isArray((finalObject as any).skills) ? (finalObject as any).skills.length : undefined,
+          // Graceful validation with sanitization and error recovery
+          let finalObject: any
+          let validationWarnings: string[] = []
+
+          try {
+            // Try to get the validated object from AI stream
+            const rawObject = await result.object
+
+            if (DEBUG_AI_SERVER) {
+              const keys = Object.keys(rawObject as Record<string, unknown>)
+              const counts = {
+                work: Array.isArray((rawObject as any).work) ? (rawObject as any).work.length : undefined,
+                education: Array.isArray((rawObject as any).education) ? (rawObject as any).education.length : undefined,
+                projects: Array.isArray((rawObject as any).projects) ? (rawObject as any).projects.length : undefined,
+                skills: Array.isArray((rawObject as any).skills) ? (rawObject as any).skills.length : undefined,
+                certifications: Array.isArray((rawObject as any).certifications) ? (rawObject as any).certifications.length : undefined,
+                awards: Array.isArray((rawObject as any).awards) ? (rawObject as any).awards.length : undefined,
+                languages: Array.isArray((rawObject as any).languages) ? (rawObject as any).languages.length : undefined,
+                extras: Array.isArray((rawObject as any).extras) ? (rawObject as any).extras.length : undefined,
+              }
+              console.log('[UnifiedAI] complete (raw)', { updateCount, keys, counts })
             }
-            console.log('[UnifiedAI] complete (raw)', { duration, updateCount, keys, counts })
+
+            // Apply sanitization before final validation
+            finalObject = isResume
+              ? sanitizeResumeData(rawObject)
+              : sanitizeCoverLetterData(rawObject)
+
+            if (DEBUG_AI_SERVER) {
+              console.log('[UnifiedAI] sanitization applied')
+            }
+          } catch (validationError) {
+            // Validation failed - this is a critical issue
+            // The AI SDK throws when schema validation fails
+            console.error('[UnifiedAI] Validation failed, attempting recovery:', validationError)
+
+            // Check if this is a validation error with partial data we can recover
+            if (validationError && typeof validationError === 'object' && 'text' in validationError) {
+              try {
+                // Try to parse the raw text response
+                const rawText = (validationError as any).text
+                const parsedData = JSON.parse(rawText)
+
+                // Apply sanitization to the recovered data
+                finalObject = isResume
+                  ? sanitizeResumeData(parsedData)
+                  : sanitizeCoverLetterData(parsedData)
+
+                validationWarnings.push('Some fields were auto-corrected due to validation errors. Please review the extracted data.')
+
+                if (DEBUG_AI_SERVER) {
+                  console.log('[UnifiedAI] Recovery successful with sanitization', {
+                    hasData: !!finalObject,
+                    keys: Object.keys(finalObject || {})
+                  })
+                }
+              } catch (parseError) {
+                // Couldn't recover - re-throw original error
+                console.error('[UnifiedAI] Recovery failed:', parseError)
+                throw validationError
+              }
+            } else {
+              // No partial data available - re-throw
+              throw validationError
+            }
           }
+
+          const duration = Date.now() - startTime
 
           // Usage + quota tracking
           try {
@@ -274,14 +487,33 @@ export async function POST(req: Request) {
               education: Array.isArray((normalizedFinal as any).education) ? (normalizedFinal as any).education.length : undefined,
               projects: Array.isArray((normalizedFinal as any).projects) ? (normalizedFinal as any).projects.length : undefined,
               skills: Array.isArray((normalizedFinal as any).skills) ? (normalizedFinal as any).skills.length : undefined,
+              certifications: Array.isArray((normalizedFinal as any).certifications) ? (normalizedFinal as any).certifications.length : undefined,
+              awards: Array.isArray((normalizedFinal as any).awards) ? (normalizedFinal as any).awards.length : undefined,
+              languages: Array.isArray((normalizedFinal as any).languages) ? (normalizedFinal as any).languages.length : undefined,
+              extras: Array.isArray((normalizedFinal as any).extras) ? (normalizedFinal as any).extras.length : undefined,
             }
             console.log('[UnifiedAI] complete (normalized)', { keys, counts })
+          }
+
+          // Send complete event with optional warnings
+          const completePayload: any = {
+            type: 'complete',
+            data: normalizedFinal,
+            duration,
+            docType
+          }
+
+          if (validationWarnings.length > 0) {
+            completePayload.warnings = validationWarnings
+            if (DEBUG_AI_SERVER) {
+              console.log('[UnifiedAI] Sending completion with warnings:', validationWarnings)
+            }
           }
 
           controller.enqueue(
             encoder.encode(
               `event: complete\n` +
-                `data: ${JSON.stringify({ type: 'complete', data: normalizedFinal, duration, docType })}\n\n`
+                `data: ${JSON.stringify(completePayload)}\n\n`
             )
           )
           controller.close()

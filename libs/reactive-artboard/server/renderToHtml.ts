@@ -1,7 +1,7 @@
 import path from 'path'
 import { promises as fs } from 'fs'
 import { ArtboardDocument } from '../types'
-import type { ResumeData } from '../schema'
+import type { ResumeData, SectionKey } from '../schema'
 import { getTemplateRenderer } from '../templates'
 import { buildArtboardStyles } from '../styles'
 import { setArtboardResume, resetArtboardResume } from '../store/artboard'
@@ -33,7 +33,29 @@ export async function renderArtboardToHtml(
   if (resumeData) {
     setArtboardResume(resumeData)
   }
-  const element = React.createElement(Template, { document })
+  const pages = document.layout.map((columns, pageIndex) =>
+    React.createElement(
+      'div',
+      {
+        key: pageIndex,
+        'data-page': pageIndex + 1,
+        className: 'artboard-page',
+      },
+      React.createElement(Template, {
+        columns: columns as SectionKey[][],
+        isFirstPage: pageIndex === 0,
+      })
+    )
+  )
+
+  const element = React.createElement(
+    'div',
+    {
+      className: 'artboard-root',
+      style: { backgroundColor: 'var(--artboard-color-background)' },
+    },
+    pages
+  )
   const styles = buildArtboardStyles(document.metadata, { includePageRule: true })
   const tailwindCss = await loadTailwindCss()
   const markup = renderToStaticMarkup(element)

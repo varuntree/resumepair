@@ -133,7 +133,7 @@ async function generatePdf<T>({ type, data, mapDocument, options }: GeneratorInp
       // No page markers found; fall back to single-pass PDF
       const fallback = await page.pdf({
         ...PDF_QUALITY_SETTINGS[quality],
-        format: artboardDocument.metadata.page.format === 'A4' ? 'A4' : 'Letter',
+        format: artboardDocument.metadata.page.format === 'a4' ? 'A4' : 'Letter',
         margin: uniformMargin(artboardDocument.metadata.page.margin),
       })
       mergedBuffer = Buffer.from(fallback)
@@ -147,7 +147,7 @@ async function generatePdf<T>({ type, data, mapDocument, options }: GeneratorInp
       } else {
         const fallback = await page.pdf({
           ...PDF_QUALITY_SETTINGS[quality],
-          format: artboardDocument.metadata.page.format === 'A4' ? 'A4' : 'Letter',
+          format: artboardDocument.metadata.page.format === 'a4' ? 'A4' : 'Letter',
           margin: uniformMargin(artboardDocument.metadata.page.margin),
         })
         mergedBuffer = Buffer.from(fallback)

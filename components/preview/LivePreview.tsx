@@ -20,6 +20,8 @@ import { saveScrollPosition, restoreScrollPosition } from '@/libs/utils/previewU
 import type { ResumeJson } from '@/types/resume'
 import { ArtboardFrame } from './ArtboardFrame'
 import { mapResumeToArtboardDocument, mapResumeJsonToResumeData, useArtboardStore } from '@/libs/reactive-artboard'
+import { usePreviewStore } from '@/stores/previewStore'
+import type { PageFormat } from '@/libs/reactive-artboard/constants/page'
 
 interface LivePreviewProps {
   documentId?: string
@@ -36,17 +38,30 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   const rafIdRef = React.useRef<number | null>(null)
   const [previewData, setPreviewData] = React.useState<ResumeJson | null>(null)
   const lastDocRef = React.useRef<ResumeJson | null>(null)
+  const [pageOffsets, setPageOffsets] = React.useState<number[]>([])
+  const [pageSizePx, setPageSizePx] = React.useState<{ width: number; height: number } | null>(null)
 
   // Shallow selector for document data
   const document = useDocumentStore(useShallow((state) => state.document))
 
   const isLoading = useDocumentStore((state) => state.isLoading)
   const setResumeData = useArtboardStore((state) => state.setResume)
+  const setTotalPages = usePreviewStore((state) => state.setTotalPages)
 
   const artboardDocument = React.useMemo(() => {
     if (!previewData) return null
     return mapResumeToArtboardDocument(previewData)
   }, [previewData])
+
+  React.useEffect(() => {
+    if (!artboardDocument) {
+      setTotalPages(1)
+      setPageOffsets([])
+      return
+    }
+    setTotalPages(artboardDocument.layout.length)
+    setPageOffsets([])
+  }, [artboardDocument, setTotalPages])
 
   // RAF-batched update handler
   React.useEffect(() => {
@@ -118,8 +133,20 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
       <div ref={containerRef} className="w-full h-full flex flex-col min-h-0">
         {showControls && <div className="flex-shrink-0"><PreviewControls /></div>}
         <div className="flex-1 min-h-0">
-          <PreviewContainer>
-            <ArtboardFrame document={artboardDocument} />
+          <PreviewContainer
+            pageFormat={artboardDocument.metadata.page.format as PageFormat}
+            pageOffsets={pageOffsets}
+            pageWidthPxOverride={pageSizePx?.width}
+            pageHeightPxOverride={pageSizePx?.height}
+          >
+            <ArtboardFrame
+              document={artboardDocument}
+              onPagesMeasured={setPageOffsets}
+              onFrameMetrics={({ offsets, pageWidth, pageHeight }) => {
+                setPageOffsets(offsets)
+                setPageSizePx({ width: pageWidth, height: pageHeight })
+              }}
+            />
           </PreviewContainer>
         </div>
       </div>

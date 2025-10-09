@@ -24,12 +24,12 @@ export function CoverLetterTemplate({ document }: TemplateProps): React.ReactEle
       </header>
 
       {recipient && (
-        <section className="cover-letter-recipient">
+        <section className="doc-avoid-break cover-letter-recipient">
           {renderCustomBlocks(recipient)}
         </section>
       )}
 
-      <section className="cover-letter-body">
+      <section className="doc-avoid-break cover-letter-body">
         {document.profile.summary && (
           <p className="cover-letter-salutation">{document.profile.summary}</p>
         )}
@@ -37,7 +37,7 @@ export function CoverLetterTemplate({ document }: TemplateProps): React.ReactEle
       </section>
 
       {closing && (
-        <section className="cover-letter-closing">
+        <section className="doc-avoid-break cover-letter-closing">
           {renderCustomBlocks(closing)}
         </section>
       )}

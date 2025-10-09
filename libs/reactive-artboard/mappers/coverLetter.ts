@@ -6,6 +6,7 @@ import {
   ArtboardRichTextBlock,
   ArtboardSection,
 } from '../types'
+import { DEFAULT_PAGE_FORMAT, normalizePageFormat } from '../constants/page'
 
 const DEFAULT_COLORS = {
   background: '#ffffff',
@@ -84,6 +85,13 @@ function createCustomSection(id: string, title: string, lines: string[]): Artboa
 function createMetadata(letter: CoverLetterJson): ArtboardMetadata {
   const appearance: CoverLetterAppearance =
     letter.appearance ?? createDefaultCoverLetterAppearance(letter.settings.pageSize)
+  const layoutMargin = appearance.layout?.margin ?? 64
+  const resolvedMargin =
+    typeof layoutMargin === 'number'
+      ? layoutMargin
+      : Number.isFinite(Number(layoutMargin))
+      ? Number(layoutMargin)
+      : 64
 
   return {
     colors: appearance.theme ?? DEFAULT_COLORS,
@@ -94,8 +102,10 @@ function createMetadata(letter: CoverLetterJson): ArtboardMetadata {
       lineHeight: appearance.typography?.lineHeight ?? (letter.settings.lineSpacing || 1.5),
     },
     page: {
-      format: appearance.layout?.pageFormat ?? letter.settings.pageSize ?? 'Letter',
-      margin: appearance.layout?.margin ?? 64,
+      format: normalizePageFormat(
+        appearance.layout?.pageFormat ?? letter.settings.pageSize ?? DEFAULT_PAGE_FORMAT
+      ),
+      margin: resolvedMargin,
       showPageNumbers: appearance.layout?.showPageNumbers ?? false,
     },
     customCss: appearance.customCss,

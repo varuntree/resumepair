@@ -708,8 +708,8 @@ const BASE_CSS = `
 `
 
 const PAGE_DIMENSIONS = {
-  Letter: { width: '8.5in', height: '11in' },
-  A4: { width: '210mm', height: '297mm' },
+  letter: { width: '8.5in', height: '11in' },
+  a4: { width: '210mm', height: '297mm' },
 } as const
 
 export function buildArtboardStyles(
@@ -717,8 +717,15 @@ export function buildArtboardStyles(
   options: { includePageRule?: boolean } = {}
 ): string {
   const customCss = metadata.customCss ?? ''
-  const dimensions = PAGE_DIMENSIONS[metadata.page.format] ?? PAGE_DIMENSIONS.Letter
+  const dimensions = PAGE_DIMENSIONS[metadata.page.format] ?? PAGE_DIMENSIONS.letter
   const marginInches = pxToInches(metadata.page.margin)
+  const pageMarginPx = Math.max(0, metadata.page.margin)
+
+  const backgroundHsl = toHslComponents(metadata.colors.background)
+  const foregroundHsl = toHslComponents(metadata.colors.text)
+  const primaryHsl = toHslComponents(metadata.colors.primary)
+  const borderHsl = toHslComponents(mixColors(metadata.colors.text, metadata.colors.background, 0.85))
+  const mutedHsl = toHslComponents(mixColors(metadata.colors.text, metadata.colors.background, 0.6))
 
   const root = `
     :root {
@@ -728,17 +735,27 @@ export function buildArtboardStyles(
       --artboard-font-family: ${metadata.typography.fontFamily};
       --artboard-font-size: ${metadata.typography.fontSize}px;
       --artboard-line-height: ${metadata.typography.lineHeight};
-      --background: ${metadata.colors.background};
-      --foreground: ${metadata.colors.text};
-      --primary: ${metadata.colors.primary};
-      --primary-foreground: ${metadata.colors.background};
-      --secondary: ${metadata.colors.primary};
-      --secondary-foreground: ${metadata.colors.background};
-      --muted: ${metadata.colors.text};
-      --muted-foreground: ${metadata.colors.text};
-      --accent: ${metadata.colors.primary};
-      --accent-foreground: ${metadata.colors.background};
-      --border: rgba(0,0,0,0.1);
+      --margin: ${pageMarginPx}px;
+      --line-height: ${metadata.typography.lineHeight};
+      --color-background: ${metadata.colors.background};
+      --color-foreground: ${metadata.colors.text};
+      --color-primary: ${metadata.colors.primary};
+      --color-primary-foreground: ${metadata.colors.background};
+      --color-muted: ${mixColors(metadata.colors.text, metadata.colors.background, 0.4)};
+      --color-muted-foreground: ${metadata.colors.text};
+      --color-accent: ${metadata.colors.primary};
+      --color-accent-foreground: ${metadata.colors.background};
+      --background: ${backgroundHsl};
+      --foreground: ${foregroundHsl};
+      --primary: ${primaryHsl};
+      --primary-foreground: ${toHslComponents(metadata.colors.background)};
+      --secondary: ${primaryHsl};
+      --secondary-foreground: ${toHslComponents(metadata.colors.background)};
+      --muted: ${mutedHsl};
+      --muted-foreground: ${foregroundHsl};
+      --accent: ${primaryHsl};
+      --accent-foreground: ${toHslComponents(metadata.colors.background)};
+      --border: ${borderHsl};
     }
   `
 
@@ -757,4 +774,96 @@ export function buildArtboardStyles(
 function pxToInches(px: number): number {
   const inches = px / 96
   return Math.max(0.1, Number(inches.toFixed(3)))
+}
+
+function toHslComponents(color: string): string {
+  const rgb = parseColor(color)
+  if (!rgb) return '0 0% 0%'
+
+  const { r, g, b } = rgb
+  const rNorm = r / 255
+  const gNorm = g / 255
+  const bNorm = b / 255
+
+  const max = Math.max(rNorm, gNorm, bNorm)
+  const min = Math.min(rNorm, gNorm, bNorm)
+  const delta = max - min
+
+  let h = 0
+  if (delta !== 0) {
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta) % 6
+    } else if (max === gNorm) {
+      h = (bNorm - rNorm) / delta + 2
+    } else {
+      h = (rNorm - gNorm) / delta + 4
+    }
+    h *= 60
+    if (h < 0) h += 360
+  }
+
+  const l = (max + min) / 2
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1))
+
+  return `${round(h)} ${round(s * 100)}% ${round(l * 100)}%`
+}
+
+function parseColor(color: string): { r: number; g: number; b: number } | null {
+  if (!color) return null
+
+  const normalized = color.trim().toLowerCase()
+
+  if (normalized.startsWith('#')) {
+    const hex = normalized.slice(1)
+    if (hex.length === 3) {
+      const r = parseInt(hex[0] + hex[0], 16)
+      const g = parseInt(hex[1] + hex[1], 16)
+      const b = parseInt(hex[2] + hex[2], 16)
+      if ([r, g, b].some(Number.isNaN)) return null
+      return { r, g, b }
+    }
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16)
+      const g = parseInt(hex.slice(2, 4), 16)
+      const b = parseInt(hex.slice(4, 6), 16)
+      if ([r, g, b].some(Number.isNaN)) return null
+      return { r, g, b }
+    }
+    return null
+  }
+
+  const rgbMatch = normalized.match(/rgba?\\(([^)]+)\\)/)
+  if (rgbMatch) {
+    const parts = rgbMatch[1]
+      .split(',')
+      .map((value) => value.trim())
+      .map((value) => Number.parseFloat(value))
+    if (parts.length < 3 || parts.slice(0, 3).some(Number.isNaN)) return null
+    return {
+      r: clamp(parts[0], 0, 255),
+      g: clamp(parts[1], 0, 255),
+      b: clamp(parts[2], 0, 255),
+    }
+  }
+
+  return null
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+function round(value: number): number {
+  return Number(value.toFixed(2))
+}
+
+function mixColors(colorA: string, colorB: string, weight: number): string {
+  const a = parseColor(colorA)
+  const b = parseColor(colorB)
+  if (!a || !b) return colorB
+  const t = clamp(weight, 0, 1)
+  const r = Math.round(a.r * (1 - t) + b.r * t)
+  const g = Math.round(a.g * (1 - t) + b.g * t)
+  const bChannel = Math.round(a.b * (1 - t) + b.b * t)
+  return `rgb(${r}, ${g}, ${bChannel})`
 }

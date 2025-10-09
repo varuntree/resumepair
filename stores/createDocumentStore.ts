@@ -237,6 +237,7 @@ export function createDocumentStore<T extends Record<string, any>>(
             // Build minimal update payload: always include title/version,
             // include data only if it changed
             const updates: any = { version: documentVersion }
+            let didIncludeData = false
 
             // Include title only if non-empty (server requires min length)
             if (typeof documentTitle === 'string' && documentTitle.trim().length > 0) {
@@ -248,6 +249,7 @@ export function createDocumentStore<T extends Record<string, any>>(
               const parsed = schemaValidator.safeParse(document)
               if (parsed.success) {
                 updates.data = document
+                didIncludeData = true
               }
             }
 
@@ -272,16 +274,20 @@ export function createDocumentStore<T extends Record<string, any>>(
             const result = await response.json()
             const updatedDoc = result.data
 
+            // Only overwrite local document with server data when we actually sent data.
+            // This prevents wiping unsaved AI-generated content when validation blocks data.
             set({
-              document: updatedDoc.data,
+              document: didIncludeData ? updatedDoc.data : document,
               documentVersion: updatedDoc.version,
               documentTitle: updatedDoc.title,
-              originalDocument: JSON.parse(JSON.stringify(updatedDoc.data)),
-              isDirty: false,
+              originalDocument: didIncludeData
+                ? JSON.parse(JSON.stringify(updatedDoc.data))
+                : originalDocument,
+              isDirty: didIncludeData ? false : get().isDirty,
               isSaving: false,
               lastSaved: updatedDoc.updated_at ? new Date(updatedDoc.updated_at) : new Date(),
               saveError: null,
-              hasChanges: false,
+              hasChanges: didIncludeData ? false : get().hasChanges,
             })
           } catch (error) {
             console.error('Save failed:', error)

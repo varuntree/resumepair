@@ -10,3 +10,15 @@ html,
 body {
   @apply min-h-full bg-transparent text-[var(--artboard-color-text)];
 }
+
+@layer utilities {
+  .doc-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+}

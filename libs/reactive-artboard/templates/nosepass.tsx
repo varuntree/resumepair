@@ -93,7 +93,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id} className="grid grid-cols-4 gap-x-6">
+    <section id={section.id} className="doc-avoid-break grid grid-cols-4 gap-x-6">
       <div className="text-right">
         <h4 className="font-medium text-primary">{section.name}</h4>
       </div>
@@ -183,7 +183,10 @@ const Section = <T,>({
   if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
 
   return (
-    <section id={section.id} className={cn("grid", dateKey !== undefined && "gap-y-4")}>
+    <section
+      id={section.id}
+      className={cn('doc-avoid-break', 'grid', dateKey !== undefined && 'gap-y-4')}
+    >
       <div className="grid grid-cols-4 gap-x-6">
         <div className="text-right">
           <h4 className="font-medium text-primary">{section.name}</h4>

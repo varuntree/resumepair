@@ -12,7 +12,6 @@
 import { z } from 'zod'
 import {
   ProfileSchema,
-  WorkExperienceSchema,
   EducationSchema,
   ProjectSchema,
   SkillGroupSchema,
@@ -35,14 +34,45 @@ const GenerationAppearanceSchema = ResumeAppearanceSchema.extend({
   }),
 })
 
+// Permissive profile for generation: allow missing/invalid email during streaming
+const GenerationProfileSchema = ProfileSchema.extend({
+  email: ProfileSchema.shape.email.optional(),
+})
+
+// Permissive work experience for generation: accept YYYY-MM or YYYY-MM-DD
+const GenerationWorkExperienceSchema = z.object({
+  company: z.string().min(1),
+  role: z.string().min(1),
+  location: z.string().optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}(?:-\d{2})?$/, 'Invalid date (use YYYY-MM or YYYY-MM-DD)'),
+  endDate: z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}(?:-\d{2})?$/),
+      z.literal('Present'),
+      z.null(),
+    ])
+    .optional(),
+  descriptionBullets: z.array(z.string()).optional(),
+  achievements: z.array(z.string()).optional(),
+  techStack: z.array(z.string()).optional(),
+})
+
+// Permissive education for generation: accept YYYY-MM or YYYY-MM-DD
+const GenerationEducationSchema = EducationSchema.extend({
+  startDate: z.string().regex(/^\d{4}-\d{2}(?:-\d{2})?$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}(?:-\d{2})?$/).optional(),
+})
+
 export const ResumeGenerationSchema = z.object({
-  profile: ProfileSchema,
+  profile: GenerationProfileSchema,
   summary: z.string().optional(),
-  // Encourage the model to include these sections; require at least one item
-  work: z.array(WorkExperienceSchema).min(1),
-  education: z.array(EducationSchema).min(1),
-  projects: z.array(ProjectSchema).min(1),
-  skills: z.array(SkillGroupSchema).min(1),
+  // Encourage the model to include these sections but never block completion
+  work: z.array(GenerationWorkExperienceSchema).optional().default([]),
+  education: z.array(GenerationEducationSchema).optional().default([]),
+  projects: z.array(ProjectSchema).optional().default([]),
+  skills: z.array(SkillGroupSchema).optional().default([]),
   // Optional sections may be empty but should not block completion
   certifications: z.array(CertificationSchema).optional().default([]),
   awards: z.array(AwardSchema).optional().default([]),

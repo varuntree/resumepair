@@ -1,0 +1,6 @@
+- Implement → Confirmed generated CSS lacks key utilities: e.g., no 'p-custom', no '--primary' definitions; local tailwind config (root) differs from source artboard config (spacing, colors).
+- Verify →
+- Entropy detection →
+- Rationale → Source contract ensures templates render correctly; current bundle was built from root config lacking artboard-specific tokens.
+- Diff summary →
+

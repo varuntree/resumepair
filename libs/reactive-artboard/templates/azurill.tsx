@@ -83,7 +83,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id}>
+    <section id={section.id} className="doc-avoid-break">
       <div className="mb-2 hidden font-bold text-primary group-[.main]:block">
         <h4>{section.name}</h4>
       </div>
@@ -189,7 +189,7 @@ const Section = <T,>({
   if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
 
   return (
-    <section id={section.id} className="grid">
+    <section id={section.id} className="doc-avoid-break grid">
       <div className="mb-2 hidden font-bold text-primary group-[.main]:block">
         <h4>{section.name}</h4>
       </div>
