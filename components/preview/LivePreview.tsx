@@ -103,7 +103,11 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
             hasProjects: Array.isArray((document as any).projects) && ((document as any).projects?.length || 0) > 0,
             hasSkills: Array.isArray((document as any).skills) && ((document as any).skills?.length || 0) > 0,
           })
-        } catch {}
+        } catch (err) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Preview] logging failed', err)
+          }
+        }
       }
 
       // Restore scroll position after render

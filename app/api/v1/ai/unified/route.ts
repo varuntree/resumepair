@@ -27,6 +27,90 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 // TEMP DEBUG LOGGING (remove after investigation)
 const DEBUG_AI_SERVER = true
+const SERVER_LOG_PREFIX = '[UnifiedAI]'
+
+type ServerLogLevel = 'log' | 'warn' | 'error'
+
+function serverLog(level: ServerLogLevel, traceId: string, event: string, payload: Record<string, unknown> = {}): void {
+  if (!DEBUG_AI_SERVER && level === 'log') return
+  try {
+    const message = `${SERVER_LOG_PREFIX} ${traceId} ${event}`
+    if (level === 'error') console.error(message, payload)
+    else if (level === 'warn') console.warn(message, payload)
+    else console.log(message, payload)
+  } catch {
+    // ignore logging errors to avoid throwing inside Edge runtime
+  }
+}
+
+function obfuscateUserId(userId?: string | null): string | null {
+  if (!userId) return null
+  if (userId.length <= 8) return userId
+  return `${userId.slice(0, 4)}…${userId.slice(-4)}`
+}
+
+function summarizeResumeSections(data: any) {
+  if (!data || typeof data !== 'object') return null
+  const arrLen = (value: any) => (Array.isArray(value) ? value.length : 0)
+  return {
+    profile: data.profile ? 1 : 0,
+    summary: data.summary ? 1 : 0,
+    work: arrLen(data.work),
+    education: arrLen(data.education),
+    projects: arrLen(data.projects),
+    skills: arrLen(data.skills),
+    certifications: arrLen(data.certifications),
+    awards: arrLen(data.awards),
+    languages: arrLen(data.languages),
+    extras: arrLen(data.extras),
+  }
+}
+
+function summarizeCoverLetterSections(data: any) {
+  if (!data || typeof data !== 'object') return null
+  const arrLen = (value: any) => (Array.isArray(value) ? value.length : 0)
+  return {
+    from: data.from ? 1 : 0,
+    to: data.to ? 1 : 0,
+    salutation: data.salutation ? 1 : 0,
+    bodyBlocks: arrLen(data.body),
+    closing: data.closing ? 1 : 0,
+  }
+}
+
+function countDateCoercions(before?: any[], after?: any[]): number {
+  if (!Array.isArray(before) || !Array.isArray(after)) return 0
+  const get = (collection: any[], index: number, key: 'startDate' | 'endDate') => collection[index]?.[key]
+  let count = 0
+  for (let i = 0; i < after.length; i += 1) {
+    const beforeStart = get(before, i, 'startDate')
+    const afterStart = get(after, i, 'startDate')
+    if (typeof beforeStart === 'string' && /^\d{4}-\d{2}$/.test(beforeStart) && afterStart === `${beforeStart}-01`) count += 1
+    const beforeEnd = get(before, i, 'endDate')
+    const afterEnd = get(after, i, 'endDate')
+    if (typeof beforeEnd === 'string' && /^\d{4}-\d{2}$/.test(beforeEnd) && afterEnd === `${beforeEnd}-01`) count += 1
+  }
+  return count
+}
+
+function buildNormalizationSummary(before: any, after: any, isResume: boolean) {
+  if (isResume) {
+    const beforeProfileEmail = before?.profile?.email?.trim()
+    const afterProfileEmail = after?.profile?.email?.trim()
+    return {
+      emailPlaceholderInserted: !beforeProfileEmail && afterProfileEmail === 'user@example.com',
+      workDateCoercions: countDateCoercions(before?.work, after?.work),
+      educationDateCoercions: countDateCoercions(before?.education, after?.education),
+      template: after?.appearance?.template ?? null,
+      pageFormat: after?.appearance?.layout_settings?.pageFormat ?? null,
+      summary: summarizeResumeSections(after),
+    }
+  }
+  return {
+    summary: summarizeCoverLetterSections(after),
+    pageFormat: after?.appearance?.layout?.pageFormat ?? null,
+  }
+}
 
 // Create a trace ID for correlating logs across events
 function createTraceId(): string {
@@ -227,6 +311,11 @@ export async function POST(req: Request) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser()
+    serverLog('log', traceId, 'auth-check', {
+      authError: authError?.message,
+      hasUser: Boolean(user),
+      userId: obfuscateUserId(user?.id),
+    })
     if (authError || !user) {
       return new Response(
         JSON.stringify({ success: false, error: 'Unauthorized', message: 'Authentication required', traceId }),
@@ -249,17 +338,14 @@ export async function POST(req: Request) {
     }
 
     const { docType, text, personalInfo, fileData, mimeType, editorData } = parsed.data
-    if (DEBUG_AI_SERVER) {
-      const safeInfo = {
-        docType,
-        hasText: Boolean(text && text.trim().length > 0),
-        textLen: text?.length || 0,
-        hasFile: Boolean(fileData),
-        hasEditorData: Boolean(editorData),
-        editorKeys: editorData ? Object.keys(editorData).slice(0, 20) : [],
-      }
-      console.log('[UnifiedAI]', traceId, 'request', safeInfo)
-    }
+    serverLog('log', traceId, 'request', {
+      docType,
+      hasText: Boolean(text && text.trim().length > 0),
+      textLen: text?.length || 0,
+      hasFile: Boolean(fileData),
+      hasEditorData: Boolean(editorData),
+      editorKeys: editorData ? Object.keys(editorData).slice(0, 20) : [],
+    })
 
     // If file provided, validate size
     let buffer: Uint8Array | null = null
@@ -272,10 +358,21 @@ export async function POST(req: Request) {
         )
       }
       buffer = b
+      serverLog('log', traceId, 'file-decoded', {
+        byteLength: b.byteLength,
+        mimeType: mimeType || 'application/pdf',
+        firstBytes: Array.from(b.subarray(0, 4)),
+      })
     }
 
     // Quota (daily)
     const quota = await checkDailyQuota(supabase, user.id)
+    serverLog('log', traceId, 'quota-check', {
+      allowed: quota.allowed,
+      remaining: quota.remaining,
+      resetAt: quota.resetAt.toISOString(),
+      error: quota.error,
+    })
     if (!quota.allowed) {
       return new Response(
         JSON.stringify({
@@ -310,7 +407,7 @@ export async function POST(req: Request) {
     let result: any
 
     if (buffer) {
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
+      serverLog('log', traceId, 'mode.pdf', { mimeType, bufferSize: buffer?.length || 0, isResume })
       const parts: Array<any> = []
 
       if (isResume) {
@@ -346,12 +443,20 @@ export async function POST(req: Request) {
 
       result = streamObject({
         model: aiModel,
+        mode: 'json', // CRITICAL: Force JSON mode for Gemini to prevent premature stream termination
         schema: schema as any,
         messages: [{ role: 'user', content: parts }],
         temperature: isResume ? 0.3 : 0.6,
         topP: isResume ? 0.9 : 0.95,
         maxRetries: 2,
-        maxOutputTokens: isResume ? 15000 : 2500
+        maxOutputTokens: isResume ? 16000 : 3000,
+        onError: ({ error }) => {
+          serverLog('error', traceId, 'streamObject.onError', {
+            message: error instanceof Error ? error.message : 'unknown',
+            name: error instanceof Error ? error.name : undefined,
+            stack: error instanceof Error ? error.stack : undefined,
+          })
+        }
       })
     } else if (text && text.trim().length > 0) {
       // Text-only
@@ -364,15 +469,27 @@ export async function POST(req: Request) {
         ? `${prompt}\n\nUse the structured fields below if present. Prefer explicit user-provided values when generating.\n${JSON.stringify(editorData).slice(0, 50_000)}`
         : prompt
 
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=text', { isResume, textLen: text.length, hasEditorData: Boolean(editorData) })
+      serverLog('log', traceId, 'mode.text', {
+        isResume,
+        textLen: text.length,
+        hasEditorData: Boolean(editorData),
+      })
       result = streamObject({
         model: aiModel,
+        mode: 'json', // CRITICAL: Force JSON mode for Gemini to prevent premature stream termination
         schema: schema as any,
         prompt: finalPrompt,
         temperature: isResume ? 0.3 : 0.6,
         topP: isResume ? 0.9 : 0.95,
         maxRetries: 2,
-        maxOutputTokens: isResume ? 15000 : 2500
+        maxOutputTokens: isResume ? 16000 : 3000,
+        onError: ({ error }) => {
+          serverLog('error', traceId, 'streamObject.onError', {
+            message: error instanceof Error ? error.message : 'unknown',
+            name: error instanceof Error ? error.name : undefined,
+            stack: error instanceof Error ? error.stack : undefined,
+          })
+        }
       })
     } else {
       // editorData only
@@ -380,15 +497,26 @@ export async function POST(req: Request) {
         ? 'Generate a complete ResumeJson using only the provided structured fields. Fill reasonable gaps but do not fabricate personal identifiers.'
         : 'Generate a complete CoverLetterJson using only the provided structured fields. Fill reasonable gaps but keep placeholders if needed.'
       const prompt = `${base}\n\nSTRUCTURED DATA:\n${JSON.stringify(editorData).slice(0, 50_000)}`
-      if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'mode=editorData', { isResume, editorKeys: Object.keys(editorData || {}).slice(0, 20) })
+      serverLog('log', traceId, 'mode.editorData', {
+        isResume,
+        editorKeys: Object.keys(editorData || {}).slice(0, 20),
+      })
       result = streamObject({
         model: aiModel,
+        mode: 'json', // CRITICAL: Force JSON mode for Gemini to prevent premature stream termination
         schema: schema as any,
         prompt,
         temperature: 0.3,
         topP: 0.9,
         maxRetries: 2,
-        maxOutputTokens: isResume ? 15000 : 2500
+        maxOutputTokens: isResume ? 16000 : 3000,
+        onError: ({ error }) => {
+          serverLog('error', traceId, 'streamObject.onError', {
+            message: error instanceof Error ? error.message : 'unknown',
+            name: error instanceof Error ? error.name : undefined,
+            stack: error instanceof Error ? error.stack : undefined,
+          })
+        }
       })
     }
 
@@ -402,8 +530,9 @@ export async function POST(req: Request) {
         const total = isResume ? resumeSections.length : clSections.length
 
         try {
-          if (DEBUG_AI_SERVER) console.log('[UnifiedAI]', traceId, 'stream start', { isResume })
+          serverLog('log', traceId, 'stream.start', { isResume })
           let updateCount = 0
+          let partialIndex = 0
           for await (const partial of result.partialObjectStream as AsyncIterable<Record<string, unknown>>) {
             Object.keys(partial).forEach((k) => {
               if ((isResume ? resumeSections : clSections).includes(k)) seen.add(k)
@@ -411,16 +540,22 @@ export async function POST(req: Request) {
 
             const progress = Math.min(seen.size / total, 0.95)
             updateCount += 1
-            if (DEBUG_AI_SERVER) {
-              const keys = Object.keys(partial)
-              const counts = {
-                work: Array.isArray((partial as any).work) ? (partial as any).work.length : undefined,
-                education: Array.isArray((partial as any).education) ? (partial as any).education.length : undefined,
-                projects: Array.isArray((partial as any).projects) ? (partial as any).projects.length : undefined,
-                skills: Array.isArray((partial as any).skills) ? (partial as any).skills.length : undefined,
-              }
-              console.log('[UnifiedAI]', traceId, 'partial', { updateCount, progress, keys, counts })
+            partialIndex += 1
+            const keys = Object.keys(partial)
+            const counts = {
+              work: Array.isArray((partial as any).work) ? (partial as any).work.length : undefined,
+              education: Array.isArray((partial as any).education) ? (partial as any).education.length : undefined,
+              projects: Array.isArray((partial as any).projects) ? (partial as any).projects.length : undefined,
+              skills: Array.isArray((partial as any).skills) ? (partial as any).skills.length : undefined,
             }
+            serverLog('log', traceId, 'stream.partial', {
+              partialIndex,
+              updateCount,
+              progress,
+              keys,
+              counts,
+              seenSections: seen.size,
+            })
             controller.enqueue(encoder.encode(
               `event: progress\n` + `data: ${JSON.stringify({ type: 'progress', progress, traceId })}\n\n`
             ))
@@ -435,35 +570,40 @@ export async function POST(req: Request) {
 
           try {
             // Try to get the validated object from AI stream
+            serverLog('log', traceId, 'awaiting_result.object', { updateCount, partialIndex })
             const rawObject = await result.object
 
-            if (DEBUG_AI_SERVER) {
-              const keys = Object.keys(rawObject as Record<string, unknown>)
-              const counts = {
-                work: Array.isArray((rawObject as any).work) ? (rawObject as any).work.length : undefined,
-                education: Array.isArray((rawObject as any).education) ? (rawObject as any).education.length : undefined,
-                projects: Array.isArray((rawObject as any).projects) ? (rawObject as any).projects.length : undefined,
-                skills: Array.isArray((rawObject as any).skills) ? (rawObject as any).skills.length : undefined,
-                certifications: Array.isArray((rawObject as any).certifications) ? (rawObject as any).certifications.length : undefined,
-                awards: Array.isArray((rawObject as any).awards) ? (rawObject as any).awards.length : undefined,
-                languages: Array.isArray((rawObject as any).languages) ? (rawObject as any).languages.length : undefined,
-                extras: Array.isArray((rawObject as any).extras) ? (rawObject as any).extras.length : undefined,
-              }
-              console.log('[UnifiedAI]', traceId, 'complete (raw)', { updateCount, keys, counts })
+            const keys = Object.keys(rawObject as Record<string, unknown>)
+            const counts = {
+              work: Array.isArray((rawObject as any).work) ? (rawObject as any).work.length : undefined,
+              education: Array.isArray((rawObject as any).education) ? (rawObject as any).education.length : undefined,
+              projects: Array.isArray((rawObject as any).projects) ? (rawObject as any).projects.length : undefined,
+              skills: Array.isArray((rawObject as any).skills) ? (rawObject as any).skills.length : undefined,
+              certifications: Array.isArray((rawObject as any).certifications) ? (rawObject as any).certifications.length : undefined,
+              awards: Array.isArray((rawObject as any).awards) ? (rawObject as any).awards.length : undefined,
+              languages: Array.isArray((rawObject as any).languages) ? (rawObject as any).languages.length : undefined,
+              extras: Array.isArray((rawObject as any).extras) ? (rawObject as any).extras.length : undefined,
             }
+            serverLog('log', traceId, 'complete.raw', { updateCount, keys, counts })
 
             // Apply sanitization before final validation
             finalObject = isResume
               ? sanitizeResumeData(rawObject)
               : sanitizeCoverLetterData(rawObject)
 
-            if (DEBUG_AI_SERVER) {
-              console.log('[UnifiedAI] sanitization applied')
-            }
+            serverLog('log', traceId, 'sanitization.applied', {})
           } catch (validationError) {
             // Validation failed - this is a critical issue
             // The AI SDK throws when schema validation fails
-            console.error('[UnifiedAI]', traceId, 'Validation failed, attempting recovery:', validationError)
+            serverLog('error', traceId, 'validation.failed', {
+              message: validationError instanceof Error ? validationError.message : 'unknown',
+              name: validationError instanceof Error ? validationError.name : undefined,
+              errorType: typeof validationError,
+              errorKeys: validationError && typeof validationError === 'object' ? Object.keys(validationError) : [],
+              hasText: validationError && typeof validationError === 'object' && 'text' in validationError,
+              updateCount,
+              partialIndex,
+            })
 
             // Check if this is a validation error with partial data we can recover
             if (validationError && typeof validationError === 'object' && 'text' in validationError) {
@@ -479,15 +619,15 @@ export async function POST(req: Request) {
 
                 validationWarnings.push('Some fields were auto-corrected due to validation errors. Please review the extracted data.')
 
-                if (DEBUG_AI_SERVER) {
-                  console.log('[UnifiedAI]', traceId, 'Recovery successful with sanitization', {
-                    hasData: !!finalObject,
-                    keys: Object.keys(finalObject || {})
-                  })
-                }
+                serverLog('warn', traceId, 'validation.recovered', {
+                  hasData: !!finalObject,
+                  keys: Object.keys(finalObject || {}),
+                })
               } catch (parseError) {
                 // Couldn't recover - re-throw original error
-                console.error('[UnifiedAI]', traceId, 'Recovery failed:', parseError)
+                serverLog('error', traceId, 'validation.recovery_failed', {
+                  message: parseError instanceof Error ? parseError.message : 'unknown',
+                })
                 throw validationError
               }
             } else {
@@ -501,9 +641,27 @@ export async function POST(req: Request) {
           // Usage + quota tracking
           try {
             const usage = await result.usage
-            const inputTokens = (usage as any).promptTokens || 0
-            const outputTokens = (usage as any).completionTokens || 0
+            // CRITICAL FIX: Vercel AI SDK uses inputTokens/outputTokens, NOT promptTokens/completionTokens
+            // See: https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-object
+            const inputTokens = usage.inputTokens || 0
+            const outputTokens = usage.outputTokens || 0
             const cost = calculateCost(inputTokens, outputTokens)
+
+            // Enhanced logging for debugging
+            serverLog('log', traceId, 'usage.raw', {
+              usage,
+              inputTokens,
+              outputTokens,
+              totalTokens: usage.totalTokens,
+              reasoningTokens: usage.reasoningTokens,
+              cachedInputTokens: usage.cachedInputTokens,
+            })
+
+            serverLog('log', traceId, 'usage', {
+              inputTokens,
+              outputTokens,
+              cost,
+            })
             await incrementQuota(supabase, user.id, inputTokens + outputTokens, cost)
             await createOperation(supabase, {
               user_id: user.id,
@@ -515,15 +673,18 @@ export async function POST(req: Request) {
               success: true,
             })
           } catch (e) {
-            console.warn('[UnifiedAI]', traceId, 'usage/quota logging failed:', e)
+            serverLog('warn', traceId, 'usage.logging_failed', {
+              message: e instanceof Error ? e.message : 'unknown',
+              stack: e instanceof Error ? e.stack : undefined,
+            })
           }
 
           const normalizedFinal = isResume
             ? normalizeResumeData(finalObject as ResumeJson)
             : normalizeCoverLetterData(finalObject as CoverLetterJson)
-          if (DEBUG_AI_SERVER) {
-            const keys = Object.keys(normalizedFinal as unknown as Record<string, unknown>)
-            const counts = {
+          serverLog('log', traceId, 'complete.normalized', {
+            keys: Object.keys(normalizedFinal as unknown as Record<string, unknown>),
+            counts: {
               work: Array.isArray((normalizedFinal as any).work) ? (normalizedFinal as any).work.length : undefined,
               education: Array.isArray((normalizedFinal as any).education) ? (normalizedFinal as any).education.length : undefined,
               projects: Array.isArray((normalizedFinal as any).projects) ? (normalizedFinal as any).projects.length : undefined,
@@ -532,9 +693,9 @@ export async function POST(req: Request) {
               awards: Array.isArray((normalizedFinal as any).awards) ? (normalizedFinal as any).awards.length : undefined,
               languages: Array.isArray((normalizedFinal as any).languages) ? (normalizedFinal as any).languages.length : undefined,
               extras: Array.isArray((normalizedFinal as any).extras) ? (normalizedFinal as any).extras.length : undefined,
-            }
-            console.log('[UnifiedAI]', traceId, 'complete (normalized)', { keys, counts })
-          }
+            },
+            normalization: buildNormalizationSummary(finalObject, normalizedFinal, isResume),
+          })
 
           // Send complete event with optional warnings
           const completePayload: any = {
@@ -547,9 +708,9 @@ export async function POST(req: Request) {
 
           if (validationWarnings.length > 0) {
             completePayload.warnings = validationWarnings
-            if (DEBUG_AI_SERVER) {
-              console.log('[UnifiedAI]', traceId, 'Sending completion with warnings:', validationWarnings)
-            }
+            serverLog('warn', traceId, 'complete.warnings', {
+              warnings: validationWarnings,
+            })
           }
 
           controller.enqueue(
@@ -560,8 +721,8 @@ export async function POST(req: Request) {
           )
           controller.close()
         } catch (error) {
-          console.error('[UnifiedAI]', traceId, 'Stream error:', error)
           const message = error instanceof Error ? error.message : 'Streaming failed'
+          serverLog('error', traceId, 'stream.error', { message })
 
           // Log failed op
           try {
@@ -572,8 +733,10 @@ export async function POST(req: Request) {
               success: false,
               error_message: message,
             })
-          } catch {
-            // Ignore quota/operation logging errors so generation response still streams
+          } catch (opError) {
+            serverLog('warn', traceId, 'stream.error_oplog_failed', {
+              message: opError instanceof Error ? opError.message : 'unknown',
+            })
           }
 
           controller.enqueue(encoder.encode(`event: error\n` + `data: ${JSON.stringify({ type: 'error', message, traceId })}\n\n`))
@@ -592,8 +755,8 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error('[UnifiedAI]', traceId, 'Request error:', error)
     const message = error instanceof Error ? error.message : 'Internal error'
+    serverLog('error', traceId, 'request.error', { message })
     return new Response(JSON.stringify({ success: false, error: 'Internal server error', message, traceId }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

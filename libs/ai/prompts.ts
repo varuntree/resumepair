@@ -114,7 +114,7 @@ OUTPUT FORMAT (MATCH THIS SCHEMA EXACTLY):
   }]?,
   "skills": [{
     "category": "string",
-    "items": ["string" | { "name": "string", "level": 0|1|2|3|4|5 }]
+    "items": ["string"]  // Array of skill names as strings (e.g., ["JavaScript", "Python", "React"])
   }]?,
   "certifications": [{ "name": "string", "issuer": "string", "date": "YYYY-MM or YYYY-MM-DD?" }]?,
   "awards": [{ "name": "string", "org": "string", "date": "YYYY-MM or YYYY-MM-DD?", "summary": "string?" }]?,

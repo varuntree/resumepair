@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useMemo, useState, startTransition, useEffect } from 'react'
+import { useMemo, useState, startTransition, useEffect, useCallback } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import isEqual from 'lodash/isEqual'
 import JobDescriptionInput from './JobDescriptionInput'
@@ -21,6 +21,24 @@ import { useCoverLetterStore } from '@/stores/coverLetterStore'
 
 type DocType = 'resume' | 'cover-letter'
 
+const ENABLE_DEBUG_LOGS = process.env.NODE_ENV !== 'production'
+
+function summarizeSectionsForLog(data: any) {
+  if (!data || typeof data !== 'object') return null
+  const safeLen = (value: any) => (Array.isArray(value) ? value.length : 0)
+  return {
+    profile: data.profile ? 1 : 0,
+    work: safeLen(data.work),
+    education: safeLen(data.education),
+    projects: safeLen(data.projects),
+    skills: safeLen(data.skills),
+    certifications: safeLen(data.certifications),
+    awards: safeLen(data.awards),
+    languages: safeLen(data.languages),
+    extras: safeLen(data.extras),
+  }
+}
+
 interface UnifiedAIToolProps {
   docType: DocType
   editorData?: any
@@ -31,7 +49,7 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
   const [file, setFile] = useState<File | null>(null)
   const [personalInfo, setPersonalInfo] = useState<any>({})
 
-  const { storeDocType, isStreaming, progress, partial, final, error, start, cancel, reset } = useUnifiedAIStore(
+  const { storeDocType, isStreaming, progress, partial, final, error, start, cancel, reset, traceId } = useUnifiedAIStore(
     useShallow((s) => ({
       storeDocType: s.docType,
       isStreaming: s.isStreaming,
@@ -42,6 +60,7 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
       start: s.start,
       cancel: s.cancel,
       reset: s.reset,
+      traceId: s.traceId,
     }))
   )
 
@@ -54,18 +73,24 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
   const coverDoc = useCoverLetterStore((s) => s.document)
   const updateCover = useCoverLetterStore((s) => s.updateDocument)
 
+  const logEvent = useCallback((event: string, payload: Record<string, unknown>) => {
+    if (!ENABLE_DEBUG_LOGS) return
+    try {
+      console.debug('[UnifiedAITool]', event, { traceId, ...payload })
+    } catch (err) {
+      console.warn('[UnifiedAITool] logging failed', err)
+    }
+  }, [traceId])
+
   const onGenerate = async () => {
     if (!canGenerate || isStreaming) return
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        console.debug('[UnifiedAITool] onGenerate', {
-          docType,
-          hasText: Boolean(text && text.trim().length > 0),
-          hasFile: Boolean(file),
-          hasEditorData: Boolean(editorData),
-        })
-      } catch {}
-    }
+    logEvent('onGenerate', {
+      docType,
+      hasText: Boolean(text && text.trim().length > 0),
+      hasFile: Boolean(file),
+      hasEditorData: Boolean(editorData),
+      fileSize: file?.size || 0,
+    })
     await start({ docType, text, personalInfo, file, editorData })
   }
 
@@ -73,15 +98,12 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
     if (storeDocType && storeDocType !== docType) return
     const data = final || partial
     if (!data) return
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        console.debug('[UnifiedAITool] onApply', {
-          docType,
-          hasFinal: Boolean(final),
-          hasPartial: Boolean(partial),
-        })
-      } catch {}
-    }
+    logEvent('onApply', {
+      docType,
+      hasFinal: Boolean(final),
+      hasPartial: Boolean(partial),
+      sectionSummary: summarizeSectionsForLog(data),
+    })
     if (docType === 'resume') {
       if (!resumeDoc || !isEqual(resumeDoc, data)) {
         startTransition(() => {
@@ -103,14 +125,11 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
       const e = event as CustomEvent
       const savedDocType = e?.detail?.docType
       if (savedDocType === docType && (final || partial)) {
-        if (process.env.NODE_ENV !== 'production') {
-          try {
-            console.debug('[UnifiedAITool] document:saved received; resetting AI state', {
-              docType,
-              detail: e.detail,
-            })
-          } catch {}
-        }
+        logEvent('document:saved', {
+          docType,
+          detail: e.detail,
+          sectionSummary: summarizeSectionsForLog(final || partial),
+        })
         // Clear AI store once data is safely saved to server
         reset()
       }
@@ -123,7 +142,7 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
         window.removeEventListener('document:saved', handleSaved)
       }
     }
-  }, [docType, final, partial, reset])
+  }, [docType, final, partial, reset, logEvent])
 
   return (
     <div className="space-y-4">

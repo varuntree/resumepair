@@ -65,6 +65,22 @@ const GenerationEducationSchema = EducationSchema.extend({
   endDate: z.string().regex(/^\d{4}-\d{2}(?:-\d{2})?$/).optional(),
 })
 
+// Permissive skill item: accept either string or object format
+// AI often generates ["JavaScript", "Python"] instead of [{ name: "JavaScript" }]
+const GenerationSkillItemSchema = z.union([
+  z.string().min(1),  // Accept plain strings
+  z.object({          // Or objects with name/level
+    name: z.string().min(1),
+    level: z.number().min(0).max(5).optional(),
+  })
+])
+
+// Permissive skill group for generation
+const GenerationSkillGroupSchema = z.object({
+  category: z.string().min(1),
+  items: z.array(GenerationSkillItemSchema),
+})
+
 export const ResumeGenerationSchema = z.object({
   profile: GenerationProfileSchema,
   summary: z.string().optional(),
@@ -72,7 +88,7 @@ export const ResumeGenerationSchema = z.object({
   work: z.array(GenerationWorkExperienceSchema).optional().default([]),
   education: z.array(GenerationEducationSchema).optional().default([]),
   projects: z.array(ProjectSchema).optional().default([]),
-  skills: z.array(SkillGroupSchema).optional().default([]),
+  skills: z.array(GenerationSkillGroupSchema).optional().default([]),
   // Optional sections may be empty but should not block completion
   certifications: z.array(CertificationSchema).optional().default([]),
   awards: z.array(AwardSchema).optional().default([]),

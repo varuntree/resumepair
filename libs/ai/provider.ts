@@ -1,8 +1,10 @@
 /**
  * AI Provider Configuration
  *
- * Configures Google Generative AI (Gemini 2.0 Flash) for ResumePair.
+ * Configures Google Generative AI (Gemini 2.5 Flash) for ResumePair.
  * Uses Vercel AI SDK for provider-agnostic abstraction.
+ *
+ * Max output tokens: 32,768 (suitable for complex resume extraction)
  *
  * @module libs/ai/provider
  */
@@ -17,7 +19,7 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
-export const gemini = google('gemini-2.0-flash-exp');
+export const gemini = google('gemini-2.5-flash');
 
 /**
  * Default model settings for AI operations

@@ -14,6 +14,33 @@ export type UnifiedDocType = 'resume' | 'cover-letter'
 
 // TEMP DEBUG LOGGING (remove after investigation)
 const DEBUG_AI_CLIENT = true
+const CLIENT_LOG_PREFIX = '[UnifiedAIStore]'
+
+function debugLog(event: string, payload: Record<string, unknown> = {}): void {
+  if (!DEBUG_AI_CLIENT) return
+  try {
+    console.debug(`${CLIENT_LOG_PREFIX} ${event}`, payload)
+  } catch {
+    // ignore logging errors
+  }
+}
+
+function warnLog(event: string, payload: Record<string, unknown> = {}): void {
+  if (!DEBUG_AI_CLIENT) return
+  try {
+    console.warn(`${CLIENT_LOG_PREFIX} ${event}`, payload)
+  } catch {
+    // ignore logging errors
+  }
+}
+
+function errorLog(event: string, payload: Record<string, unknown> = {}): void {
+  try {
+    console.error(`${CLIENT_LOG_PREFIX} ${event}`, payload)
+  } catch {
+    // ignore logging errors
+  }
+}
 
 function summarizeSectionCounts(obj: any): string {
   if (!obj || typeof obj !== 'object') return 'null'
@@ -65,6 +92,7 @@ type UnifiedCore = {
   progress: number
   error: string | null
   abortController: AbortController | null
+  traceId: string | null
   start: (args: StartArgs) => Promise<void>
   cancel: () => void
   reset: () => void
@@ -80,6 +108,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
   final: null,
   error: null,
   abortController: null,
+  traceId: null,
 
   /**
    * Deep-merge helper for accumulating streaming partials
@@ -91,6 +120,15 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
   _deepMerge: undefined as any,
 
   async start({ docType, text, personalInfo, file, editorData }) {
+    debugLog('start:init', {
+      docType,
+      hasText: Boolean(text && text.trim().length > 0),
+      textLen: text?.length || 0,
+      hasFile: Boolean(file),
+      fileSize: file?.size || 0,
+      hasEditorData: Boolean(editorData),
+    })
+
     // Encode file if present
     let base64: string | undefined
     if (file) {
@@ -110,26 +148,21 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
       const CHUNK_SIZE = 8192  // Process 8KB at a time to stay well under argument limit
 
       let binary = ''
+      let chunkCounter = 0
       for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
         const chunk = bytes.subarray(i, i + CHUNK_SIZE)
         binary += String.fromCharCode(...chunk)
+        chunkCounter += 1
       }
       base64 = btoa(binary)
+      debugLog('start:file-encoded', {
+        fileSize: file.size,
+        base64Length: base64.length,
+        chunkCounter,
+      })
     }
 
     const abortController = new AbortController()
-    if (DEBUG_AI_CLIENT) {
-      // Avoid logging PII, only lengths and flags
-      const info = {
-        docType,
-        hasText: Boolean(text && text.trim().length > 0),
-        textLen: text?.length || 0,
-        hasFile: Boolean(file),
-        fileSize: file?.size || 0,
-        hasEditorData: Boolean(editorData),
-      }
-      console.debug('[UnifiedAIStore] start()', info)
-    }
     set({
       docType,
       isStreaming: true,
@@ -138,6 +171,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
       final: null,
       error: null,
       abortController,
+      traceId: null,
     } as Partial<UnifiedState>)
 
     try {
@@ -158,22 +192,31 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}))
-        if (DEBUG_AI_CLIENT) {
-          console.debug('[UnifiedAIStore] HTTP error', { status: res.status, payload })
-        }
+        errorLog('http-error', { status: res.status, payload })
         throw new Error(payload.message || `HTTP ${res.status}`)
       }
 
       if (!res.body) throw new Error('Empty response body')
 
+      const traceId = res.headers.get('X-Trace-Id') || null
+      debugLog('stream:start', { traceId })
+      set({ traceId } as Partial<UnifiedState>)
+
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let chunkIndex = 0
 
       let updateCount = 0
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+        chunkIndex += 1
+        debugLog('stream:chunk', {
+          traceId,
+          chunkIndex,
+          byteLength: value?.length || 0,
+        })
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
@@ -187,8 +230,8 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                 case 'progress':
                   {
                     const pct = Math.round((data.progress || 0) * 100)
-                    if (DEBUG_AI_CLIENT && (pct % 5 === 0 || pct >= 95)) {
-                      console.debug('[UnifiedAIStore] progress', { pct, traceId: data.traceId })
+                    if (pct % 5 === 0 || pct >= 95) {
+                      debugLog('progress', { pct, traceId: data.traceId || traceId })
                     }
                     set({ progress: pct })
                   }
@@ -218,27 +261,23 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
 
                     const nextPartial = deepMerge(state.partial ?? {}, data.data)
                     updateCount += 1
-                    if (DEBUG_AI_CLIENT) {
-                      const incomingKeys = Object.keys(data.data || {})
-                      console.debug('[UnifiedAIStore] update', {
-                        updateCount,
-                        incomingKeys,
-                        summary: summarizeSectionCounts(nextPartial),
-                        traceId: (data as any).traceId,
-                      })
-                    }
+                    const incomingKeys = Object.keys(data.data || {})
+                    debugLog('update', {
+                      updateCount,
+                      incomingKeys,
+                      summary: summarizeSectionCounts(nextPartial),
+                      traceId: (data as any).traceId || traceId,
+                    })
                     return { partial: nextPartial } as any
                   })
                   break
                 case 'complete':
-                  if (DEBUG_AI_CLIENT) {
-                    console.debug('[UnifiedAIStore] complete', {
-                      updateCount,
-                      summary: summarizeSectionCounts(data.data),
-                      traceId: data.traceId,
-                      duration: data.duration,
-                    })
-                  }
+                  debugLog('complete', {
+                    updateCount,
+                    summary: summarizeSectionCounts(data.data),
+                    traceId: data.traceId || traceId,
+                    duration: data.duration,
+                  })
                   if (docType === 'resume') {
                     set({ final: data.data as ResumeJson, partial: data.data as ResumeJson, isStreaming: false, progress: 100 } as any)
                   } else {
@@ -246,35 +285,44 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
                   }
                   break
                 case 'error':
-                  if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] error', data)
+                  warnLog('stream-error-event', {
+                    traceId: data.traceId || traceId,
+                    message: data.message,
+                  })
                   set({ error: data.message || 'Generation failed', isStreaming: false })
                   break
               }
             } catch (e) {
-              console.warn('[UnifiedAI] parse error', e)
+              warnLog('parse-error', {
+                traceId,
+                error: e instanceof Error ? e.message : 'unknown',
+              })
             }
           }
         }
       }
 
-      if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] stream end')
+      debugLog('stream:end', { traceId, updateCount, chunkIndex })
       set({ isStreaming: false, abortController: null })
     } catch (err) {
       if ((err as any)?.name === 'AbortError') return
-      if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] exception', err)
+      errorLog('exception', {
+        traceId: get().traceId,
+        message: err instanceof Error ? err.message : String(err),
+      })
       set({ error: err instanceof Error ? err.message : 'Request failed', isStreaming: false, abortController: null })
-      }
+    }
   },
 
   cancel() {
     const ac = get().abortController
     if (ac) ac.abort()
-    if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] cancel()')
+    debugLog('cancel', { traceId: get().traceId })
     set({ isStreaming: false, progress: 0, abortController: null })
   },
 
   reset() {
-    if (DEBUG_AI_CLIENT) console.debug('[UnifiedAIStore] reset()')
+    debugLog('reset', { traceId: get().traceId })
     set({
       docType: null,
       isStreaming: false,
@@ -283,6 +331,7 @@ export const useUnifiedAIStore = create<UnifiedState>((set, get) => ({
       final: null,
       error: null,
       abortController: null,
+      traceId: null,
     } as Partial<UnifiedState>)
   },
 }))
