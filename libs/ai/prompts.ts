@@ -1,223 +1,128 @@
 /**
  * AI Prompts for Resume Operations
- *
- * Contains all prompts used for AI-powered resume processing.
- * Prompts follow Gemini 2.0 best practices for optimal results.
- *
- * @module libs/ai/prompts
  */
 
-/**
- * Build extraction prompt for parsing resume text to ResumeJson (Legacy)
- *
- * @deprecated Use buildPDFExtractionPrompt() for multimodal PDF parsing
- * @param text - Raw text extracted from PDF
- * @returns Formatted prompt for AI extraction
- */
-export function buildExtractionPrompt(text: string): string {
-  return `You are an expert resume parser with deep knowledge of ATS formats and resume structures.
-
-TASK:
-Extract structured resume data from the following text and convert it to a valid ResumeJson format.
-
-STRICT RULES:
-1. TRUTHFULNESS: Only extract explicitly stated information - never fabricate or infer data
-2. EXACT WORDING: Preserve the exact wording from the original text
-3. DATE FORMAT: Convert all dates to ISO format (YYYY-MM-DD). If only month/year known, use first day of month
-4. SKILL GROUPING: Group similar skills into categories (e.g., "Programming Languages", "Frameworks", "Tools")
-5. CURRENT ROLES: Use endDate="Present" for current positions
-6. BULLETS: Preserve bullet points as arrays of strings
-7. MISSING DATA: Leave optional fields undefined if not present in text
-
-CONTEXT:
-The text is from a PDF resume upload and may contain OCR errors. Handle formatting inconsistencies gracefully.
-
-RESUME TEXT:
-${text}
-
-OUTPUT FORMAT:
-Return a complete ResumeJson object with:
-- profile: { fullName, email, phone?, location?, links? }
-- summary?: string (if professional summary present)
-- work?: Array of work experiences with company, role, dates, bullets
-- education?: Array of education entries
-- skills?: Array of skill groups with categories
-- projects?: Array of projects (if present)
-- certifications?: Array of certifications (if present)
-
-Focus on accuracy over completeness. Better to leave a field empty than to guess.`;
-}
-
-/**
- * Build PDF extraction prompt for multimodal parsing (Phase 4.5)
- *
- * Designed for Gemini multimodal API with native PDF input.
- * Leverages document layout and visual hierarchy understanding.
- *
- * @returns Formatted prompt for PDF extraction
- */
-export function buildPDFExtractionPrompt(): string {
-  return `You are extracting resume data from a PDF document.
-
-CONTEXT:
-- You can see the document layout, formatting, and visual hierarchy
-- Handle scanned PDFs, LinkedIn exports, Indeed exports, and custom formats
-- Dates may appear in various formats
-
-STRICT EXTRACTION RULES:
-1) TRUTHFULNESS: Only extract explicitly stated information — NEVER fabricate.
-2) OUTPUT SHAPE: Your output MUST conform to the following ResumeJson shape exactly (keys and types).
-3) MISSING FIELDS: If a value is unknown, OMIT the field. Do NOT output the string "null", "undefined", or "N/A".
-4) DATE FORMAT: Use YYYY-MM when month precision is known, or YYYY-MM-DD when day precision is known.
-   - For current roles use endDate: "Present" or null (not a date string).
-5) URLS: Only include URLs that start with http:// or https://. Otherwise omit.
-6) PHOTO: Only include photo if url is a valid http(s) URL. Otherwise omit photo entirely.
-7) ARRAYS: Use arrays for bullets/lists. If there are no items, return an empty array.
-8) TEXT: Trim whitespace; preserve original wording.
-
-OUTPUT FORMAT (MATCH THIS SCHEMA EXACTLY):
-{
-  "profile": {
-    "fullName": "string",
-    "headline": "string?",
-    "email": "string",
-    "phone": "string?",
-    "location": { "city": "string?", "region": "string?", "country": "string?", "postal": "string?" }?,
-    "links": [{ "type": "linkedin|github|portfolio|other?", "label": "string?", "url": "string" }]?,
-    "photo": { "url": "string", "path": "string" }?
-  },
-  "summary": "string?",
-  "work": [{
-    "company": "string",
-    "role": "string",
-    "location": "string?",
-    "startDate": "YYYY-MM or YYYY-MM-DD",
-    "endDate": "YYYY-MM or YYYY-MM-DD or Present or null",
-    "descriptionBullets": ["string"]?,
-    "achievements": ["string"]?,
-    "techStack": ["string"]?
-  }]?,
-  "education": [{
-    "school": "string",
-    "degree": "string",
-    "field": "string?",
-    "startDate": "YYYY-MM or YYYY-MM-DD?",
-    "endDate": "YYYY-MM or YYYY-MM-DD?",
-    "details": ["string"]?
-  }]?,
-  "projects": [{
-    "name": "string",
-    "link": "string?",
-    "summary": "string?",
-    "bullets": ["string"]?,
-    "techStack": ["string"]?
-  }]?,
-  "skills": [{
-    "category": "string",
-    "items": ["string"]  // Array of skill names as strings (e.g., ["JavaScript", "Python", "React"])
-  }]?,
-  "certifications": [{ "name": "string", "issuer": "string", "date": "YYYY-MM or YYYY-MM-DD?" }]?,
-  "awards": [{ "name": "string", "org": "string", "date": "YYYY-MM or YYYY-MM-DD?", "summary": "string?" }]?,
-  "languages": [{ "name": "string", "level": "Native"|"Fluent"|"Professional"|"Conversational"|"Basic" }]?,
-  "extras": [{ "title": "string", "content": "string" }]?
-}
-
-QUALITY CHECKS BEFORE RETURNING:
-- No string values equal to "null", "undefined", or "N/A".
-- Dates follow the specified formats.
-- All URLs begin with http:// or https://.
-- Omit any field you cannot determine. Do not guess.
-
-Return ONLY the JSON object.`;
-}
-
-/**
- * Personal information for resume generation
- */
 export interface PersonalInfo {
-  name?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
+  name?: string
+  email?: string
+  phone?: string
+  location?: string
 }
 
-/**
- * Build generation prompt for creating resume from job description
- *
- * @param jobDescription - Target job description
- * @param personalInfo - Optional personal information to seed the resume
- * @returns Formatted prompt for AI generation
- */
-export function buildGenerationPrompt(
-  jobDescription: string,
+export interface ResumePromptOptions {
+  jobDescription?: string
+  userInstructions?: string
+  editorData?: unknown
   personalInfo?: PersonalInfo
-): string {
-  const personalInfoText = personalInfo
-    ? `
-PERSONAL INFORMATION:
-Name: ${personalInfo.name || 'Not provided'}
-Email: ${personalInfo.email || 'Not provided'}
-Phone: ${personalInfo.phone || 'Not provided'}
-Location: ${personalInfo.location || 'Not provided'}
-`
-    : '';
-
-  return `You are a professional resume writer. Generate a complete, ATS-optimized resume tailored to this job description.
-
-JOB DESCRIPTION:
-${jobDescription}
-${personalInfoText}
-
-STRICT REQUIREMENTS:
-1. TRUTHFULNESS: Create 3-4 work experiences highly relevant to the job (realistic but not fabricated from real people)
-2. PROJECTS: Include 2-3 projects showcasing required skills from the job description
-3. SKILLS: Extract key skills directly from the job description
-4. ACTION VERBS: Use strong action verbs (Led, Architected, Implemented, Designed, Built)
-5. QUANTIFIABLE ACHIEVEMENTS: Include metrics where appropriate (%, time saved, users impacted)
-6. DATE FORMAT: Use ISO strings (YYYY-MM-DD) for all dates
-7. URL FORMAT: All URLs must include protocol (https://linkedin.com/... not linkedin.com/...)
-8. CONCISENESS: Keep bullet points to 10-15 words maximum
-9. EDUCATION: Include relevant education and certifications
-10. CONSISTENCY: Use present tense for current roles, past tense for previous roles
-11. ATS OPTIMIZATION: Use standard section headers, avoid graphics or tables
-12. OUTPUT KEYS: Always include top-level arrays for education, projects, and skills. Do not omit these keys.
-13. MINIMUM CONTENT: Include at least 1 education entry, at least 1 projects entry, and at least 1 skills group (with 5-8 items).
-14. LAYOUT FIELDS: Do not include settings or appearance unless necessary. If included, margins must be pixel values between 8 and 144 (not inches).
-
-OUTPUT FORMAT:
-Generate a complete ResumeJson object with:
-- profile: Complete contact information
-- summary: 2-3 sentence professional summary highlighting key qualifications
-- work: 3-4 relevant work experiences with compelling bullet points (array)
-- education: At least 1 relevant degree and institution (array)
-- skills: At least 1 group with 5-8 items matching job requirements (array)
-- projects: 2-3 projects demonstrating required skills (array)
-- certifications: Relevant certifications (if applicable to the role)
-
-Focus on creating a resume that would realistically match this job posting while being truthful and impactful.`;
+  tone?: 'default' | 'concise' | 'enthusiastic'
 }
 
-/**
- * Build repair prompt for invalid JSON responses
- * Used when initial generation fails schema validation
- *
- * @param invalidResponse - The invalid response from previous attempt
- * @param validationError - Error message from Zod validation
- * @returns Repair prompt
- */
-export function buildRepairPrompt(
-  invalidResponse: string,
-  validationError: string
-): string {
-  return `The previous resume generation had validation errors. Please fix them.
+function formatPersonalInfo(info?: PersonalInfo): string {
+  if (!info) return ''
+  const parts: string[] = []
+  if (info.name) parts.push(`- Name: ${info.name}`)
+  if (info.email) parts.push(`- Email: ${info.email}`)
+  if (info.phone) parts.push(`- Phone: ${info.phone}`)
+  if (info.location) parts.push(`- Location: ${info.location}`)
+  return parts.length ? `PERSONAL INFO:\n${parts.join('\n')}` : ''
+}
 
-VALIDATION ERROR:
-${validationError}
+function formatEditorDataSnippet(data: unknown): string {
+  if (!data) return ''
+  try {
+    const trimmed = JSON.stringify(data, null, 2)
+    const snippet = trimmed.length > 2000 ? `${trimmed.slice(0, 2000)}\n...` : trimmed
+    return [
+      'STRUCTURED DATA TO HONOR:',
+      '```json',
+      snippet,
+      '```',
+    ].join('\n\n')
+  } catch {
+    return ''
+  }
+}
 
-PREVIOUS RESPONSE:
-${invalidResponse}
+function formatUserInstructions(text?: string): string {
+  if (!text || !text.trim()) return ''
+  return `USER INSTRUCTIONS:\n${text.trim()}`
+}
 
-Fix the validation errors while maintaining the content quality. Ensure the output is a valid ResumeJson object.`;
+export function buildResumePDFPrompt(options: ResumePromptOptions = {}): string {
+  const blocks = [
+    'Persona: You are an ATS-savvy resume analyst.',
+    'Task: Extract ALL content from the PDF and return a COMPLETE ResumeJson object. Include profile, summary, work, education, projects, skills, certifications, awards, languages, and extras.',
+    'Context: Extract EVERY work experience entry, EVERY education entry, EVERY project, and ALL skills. Use original wording, respect current roles with endDate="Present", use YYYY-MM-DD dates, and include http:// or https:// URLs only.',
+    'CRITICAL: Do NOT stop early. Extract the ENTIRE document - all work experiences, all education, all projects, all skills, all certifications. The response must be complete.',
+    'Format: Return ONLY valid JSON. No explanations, no markdown - just the JSON object with ALL sections filled.',
+  ]
+
+  const instructions = [
+    formatPersonalInfo(options.personalInfo),
+    formatUserInstructions(options.userInstructions),
+    formatEditorDataSnippet(options.editorData),
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+
+  return `${blocks.join('\n\n')}${instructions ? `\n\n${instructions}` : ''}`
+}
+
+export function buildResumeTextPrompt(options: ResumePromptOptions): string {
+  const blocks = [
+    'Persona: You are a professional resume writer who understands ATS requirements.',
+    'Task: Craft a COMPLETE ResumeJson object with ALL sections filled. Generate realistic, detailed content for profile, summary, work, education, projects, skills, certifications, awards, and languages.',
+    'Context: Create 3-4 work experiences with 4-6 bullet points each, 2-3 projects, 5-6 skill groups, 1-2 education entries, and 2-3 certifications. Use strong action verbs, include metrics, and keep bullets under 20 words. Dates should use YYYY-MM-DD format.',
+    'CRITICAL: Generate ALL sections - do not stop early. The response MUST include profile, summary, work (array), education (array), projects (array), skills (array), certifications (array), awards (array), and languages (array).',
+    'Format: Return ONLY valid JSON. No explanations, no markdown, no code blocks - just the JSON object.',
+  ]
+
+  const details: string[] = []
+  if (options.jobDescription) {
+    details.push(`JOB DESCRIPTION:\n${options.jobDescription.trim()}`)
+  }
+  const personalInfoBlock = formatPersonalInfo(options.personalInfo)
+  if (personalInfoBlock) details.push(personalInfoBlock)
+  const editorBlock = formatEditorDataSnippet(options.editorData)
+  if (editorBlock) details.push(editorBlock)
+  const instructionBlock = formatUserInstructions(options.userInstructions)
+  if (instructionBlock) details.push(instructionBlock)
+
+  return `${blocks.join('\n\n')}\n\n${details.join('\n\n')}`
+}
+
+export function buildResumeEditorPrompt(options: ResumePromptOptions): string {
+  const editorBlock = formatEditorDataSnippet(options.editorData)
+  return `Persona: You are refining an existing resume into ResumeJson format.
+
+Task: Use the provided structured data to produce a complete ResumeJson object. Fill reasonable gaps (summary, bullet polish) but never invent personal identifiers.
+
+Context: Keep original meaning, trim whitespace, keep bullets concise, ensure dates use YYYY-MM-DD or YYYY-MM, drop settings/appearance unless included.
+
+${editorBlock || 'Structured data will be provided; respect its values exactly.'}
+
+Output: Return JSON only.`
+}
+
+export function buildExtractionPrompt(text: string): string {
+  return `Persona: You are an ATS resume analyst.
+
+Task: Convert the following resume text into a ResumeJson object with sections profile, summary, work, education, projects, skills, certifications, awards, languages, extras.
+
+Context: Text may include OCR noise. Omit unknown fields, keep wording concise, use YYYY-MM or YYYY-MM-DD for dates, and only include http(s) URLs.
+
+Output: Return JSON only.
+
+Resume text:
+${text.trim()}`
+}
+
+export function buildPDFExtractionPrompt(): string {
+  return buildResumePDFPrompt()
+}
+
+export function buildGenerationPrompt(jobDescription: string, personalInfo?: PersonalInfo): string {
+  return buildResumeTextPrompt({ jobDescription, personalInfo })
 }
 
 /**

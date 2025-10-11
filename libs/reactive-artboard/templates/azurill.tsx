@@ -5,6 +5,9 @@ import type {
   CustomSectionGroup,
   Interest,
   Language,
+  Education,
+  Experience,
+  Volunteer,
   Profile,
   Project,
   Publication,
@@ -14,7 +17,6 @@ import type {
   Skill,
   URL,
 } from "../schema";
-import { Education, Experience, Volunteer } from "../schema";
 import { cn, isEmptyString, isUrl, linearTransform, sanitize } from "../utils";
 import get from "lodash/get";
 import React, { Fragment } from "react";

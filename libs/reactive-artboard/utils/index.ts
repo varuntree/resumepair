@@ -85,11 +85,7 @@ export function sanitize(html: string, options?: DOMPurify.Config): string {
       'var',
       'wbr',
     ],
-    ALLOWED_ATTR: {
-      '*': ['class', 'style'],
-      a: ['href', 'target', 'rel'],
-      img: ['src', 'alt'],
-    },
+    ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'rel', 'src', 'alt'],
     ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|sms):|[^a-z]|[a-z+\.\-]+(?:[^a-z+\.\-:]|$))/i,
   }
 

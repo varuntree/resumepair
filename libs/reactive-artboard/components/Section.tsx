@@ -23,7 +23,9 @@ export function Section<T>({
 
   const hasItems = 'items' in section
   const items = hasItems
-    ? (section.items as Array<T & { visible?: boolean }>).filter((item) => (item as any)?.visible !== false)
+    ? (section.items as unknown as Array<T & { visible?: boolean }>).filter(
+        (item) => (item as any)?.visible !== false
+      )
     : []
 
   const hasContent = 'content' in section

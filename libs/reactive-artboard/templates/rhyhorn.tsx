@@ -14,7 +14,7 @@ import type {
   Skill,
   URL,
 } from "../schema";
-import { Education, Experience, Volunteer } from "../schema";
+import type { Education, Experience, Volunteer } from "../schema";
 import { cn, isEmptyString, isUrl, sanitize } from "../utils";
 import get from "lodash/get";
 import { Fragment } from "react";

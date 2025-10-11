@@ -14,7 +14,7 @@ import type {
   Skill,
   URL,
 } from "../schema";
-import { Education, Experience, Volunteer } from "../schema";
+import type { Education, Experience, Volunteer } from "../schema";
 import {
   cn,
   hexToRgb,

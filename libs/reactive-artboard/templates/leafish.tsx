@@ -13,7 +13,7 @@ import type {
   Skill,
   URL,
 } from "../schema";
-import { Education, Experience, Volunteer } from "../schema";
+import type { Education, Experience, Volunteer } from "../schema";
 import { cn, hexToRgb, isEmptyString, isUrl, sanitize } from "../utils";
 import get from "lodash/get";
 import React, { Fragment } from "react";

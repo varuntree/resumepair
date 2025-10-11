@@ -1,11 +1,8 @@
 import * as React from 'react'
-import type { ArtboardDocument, ArtboardRichTextBlock, ArtboardSection } from '../types'
+import type { ArtboardRichTextBlock, ArtboardSection } from '../types'
 
-type TemplateProps = {
-  document: ArtboardDocument
-}
-
-export function CoverLetterTemplate({ document }: TemplateProps): React.ReactElement {
+export function CoverLetterTemplate({ document }: { document?: any }): React.ReactElement {
+  if (!document) return <div />
   const sender = findCustomSection(document.sections, 'sender')
   const meta = findCustomSection(document.sections, 'meta')
   const recipient = findCustomSection(document.sections, 'recipient')

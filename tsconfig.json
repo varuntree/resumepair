@@ -41,14 +41,24 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "libs/ai/**/*.ts",
+    "libs/sanitization/**/*.ts",
+    "libs/validation/**/*.ts",
+    "libs/repositories/**/*.ts",
+    "libs/exporters/**/*.ts",
+    "stores/**/*.ts",
+    "types/**/*.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "agents",
-    "ai_docs"
+    "ai_docs",
+    "libs/reactive-artboard",
+    "libs/reactive-artboard/**/*"
   ]
 }

@@ -13,11 +13,11 @@ import StreamingIndicator from './StreamingIndicator'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { useUnifiedAIStore } from '@/stores/unifiedAIStore'
 import type { ResumeJson } from '@/types/resume'
 import type { CoverLetterJson } from '@/types/cover-letter'
 import { useDocumentStore } from '@/stores/documentStore'
 import { useCoverLetterStore } from '@/stores/coverLetterStore'
+import { useUnifiedAIStore } from '@/stores/unifiedAIStore'
 
 type DocType = 'resume' | 'cover-letter'
 
@@ -49,13 +49,13 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
   const [file, setFile] = useState<File | null>(null)
   const [personalInfo, setPersonalInfo] = useState<any>({})
 
-  const { storeDocType, isStreaming, progress, partial, final, error, start, cancel, reset, traceId } = useUnifiedAIStore(
+  const { storeDocType, isStreaming, final, warnings, usage, error, start, cancel, reset, traceId } = useUnifiedAIStore(
     useShallow((s) => ({
       storeDocType: s.docType,
       isStreaming: s.isStreaming,
-      progress: s.progress,
-      partial: s.partial,
       final: s.final,
+      warnings: s.warnings,
+      usage: s.usage,
       error: s.error,
       start: s.start,
       cancel: s.cancel,
@@ -96,12 +96,11 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
 
   const onApply = () => {
     if (storeDocType && storeDocType !== docType) return
-    const data = final || partial
+    const data = final
     if (!data) return
     logEvent('onApply', {
       docType,
       hasFinal: Boolean(final),
-      hasPartial: Boolean(partial),
       sectionSummary: summarizeSectionsForLog(data),
     })
     if (docType === 'resume') {
@@ -124,11 +123,11 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
     const handleSaved = (event: Event) => {
       const e = event as CustomEvent
       const savedDocType = e?.detail?.docType
-      if (savedDocType === docType && (final || partial)) {
+      if (savedDocType === docType && final) {
         logEvent('document:saved', {
           docType,
           detail: e.detail,
-          sectionSummary: summarizeSectionsForLog(final || partial),
+          sectionSummary: summarizeSectionsForLog(final),
         })
         // Clear AI store once data is safely saved to server
         reset()
@@ -142,7 +141,7 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
         window.removeEventListener('document:saved', handleSaved)
       }
     }
-  }, [docType, final, partial, reset, logEvent])
+  }, [docType, final, reset, logEvent])
 
   return (
     <div className="space-y-4">
@@ -177,22 +176,41 @@ export default function UnifiedAITool({ docType, editorData }: UnifiedAIToolProp
           {isStreaming ? 'Generating…' : 'Generate'}
         </Button>
         {isStreaming && (
-          <Button variant="ghost" onClick={cancel} type="button">
-            Cancel
-          </Button>
-        )}
-        {(final || partial) && !isStreaming && (
-          <Button variant="secondary" onClick={onApply} type="button">
-            Apply to Editor
-          </Button>
-        )}
-      </div>
+        <Button variant="ghost" onClick={cancel} type="button">
+          Cancel
+        </Button>
+      )}
+      {final && !isStreaming && (
+        <Button variant="secondary" onClick={onApply} type="button">
+          Apply to Editor
+        </Button>
+      )}
+    </div>
 
       {/* Error */}
       {error && <p className="text-xs text-destructive">{error}</p>}
 
+      {/* Warnings */}
+      {!isStreaming && warnings?.length > 0 && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <p className="mb-1 font-medium">Heads up:</p>
+          <ul className="space-y-1">
+            {warnings.map((warning) => (
+              <li key={warning}>• {warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Usage */}
+      {!isStreaming && usage && (usage.inputTokens || usage.outputTokens) ? (
+        <p className="text-xs text-muted-foreground">
+          Tokens used — input: {usage.inputTokens ?? 0}, output: {usage.outputTokens ?? 0}
+        </p>
+      ) : null}
+
       {/* Floating indicator */}
-      <StreamingIndicator isGenerating={isStreaming} currentSection={null} progress={progress} onCancel={cancel} />
+      <StreamingIndicator isGenerating={isStreaming} onCancel={cancel} label={docType === 'resume' ? 'Generating resume…' : 'Generating cover letter…'} />
     </div>
   )
 }

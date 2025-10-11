@@ -44,6 +44,7 @@ export async function renderArtboardToHtml(
       React.createElement(Template, {
         columns: columns as SectionKey[][],
         isFirstPage: pageIndex === 0,
+        document,
       })
     )
   )

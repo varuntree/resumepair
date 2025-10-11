@@ -10,11 +10,13 @@ export type ArtboardTypography = {
   lineHeight: number
 }
 
+import type { PageFormat } from './constants/page'
+
 export type ArtboardMetadata = {
   colors: ArtboardColorScheme
   typography: ArtboardTypography
   page: {
-    format: 'A4' | 'Letter'
+    format: PageFormat
     margin: number
     showPageNumbers: boolean
   }

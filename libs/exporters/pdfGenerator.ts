@@ -28,6 +28,31 @@ export interface PdfGenerationOptions {
   }
 }
 
+export function validatePdfBuffer(buffer: Buffer | null | undefined): boolean {
+  return Boolean(buffer && Buffer.isBuffer(buffer) && buffer.length > 0)
+}
+
+export function generateExportFilename(data: ResumeJson, format: string): string {
+  const safeName = (data?.profile?.fullName || 'resume')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  const extension = format === 'pdf' ? 'pdf' : format
+  return `${safeName || 'resume'}-${Date.now()}.${extension}`
+}
+
+export function generateCoverLetterFilename(data: CoverLetterJson, format: string): string {
+  const company = data?.to?.companyName || 'cover-letter'
+  const safeName = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const extension = format === 'pdf' ? 'pdf' : format
+  return `${safeName || 'cover-letter'}-${Date.now()}.${extension}`
+}
+
+export function calculateStoragePath(userId: string, documentId: string, format: string): string {
+  const extension = format === 'pdf' ? 'pdf' : format
+  return `${userId}/${documentId}/${Date.now()}.${extension}`
+}
+
 const PDF_QUALITY_SETTINGS = {
   standard: {
     printBackground: true,
@@ -133,7 +158,10 @@ async function generatePdf<T>({ type, data, mapDocument, options }: GeneratorInp
       // No page markers found; fall back to single-pass PDF
       const fallback = await page.pdf({
         ...PDF_QUALITY_SETTINGS[quality],
-        format: artboardDocument.metadata.page.format === 'a4' ? 'A4' : 'Letter',
+        format:
+          String(artboardDocument.metadata.page.format).toLowerCase() === 'a4'
+            ? 'A4'
+            : 'Letter',
         margin: uniformMargin(artboardDocument.metadata.page.margin),
       })
       mergedBuffer = Buffer.from(fallback)
@@ -147,7 +175,10 @@ async function generatePdf<T>({ type, data, mapDocument, options }: GeneratorInp
       } else {
         const fallback = await page.pdf({
           ...PDF_QUALITY_SETTINGS[quality],
-          format: artboardDocument.metadata.page.format === 'a4' ? 'A4' : 'Letter',
+          format:
+            String(artboardDocument.metadata.page.format).toLowerCase() === 'a4'
+              ? 'A4'
+              : 'Letter',
           margin: uniformMargin(artboardDocument.metadata.page.margin),
         })
         mergedBuffer = Buffer.from(fallback)

@@ -30,7 +30,6 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Progress } from '@/components/ui/progress'
 import { Sparkles, FileText, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { CoverLetterJson } from '@/types/cover-letter'
@@ -63,10 +62,9 @@ export function GenerateDialog({
   const [tone, setTone] = React.useState<Tone>('formal')
   const [length, setLength] = React.useState<Length>('medium')
   const [isPreparing, setIsPreparing] = React.useState(false)
-  const { isStreaming, progress, final, start, reset } = useUnifiedAIStore(
+  const { isStreaming, final, start, reset } = useUnifiedAIStore(
     useShallow((s: any) => ({
       isStreaming: s.isStreaming,
-      progress: s.progress,
       final: s.final,
       start: s.start,
       reset: s.reset,
@@ -274,12 +272,14 @@ export function GenerateDialog({
 
           {/* Generation Progress */}
           {(isPreparing || isStreaming) && (
-            <div className="space-y-2 p-4 rounded-lg border border-border bg-muted/30">
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-4">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <p className="text-sm font-medium">{isPreparing ? 'Preparing…' : 'Generating cover letter…'}</p>
               </div>
-              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                This usually takes a few seconds. Feel free to tweak other fields while you wait.
+              </p>
             </div>
           )}
         </div>

@@ -20,7 +20,11 @@ export function ArtboardRenderer({ document }: ArtboardRendererProps): React.Rea
       <style dangerouslySetInnerHTML={{ __html: style }} />
       {document.layout.map((columns, pageIndex) => (
         <Page key={pageIndex} mode="preview" pageNumber={pageIndex + 1}>
-          <Template columns={columns as SectionKey[][]} isFirstPage={pageIndex === 0} />
+          <Template
+            columns={columns as SectionKey[][]}
+            isFirstPage={pageIndex === 0}
+            document={document}
+          />
         </Page>
       ))}
     </div>
