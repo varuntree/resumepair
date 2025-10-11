@@ -1,5 +1,5 @@
 This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
-The content has been processed where comments have been removed, empty lines have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter), security check has been disabled.
+The content has been processed where comments have been removed, empty lines have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
 
 <file_summary>
 This section contains a summary of this file.
@@ -34,11 +34,12 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: app/api/v1/ai/unified/route.ts, libs/ai/*.ts, libs/validation/resume.ts, libs/validation/cover-letter.ts, types/resume.ts, types/cover-letter.ts, libs/sanitization/resume.ts, libs/repositories/normalizers.ts, libs/repositories/aiOperations.ts, components/ai/*.tsx, stores/unifiedAIStore.ts, components/preview/LivePreview.tsx, components/preview/UnifiedStreamOverlay.tsx, components/preview/ArtboardFrame.tsx, libs/reactive-artboard/renderer/ArtboardRenderer.tsx, libs/reactive-artboard/server/renderToHtml.ts, libs/reactive-artboard/templates/index.tsx, libs/reactive-artboard/templates/kakuna.tsx, libs/reactive-artboard/templates/onyx.tsx, libs/reactive-artboard/catalog.ts, libs/reactive-artboard/schema/index.ts, libs/reactive-artboard/schema/basics/index.ts, libs/reactive-artboard/schema/sections/index.ts, libs/reactive-artboard/schema/sections/experience.ts, libs/reactive-artboard/schema/sections/education.ts, libs/reactive-artboard/schema/sections/skill.ts, libs/reactive-artboard/schema/sections/project.ts, libs/reactive-artboard/schema/metadata/index.ts, libs/reactive-artboard/schema/sample.ts, libs/reactive-artboard/adapters/resumeData.ts, libs/reactive-artboard/mappers/resume.ts, libs/reactive-artboard/store/artboard.ts, libs/reactive-artboard/components/Section.tsx, libs/reactive-artboard/types.ts, libs/reactive-artboard/types/template.ts, stores/documentStore.ts, libs/samples/resumeSample.ts, scripts/test-generation.ts, package.json
+- Only files matching these patterns are included: components/preview/**, stores/previewStore.ts, stores/documentStore.ts, stores/createDocumentStore.ts, libs/utils/previewUtils.ts, libs/reactive-artboard/renderer/**, libs/reactive-artboard/components/Page.tsx, libs/reactive-artboard/constants/page.ts, libs/reactive-artboard/store/**, libs/reactive-artboard/mappers/resume.ts, libs/reactive-artboard/adapters/resumeData.ts, libs/reactive-artboard/index.ts, libs/reactive-artboard/types.ts, app/(app)/editor/[id]/page.tsx, components/editor/EditorLayout.tsx, package.json, tsconfig.json
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
 - Code comments have been removed from supported file types
 - Empty lines have been removed from all files
 - Content has been compressed - code blocks are separated by ⋮---- delimiter
-- Security check has been disabled - content may contain sensitive information
 - Files are sorted by Git change count (files with more changes are at the bottom)
 </notes>
 
@@ -50,275 +51,95 @@ The content is organized as follows:
 
 <directory_structure>
 app/
-  api/
-    v1/
-      ai/
-        unified/
-          route.ts
+  (app)/
+    editor/
+      [id]/
+        page.tsx
 components/
-  ai/
-    AIErrorBoundary.tsx
-    AIQuotaIndicator.tsx
-    GenerationPreview.tsx
-    JobDescriptionInput.tsx
-    JobMatchScore.tsx
-    PersonalInfoForm.tsx
-    StreamingIndicator.tsx
-    UnifiedAITool.tsx
+  editor/
+    EditorLayout.tsx
   preview/
     ArtboardFrame.tsx
+    CoverLetterLivePreview.tsx
+    index.ts
     LivePreview.tsx
+    PageNavigation.tsx
+    PreviewContainer.tsx
+    PreviewControls.tsx
+    PreviewError.tsx
+    PreviewSkeleton.tsx
     UnifiedStreamOverlay.tsx
+    ViewportSelector.tsx
+    ZoomControl.tsx
 libs/
-  ai/
-    cache.ts
-    prompts.ts
-    provider.ts
-    rateLimiter.ts
-    resumeGenerator.ts
   reactive-artboard/
     adapters/
       resumeData.ts
     components/
-      Section.tsx
+      Page.tsx
+    constants/
+      page.ts
     mappers/
       resume.ts
     renderer/
       ArtboardRenderer.tsx
-    schema/
-      basics/
-        index.ts
-      metadata/
-        index.ts
-      sections/
-        education.ts
-        experience.ts
-        index.ts
-        project.ts
-        skill.ts
-      index.ts
-      sample.ts
-    server/
-      renderToHtml.ts
     store/
       artboard.ts
-    templates/
-      index.tsx
-      kakuna.tsx
-      onyx.tsx
-    types/
-      template.ts
-    catalog.ts
+    index.ts
     types.ts
-  repositories/
-    aiOperations.ts
-    normalizers.ts
-  samples/
-    resumeSample.ts
-  sanitization/
-    resume.ts
-  validation/
-    cover-letter.ts
-    resume.ts
-scripts/
-  test-generation.ts
+  utils/
+    previewUtils.ts
 stores/
+  createDocumentStore.ts
   documentStore.ts
-  unifiedAIStore.ts
-types/
-  cover-letter.ts
-  resume.ts
+  previewStore.ts
 package.json
+tsconfig.json
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
 
-<file path="components/ai/AIErrorBoundary.tsx">
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
-interface Props {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}
-interface State {
-  hasError: boolean;
-  error?: Error;
-}
-⋮----
-constructor(props: Props)
-static getDerivedStateFromError(error: Error): State
-componentDidCatch(error: Error, errorInfo: React.ErrorInfo)
+<file path="components/preview/PageNavigation.tsx">
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { usePreviewStore } from '@/stores/previewStore'
 </file>
 
-<file path="components/ai/AIQuotaIndicator.tsx">
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Zap } from 'lucide-react';
-import { useEffect, useState } from 'react';
-interface QuotaData {
-  operationCount: number;
-  operationLimit: number;
-  remainingOperations: number;
-  totalCost: number;
-  resetIn: number;
-}
-⋮----
-const fetchQuota = async () =>
-⋮----
-const formatTime = (seconds: number): string =>
-⋮----
-{/* Header */}
+<file path="components/preview/PreviewControls.tsx">
+import { ZoomControl } from './ZoomControl'
+import { PageNavigation } from './PageNavigation'
+import { ViewportSelector } from './ViewportSelector'
+export function PreviewControls(): React.ReactElement
 </file>
 
-<file path="components/ai/JobMatchScore.tsx">
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, XCircle, Lightbulb } from 'lucide-react';
-interface MatchResult {
-  overallScore: number;
-  alignment: {
-    score: number;
-    matchedKeywords: string[];
-    missingKeywords: string[];
-  };
-  skillsGap: {
-    score: number;
-    hasSkills: string[];
-    missingSkills: string[];
-    prioritySkills: string[];
-  };
-  recommendations: string[];
+<file path="components/preview/PreviewError.tsx">
+import { AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+interface PreviewErrorProps {
+  children: React.ReactNode
+  fallback?: React.ReactNode
 }
-interface Props {
-  result: MatchResult;
+interface PreviewErrorState {
+  hasError: boolean
+  error?: Error
+  errorInfo?: React.ErrorInfo
 }
 ⋮----
-const getScoreColor = (score: number) =>
-const getScoreLabel = (score: number) =>
+constructor(props: PreviewErrorProps)
+static getDerivedStateFromError(error: Error): PreviewErrorState
+componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void
 </file>
 
-<file path="libs/ai/cache.ts">
-import type { SupabaseClient } from '@supabase/supabase-js';
-export interface CacheEntry {
-  cache_key: string;
-  operation_type: string;
-  input_hash: string;
-  response: any;
-  hit_count: number;
-  created_at: string;
-  expires_at: string;
-}
-⋮----
-export async function generateCacheKey(
-  operationType: string,
-  content: string,
-  context?: Record<string, any>
-): Promise<string>
-/**
- * Get cached response if available and not expired
- *
- * @param supabase - Supabase client (server-side)
- * @param cacheKey - SHA-256 cache key
- * @returns Cached response or null if not found/expired
- */
-export async function getCachedResponse(
-  supabase: SupabaseClient,
-  cacheKey: string
-): Promise<any | null>
-export async function setCachedResponse(
-  supabase: SupabaseClient,
-  cacheKey: string,
-  operationType: string,
-  inputHash: string,
-  response: any
-): Promise<void>
-export async function generateInputHash(content: string): Promise<string>
-/**
- * Clean up expired cache entries
- * Should be called periodically (e.g., via cron job)
- *
- * @param supabase - Supabase client (server-side)
- * @returns Number of deleted entries
- */
-export async function cleanupExpiredCache(
-  supabase: SupabaseClient
-): Promise<number>
+<file path="components/preview/PreviewSkeleton.tsx">
+
 </file>
 
-<file path="libs/ai/rateLimiter.ts">
-import type { SupabaseClient } from '@supabase/supabase-js';
-export interface QuotaCheck {
-  allowed: boolean;
-  remaining: number;
-  resetAt: Date;
-  error?: string;
-}
-export async function checkDailyQuota(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<QuotaCheck>
-export async function incrementQuota(
-  supabase: SupabaseClient,
-  userId: string,
-  tokenCount: number,
-  cost: number
-): Promise<void>
-</file>
-
-<file path="libs/ai/resumeGenerator.ts">
-import { generateObject } from 'ai'
-import { ZodError } from 'zod'
-import { aiModel } from '@/libs/ai/provider'
-import { ResumeGenerativeSchema, ResumeJsonSchema, type ResumeGenerative } from '@/libs/validation/resume'
-import { sanitizeResumeData, sanitizeCoverLetterData } from '@/libs/sanitization/resume'
-import { normalizeResumeData, normalizeCoverLetterData } from '@/libs/repositories/normalizers'
-import type { ResumeJson } from '@/types/resume'
-import type { CoverLetterJson } from '@/types/cover-letter'
-import { CoverLetterJsonSchema } from '@/libs/validation/cover-letter'
-export type AIMessagePart =
-  | { type: 'text'; text: string }
-  | { type: 'file'; data: Uint8Array; mediaType: string }
-export interface ResumeGenerationOptions {
-  traceId: string
-  prompt?: string
-  parts?: AIMessagePart[]
-  temperature?: number
-  topP?: number
-  maxOutputTokens?: number
-  onUsage?: (usage: ResumeGenerationUsage) => void | Promise<void>
-}
-export interface ResumeGenerationUsage {
-  inputTokens?: number
-  outputTokens?: number
-  totalTokens?: number
-}
-export interface ResumeGenerationResult {
-  resume: ResumeJson
-  raw: ResumeGenerative
-  usage: ResumeGenerationUsage
-  warnings: string[]
-}
-export interface CoverLetterGenerationResult {
-  coverLetter: CoverLetterJson
-  usage: ResumeGenerationUsage
-  warnings: string[]
-}
-export class ResumeGenerationError extends Error
-⋮----
-constructor(
-    public code: 'VALIDATION_FAILED' | 'AI_ERROR',
-    message: string,
-    public cause?: unknown,
-    public traceId?: string
-)
-⋮----
-export async function generateResume(options: ResumeGenerationOptions): Promise<ResumeGenerationResult>
-export async function generateCoverLetter(options: ResumeGenerationOptions): Promise<CoverLetterGenerationResult>
+<file path="components/preview/ViewportSelector.tsx">
+import { Monitor, Tablet, Smartphone, Printer } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { usePreviewStore } from '@/stores/previewStore'
+export function ViewportSelector(): React.ReactElement
 </file>
 
 <file path="libs/reactive-artboard/adapters/resumeData.ts">
@@ -365,89 +186,10 @@ function generateId(): string
 function escapeHtml(value: string): string
 </file>
 
-<file path="libs/reactive-artboard/schema/basics/index.ts">
-import { z } from "zod";
-import { defaultUrl, urlSchema } from "../shared";
-import { customFieldSchema } from "./custom";
+<file path="libs/reactive-artboard/constants/page.ts">
+export type PageFormat = keyof typeof PAGE_SIZE_MM
 ⋮----
-// Type
-export type Basics = z.infer<typeof basicsSchema>;
-// Defaults
-</file>
-
-<file path="libs/reactive-artboard/schema/metadata/index.ts">
-import { z } from "zod";
-⋮----
-// Type
-export type Metadata = z.infer<typeof metadataSchema>;
-// Defaults
-</file>
-
-<file path="libs/reactive-artboard/schema/sections/education.ts">
-import { z } from "zod";
-import { defaultItem, defaultUrl, itemSchema, urlSchema } from "../shared";
-⋮----
-export type Education = z.infer<typeof educationSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/sections/experience.ts">
-import { z } from "zod";
-import { defaultItem, defaultUrl, itemSchema, urlSchema } from "../shared";
-⋮----
-export type Experience = z.infer<typeof experienceSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/sections/index.ts">
-import { z } from "zod";
-import type { FilterKeys } from "../shared";
-import { idSchema } from "../shared";
-import { awardSchema } from "./award";
-import { certificationSchema } from "./certification";
-import { customSectionSchema } from "./custom-section";
-import { educationSchema } from "./education";
-import { experienceSchema } from "./experience";
-import { interestSchema } from "./interest";
-import { languageSchema } from "./language";
-import { profileSchema } from "./profile";
-import { projectSchema } from "./project";
-import { publicationSchema } from "./publication";
-import { referenceSchema } from "./reference";
-import { skillSchema } from "./skill";
-import { volunteerSchema } from "./volunteer";
-⋮----
-export type Section = z.infer<typeof sectionSchema>;
-export type Sections = z.infer<typeof sectionsSchema>;
-export type SectionKey = "basics" | keyof Sections | `custom.${string}`;
-export type SectionWithItem<T = unknown> = Sections[FilterKeys<Sections, { items: T[] }>];
-export type SectionItem = SectionWithItem["items"][number];
-export type CustomSectionGroup = z.infer<typeof customSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/sections/project.ts">
-import { z } from "zod";
-import { defaultItem, defaultUrl, itemSchema, urlSchema } from "../shared";
-⋮----
-export type Project = z.infer<typeof projectSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/sections/skill.ts">
-import { z } from "zod";
-import { defaultItem, itemSchema } from "../shared";
-⋮----
-export type Skill = z.infer<typeof skillSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/index.ts">
-import { z } from "zod";
-import { basicsSchema, defaultBasics } from "./basics";
-import { defaultMetadata, metadataSchema } from "./metadata";
-import { defaultSections, sectionsSchema } from "./sections";
-⋮----
-export type ResumeData = z.infer<typeof resumeDataSchema>;
-</file>
-
-<file path="libs/reactive-artboard/schema/sample.ts">
-import type { ResumeData } from "./index";
+export function normalizePageFormat(format: string | undefined | null): PageFormat
 </file>
 
 <file path="libs/reactive-artboard/store/artboard.ts">
@@ -464,211 +206,113 @@ export const setArtboardResume = (resume: ResumeData) =>
 export const resetArtboardResume = () =>
 </file>
 
-<file path="libs/sanitization/resume.ts">
-import { type ResumeGenerative, ResumeGenerativeSchema } from '@/libs/validation/resume'
-import type { CoverLetterJson } from '@/types/cover-letter'
-import { z } from 'zod'
-type UnknownRecord = Record<string, unknown>
-⋮----
-function sanitizeEmail(value: unknown): string | undefined
-function sanitizePhone(value: unknown): string | undefined
-function sanitizeURL(value: unknown): string | undefined
-function sanitizeDate(value: unknown): string | undefined
-function sanitizeLinks(links: unknown): UnknownRecord[] | undefined
-function sanitizeCollection(collection: unknown, mapFn: (entry: UnknownRecord) => UnknownRecord | null): UnknownRecord[] | undefined
-export function sanitizeResumeData(data: unknown): ResumeGenerative
-export function sanitizeCoverLetterData(data: CoverLetterJson | undefined | null): CoverLetterJson | undefined
-</file>
-
-<file path="scripts/test-generation.ts">
-import { generateResume } from '../libs/ai/resumeGenerator'
-import { buildResumeTextPrompt } from '../libs/ai/prompts'
-import { config } from 'dotenv'
-⋮----
-async function testResumeGeneration()
-</file>
-
-<file path="components/ai/GenerationPreview.tsx">
-import { useEffect, useRef } from 'react'
-import { FileText } from 'lucide-react'
-import { getSkillLevelLabel } from '@/libs/utils'
-import type { ResumeTemplateId } from '@/types/resume'
-interface GenerationPreviewProps {
-  resume: any | null;
-  isGenerating: boolean;
-  template: ResumeTemplateId;
+<file path="libs/utils/previewUtils.ts">
+export interface ScrollPosition {
+  scrollTop: number
+  scrollLeft: number
+  timestamp: number
 }
+export function batchRAF(callback: () => void): () => void
 ⋮----
-
+const execute = () =>
 ⋮----
-{/* Projects */}
-⋮----
-{/* Generating indicator */}
+export function saveScrollPosition(container: HTMLElement): ScrollPosition
+export function restoreScrollPosition(
+  container: HTMLElement,
+  position: ScrollPosition
+): void
+export function calculatePages(
+  content: HTMLElement,
+  pageHeight: number = 1056
+): number
+export function measureUpdateTime(label: string, fn: () => void): void
+export function debounce<T extends (...args: any[]) => any>(
+  fn: T,
+  delay: number
+): T &
+export function throttle<T extends (...args: any[]) => any>(
+  fn: T,
+  delay: number
+): T
 </file>
 
-<file path="components/ai/JobDescriptionInput.tsx">
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-interface JobDescriptionInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-}
-⋮----
-export default function JobDescriptionInput({
-  value = '',
-  onChange,
-  disabled = false,
-}: JobDescriptionInputProps)
-⋮----
-{/* Character Count & Validation */}
+<file path="components/preview/index.ts">
+
 </file>
 
-<file path="components/ai/PersonalInfoForm.tsx">
-import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import type { PersonalInfo } from '@/libs/ai/prompts';
-interface PersonalInfoFormProps {
-  personalInfo?: PersonalInfo;
-  onChange: (info: Partial<PersonalInfo>) => void;
-  disabled?: boolean;
-}
-⋮----
-const handleChange = (field: keyof PersonalInfo, value: string) =>
-</file>
-
-<file path="components/ai/StreamingIndicator.tsx">
-import { Loader2, X } from 'lucide-react'
+<file path="components/preview/ZoomControl.tsx">
+import { Minus, Plus, ZoomIn } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-interface StreamingIndicatorProps {
-  isGenerating: boolean
-  onCancel: () => void
-  label?: string
-}
-export default function StreamingIndicator(
-</file>
-
-<file path="libs/ai/provider.ts">
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { usePreviewStore, ZOOM_LEVELS } from '@/stores/previewStore'
+export function ZoomControl(): React.ReactElement
 ⋮----
-export function getAIProvider()
-</file>
-
-<file path="libs/reactive-artboard/components/Section.tsx">
-import { sanitize, cn, isEmptyString } from '../utils'
-import { useMemo } from 'react'
-import type { ResumeData, SectionWithItem, CustomSectionGroup } from '../schema'
-export type SectionProps<T> = {
-  section: SectionWithItem<T> | CustomSectionGroup | ResumeData['sections']['summary']
-  children?: (item: T) => React.ReactNode
-  className?: string
-  headingClassName?: string
-  contentClassName?: string
-}
+const handleSelect = (value: string) =>
 ⋮----
-<h4 className=
-</file>
-
-<file path="libs/reactive-artboard/types/template.ts">
-import type { SectionKey } from '../schema'
-import type { ArtboardDocument } from '../types'
-export type TemplateProps = {
-  columns: SectionKey[][]
-  isFirstPage?: boolean
-  document?: ArtboardDocument
-}
-</file>
-
-<file path="libs/reactive-artboard/catalog.ts">
-import type { ResumeTemplateId } from '@/types/resume'
-export type ResumeTemplateMetadata = {
-  id: ResumeTemplateId
-  name: string
-  description: string
-  features: string[]
-  thumbnail: string
-  atsScore?: number
-}
+<SelectItem key=
 ⋮----
-export function listResumeTemplateMetadata(): ResumeTemplateMetadata[]
-export function getResumeTemplateMetadata(id: ResumeTemplateId): ResumeTemplateMetadata
+onClick=
 </file>
 
-<file path="libs/repositories/aiOperations.ts">
-import type { SupabaseClient } from '@supabase/supabase-js';
-export interface AIOperation {
-  id: string;
-  user_id: string;
-  operation_type: 'import' | 'generate' | 'enhance' | 'match';
-  input_tokens: number | null;
-  output_tokens: number | null;
-  cost: number | null;
-  duration_ms: number | null;
-  success: boolean;
-  error_message: string | null;
-  created_at: string;
+<file path="libs/reactive-artboard/components/Page.tsx">
+import { cn } from '../utils'
+import { useArtboardStore } from '../store/artboard'
+import {
+  DEFAULT_PAGE_FORMAT,
+  MM_TO_PX,
+  PAGE_SIZE_MM,
+  normalizePageFormat,
+  type PageFormat,
+} from '../constants/page'
+type PageProps = {
+  mode?: 'preview' | 'builder'
+  pageNumber: number
+  children: React.ReactNode
 }
-export interface CreateAIOperationInput {
-  user_id: string;
-  operation_type: 'import' | 'generate' | 'enhance' | 'match';
-  input_tokens?: number;
-  output_tokens?: number;
-  cost?: number;
-  duration_ms?: number;
-  success: boolean;
-  error_message?: string;
+</file>
+
+<file path="libs/reactive-artboard/index.ts">
+
+</file>
+
+<file path="stores/previewStore.ts">
+import { create } from 'zustand'
+import {
+  DEFAULT_PAGE_FORMAT,
+  MM_TO_PX,
+  PAGE_SIZE_MM,
+  type PageFormat,
+} from '@/libs/reactive-artboard/constants/page'
+⋮----
+const clampZoom = (value: number): number
+export type ViewportMode = 'desktop' | 'tablet' | 'mobile' | 'print'
+interface PreviewState {
+  zoomLevel: number
+  lastManualZoom: number
+  isFitToWidth: boolean
+  currentPage: number
+  totalPages: number
+  viewport: ViewportMode
+  isFullscreen: boolean
+  pendingScrollPage: number | null
+  setZoom: (level: number) => void
+  stepZoom: (direction: 1 | -1) => void
+  resetZoom: () => void
+  setFitToWidth: (enabled: boolean) => void
+  applyFitZoom: (level: number) => void
+  nextPage: () => void
+  previousPage: () => void
+  goToPage: (page: number) => void
+  syncCurrentPage: (page: number) => void
+  clearPendingScroll: () => void
+  setViewport: (mode: ViewportMode) => void
+  toggleFullscreen: () => void
+  setTotalPages: (total: number) => void
+  canZoomIn: () => boolean
+  canZoomOut: () => boolean
+  canNextPage: () => boolean
+  canPreviousPage: () => boolean
 }
-export async function createOperation(
-  supabase: SupabaseClient,
-  operation: CreateAIOperationInput
-): Promise<AIOperation>
-export async function getUserOperations(
-  supabase: SupabaseClient,
-  userId: string,
-  limit: number = 50
-): Promise<AIOperation[]>
-export async function getUserUsageStats(
-  supabase: SupabaseClient,
-  userId: string,
-  sinceDate?: Date
-): Promise<
-export async function hasExceededQuota(
-  supabase: SupabaseClient,
-  userId: string,
-  dailyLimit: number = 100
-): Promise<boolean>
-export function calculateCost(inputTokens: number, outputTokens: number): number
-export async function trackEnhancement(
-  supabase: SupabaseClient,
-  userId: string,
-  enhancementType: 'bullet' | 'summary' | 'keywords' | 'cover_letter_paragraph',
-  inputTokens: number,
-  outputTokens: number,
-  fromCache: boolean
-): Promise<AIOperation>
-export interface UserQuota {
-  user_id: string;
-  operation_count: number;
-  token_count: number;
-  total_cost: number;
-  period_start: string;
-  period_end: string;
-  remaining: number;
-  resetIn: number;
-}
-export async function getUserQuota(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<UserQuota>
-export async function incrementUserQuota(
-  supabase: SupabaseClient,
-  userId: string,
-  tokenCount: number,
-  cost: number
-): Promise<void>
 </file>
 
 <file path="components/preview/ArtboardFrame.tsx">
@@ -726,59 +370,6 @@ import type { SectionKey } from '../schema'
 type ArtboardRendererProps = {
   document: ArtboardDocument
 }
-</file>
-
-<file path="libs/reactive-artboard/templates/index.tsx">
-import type { ComponentType } from 'react'
-import { CoverLetterTemplate } from './coverLetter'
-import { AzurillTemplate } from './azurill'
-import { BronzorTemplate } from './bronzor'
-import { ChikoritaTemplate } from './chikorita'
-import { DittoTemplate } from './ditto'
-import { GengarTemplate } from './gengar'
-import { GlalieTemplate } from './glalie'
-import { KakunaTemplate } from './kakuna'
-import { LeafishTemplate } from './leafish'
-import { NosepassTemplate } from './nosepass'
-import { OnyxTemplate } from './onyx'
-import { PikachuTemplate } from './pikachu'
-import { RhyhornTemplate } from './rhyhorn'
-import type { TemplateProps } from '../types/template'
-type TemplateComponent = ComponentType<TemplateProps>
-⋮----
-export function getTemplateRenderer(template: string): TemplateComponent
-</file>
-
-<file path="libs/reactive-artboard/templates/kakuna.tsx">
-import type {
-  Award,
-  Certification,
-  CustomSection,
-  CustomSectionGroup,
-  Interest,
-  Language,
-  Project,
-  Publication,
-  Reference,
-  SectionKey,
-  SectionWithItem,
-  Skill,
-  URL,
-} from "../schema";
-import type { Education, Experience, Volunteer } from "../schema";
-import { cn, isEmptyString, isUrl, sanitize } from "../utils";
-import get from "lodash/get";
-import React, { Fragment } from "react";
-import { BrandIcon } from "../components/BrandIcon";
-import { Picture } from "../components/Picture";
-import { useArtboardStore } from "../store/artboard";
-import type { TemplateProps } from "../types/template";
-⋮----
-<i className=
-⋮----
-className=
-⋮----
-<div key=
 </file>
 
 <file path="libs/reactive-artboard/types.ts">
@@ -860,13 +451,44 @@ export type ArtboardDocument = {
 }
 </file>
 
-<file path="libs/samples/resumeSample.ts">
-import type { ResumeJson } from '@/types/resume'
-import { createDefaultSettings, createDefaultAppearance } from '@/types/resume'
-</file>
-
-<file path="libs/validation/cover-letter.ts">
-import { z } from 'zod'
+<file path="stores/createDocumentStore.ts">
+import { create, StoreApi, UseBoundStore } from 'zustand'
+import { temporal, TemporalState } from 'zundo'
+import isEqual from 'lodash/isEqual'
+import type { ZodType, ZodTypeDef } from 'zod'
+export interface DocumentStoreConfig<T> {
+  apiEndpoint: string
+  schemaValidator: ZodType<T, ZodTypeDef, any>
+  defaultDocument?: () => T
+}
+export interface DocumentState<T> {
+  document: T | null
+  documentId: string | null
+  documentVersion: number | null
+  documentTitle: string | null
+  isLoading: boolean
+  originalDocument: T | null
+  isDirty: boolean
+  isSaving: boolean
+  lastSaved: Date | null
+  saveError: Error | null
+  loadDocument: (id: string) => Promise<void>
+  updateDocument: (updates: Partial<T>) => void
+  setTitle: (title: string) => void
+  saveDocument: () => Promise<void>
+  resetChanges: () => void
+  clearDocument: () => void
+  hasChanges: boolean
+}
+⋮----
+export function createDocumentStore<T extends Record<string, any>>(
+  config: DocumentStoreConfig<T>
+): UseBoundStore<StoreApi<DocumentState<T> & TemporalState<Partial<DocumentState<T>>>>>
+export function createTemporalHook<T extends Record<string, any>>(
+  useStore: UseBoundStore<StoreApi<DocumentState<T> & TemporalState<Partial<DocumentState<T>>>>>
+)
+export function createPreviewSelector<T>()
+export function createMetadataSelector<T>()
 </file>
 
 <file path="stores/documentStore.ts">
@@ -875,630 +497,190 @@ import { ResumeJsonSchema } from '@/libs/validation/resume'
 import type { ResumeJson } from '@/types/resume'
 </file>
 
-<file path="types/cover-letter.ts">
-export interface TextRun {
-  text: string
-  marks?: ('bold' | 'italic' | 'underline')[]
+<file path="components/editor/EditorLayout.tsx">
+import { cn } from '@/libs/utils'
+export interface EditorLayoutProps {
+  children: React.ReactNode
+  sidebar?: React.ReactNode
+  header?: React.ReactNode
+  sidebarClassName?: string
+  sidebarMobileVisible?: boolean
 }
-export interface RichTextBlock {
-  type: 'paragraph' | 'bullet_list' | 'numbered_list'
-  content: TextRun[]
-}
-export interface CoverLetterSender {
-  fullName: string
-  email: string
-  phone?: string
-  location?: {
-    street?: string
-    city?: string
-    region?: string
-    postal?: string
-    country?: string
-  }
-  linkedResumeId?: string | null
-}
-export interface CoverLetterRecipient {
-  recipientName?: string
-  recipientTitle?: string
-  companyName: string
-  companyAddress?: {
-    street?: string
-    city?: string
-    region?: string
-    postal?: string
-    country?: string
-  }
-}
-export interface JobInfo {
-  jobTitle?: string
-  jobId?: string
-  source?: string
-}
-export interface CoverLetterSettings {
-  locale: string
-  dateFormat: 'US' | 'ISO' | 'EU'
-  fontFamily: string
-  fontSizeScale: number
-  lineSpacing: number
-  colorTheme: string
-  pageSize: 'A4' | 'Letter'
-  showLetterhead: boolean
-  includeDate: boolean
-}
-export interface CoverLetterAppearance {
-  theme: {
-    background: string
-    text: string
-    primary: string
-  }
-  typography: {
-    fontFamily: string
-    fontSize: number
-    lineHeight: number
-  }
-  layout: {
-    pageFormat: 'A4' | 'Letter'
-    margin: number
-    showPageNumbers: boolean
-  }
-  customCss?: string
-}
-export interface CoverLetterJson {
-  from: CoverLetterSender
-  to: CoverLetterRecipient
-  jobInfo?: JobInfo
-  date: string
-  salutation: string
-  body: RichTextBlock[]
-  closing: string
-  settings: CoverLetterSettings
-  appearance?: CoverLetterAppearance
-}
-export interface CoverLetter {
-  id: string
-  user_id: string
-  title: string
-  slug: string | null
-  version: number
-  schema_version: string
-  data: CoverLetterJson
-  linked_resume_id: string | null
-  status: 'draft' | 'active' | 'archived'
-  is_deleted: boolean
-  deleted_at: string | null
-  created_at: string
-  updated_at: string
-  last_accessed_at: string | null
-}
-export interface CoverLetterVersion {
-  id: number
-  cover_letter_id: string
-  version_number: number
-  data: CoverLetterJson
-  created_at: string
-  created_by: string
-}
-export interface CoverLetterCreateInput {
-  title: string
-  linked_resume_id?: string
-}
-export interface CoverLetterUpdateInput {
-  title?: string
-  data?: CoverLetterJson
-  linked_resume_id?: string | null
-  version: number
-}
-export interface CoverLetterListParams {
-  status?: 'draft' | 'active' | 'archived'
-  search?: string
-  sort?: 'updated_at' | 'created_at' | 'title'
-  order?: 'asc' | 'desc'
-  cursor?: string
-  limit?: number
-  linked_resume_id?: string
-}
-export interface CoverLetterListResponse {
-  cover_letters: CoverLetter[]
-  nextCursor: string | null
-  total: number
-}
-export function createDefaultCoverLetterSettings(
-  userLocale?: string,
-  userDateFormat?: 'US' | 'ISO' | 'EU',
-  userPageSize?: 'A4' | 'Letter'
-): CoverLetterSettings
-export function createDefaultCoverLetterAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): CoverLetterAppearance
-export function createEmptyCoverLetter(
-  email: string,
-  fullName?: string,
-  settings?: Partial<CoverLetterSettings>
-): CoverLetterJson
-export function createCoverLetterFromResume(
-  resumeProfile: { fullName: string; email: string; phone?: string; location?: any },
-  settings?: Partial<CoverLetterSettings>
-): Partial<CoverLetterJson>
 </file>
 
-<file path="types/resume.ts">
-export interface Profile {
-  fullName: string
-  headline?: string
-  email: string
-  phone?: string
-  location?: {
-    city?: string
-    region?: string
-    country?: string
-    postal?: string
-  }
-  links?: Array<{
-    type?: string
-    label?: string
-    url: string
-  }>
-  photo?: {
-    url: string
-    path: string
-  }
+<file path="components/preview/CoverLetterLivePreview.tsx">
+import { useShallow } from 'zustand/react/shallow'
+import { useCoverLetterStore } from '@/stores/coverLetterStore'
+import { PreviewContainer } from './PreviewContainer'
+import { PreviewError } from './PreviewError'
+import { PreviewSkeleton } from './PreviewSkeleton'
+import { PreviewControls } from './PreviewControls'
+import { saveScrollPosition, restoreScrollPosition } from '@/libs/utils/previewUtils'
+import type { CoverLetterJson } from '@/types/cover-letter'
+import { ArtboardFrame } from './ArtboardFrame'
+import { mapCoverLetterToArtboardDocument } from '@/libs/reactive-artboard'
+import { usePreviewStore } from '@/stores/previewStore'
+import type { PageFormat } from '@/libs/reactive-artboard/constants/page'
+interface CoverLetterLivePreviewProps {
+  documentId?: string
+  showControls?: boolean
 }
-export interface WorkExperience {
-  company: string
-  role: string
-  location?: string
-  startDate: string
-  endDate?: string | null | 'Present'
-  descriptionBullets?: string[]
-  achievements?: string[]
-  techStack?: string[]
-}
-export interface Education {
-  school: string
-  degree: string
-  field?: string
-  startDate?: string
-  endDate?: string
-  details?: string[]
-}
-export interface Project {
-  name: string
-  link?: string
-  summary?: string
-  bullets?: string[]
-  techStack?: string[]
-}
-export interface SkillItem {
-  name: string
-  level?: number
-}
-export interface SkillGroup {
-  category: string
-  items: SkillItem[]
-}
-export type ResumeTemplateId =
-  | 'azurill'
-  | 'bronzor'
-  | 'chikorita'
-  | 'ditto'
-  | 'gengar'
-  | 'glalie'
-  | 'kakuna'
-  | 'leafish'
-  | 'nosepass'
-  | 'onyx'
-  | 'pikachu'
-  | 'rhyhorn'
-export interface Certification {
-  name: string
-  issuer: string
-  date?: string
-}
-export interface Award {
-  name: string
-  org: string
-  date?: string
-  summary?: string
-}
-export interface Language {
-  name: string
-  level: string
-}
-export interface Extra {
-  title: string
-  content: string
-}
-export interface ResumeSettings {
-  locale: string
-  dateFormat: 'US' | 'ISO' | 'EU'
-  addressFormat?: string
-  fontFamily: string
-  fontSizeScale: number
-  lineSpacing: number
-  colorTheme: string
-  iconSet: 'lucide'
-  showIcons: boolean
-  sectionOrder: string[]
-  pageSize: 'A4' | 'Letter'
-}
-export interface ResumeAppearance {
-  template: ResumeTemplateId
-  layout: string[][][]
-  theme: {
-    background: string
-    text: string
-    primary: string
-  }
-  typography: {
-    fontFamily: string
-    fontSize: number
-    lineHeight: number
-  }
-  layout_settings: {
-    pageFormat: 'A4' | 'Letter'
-    margin: number
-    showPageNumbers: boolean
-  }
-  customCss?: string
-}
-export interface ResumeJson {
-  profile: Profile
-  summary?: string
-  work?: WorkExperience[]
-  education?: Education[]
-  projects?: Project[]
-  skills?: SkillGroup[]
-  certifications?: Certification[]
-  awards?: Award[]
-  languages?: Language[]
-  extras?: Extra[]
-  settings: ResumeSettings
-  appearance?: ResumeAppearance
-}
-export interface Resume {
-  id: string
-  user_id: string
-  title: string
-  slug: string | null
-  version: number
-  schema_version: string
-  data: ResumeJson
-  status: 'draft' | 'active' | 'archived'
-  is_deleted: boolean
-  deleted_at: string | null
-  created_at: string
-  updated_at: string
-  last_accessed_at: string | null
-}
-export interface ResumeVersion {
-  id: number
-  resume_id: string
-  version_number: number
-  data: ResumeJson
-  created_at: string
-  created_by: string
-}
-export interface ResumeTemplate {
-  id: string
-  name: string
-  description: string | null
-  category: string | null
-  data: ResumeJson
-  thumbnail_url: string | null
-  is_default: boolean
-  created_at: string
-}
-export interface ResumeCreateInput {
-  title: string
-  template?: ResumeTemplateId
-}
-export interface ResumeUpdateInput {
-  title?: string
-  data?: ResumeJson
-  version: number
-}
-export interface ResumeListParams {
-  status?: 'draft' | 'active' | 'archived'
-  search?: string
-  sort?: 'updated_at' | 'created_at' | 'title'
-  order?: 'asc' | 'desc'
-  cursor?: string
-  limit?: number
-}
-export interface ResumeListResponse {
-  resumes: Resume[]
-  nextCursor: string | null
-  total: number
-}
-export function createDefaultSettings(
-  userLocale?: string,
-  userDateFormat?: 'US' | 'ISO' | 'EU',
-  userPageSize?: 'A4' | 'Letter'
-): ResumeSettings
-export function createDefaultLayout(): string[][][]
-export function createDefaultAppearance(pageSize: 'A4' | 'Letter' = 'Letter'): ResumeAppearance
-export function createEmptyResume(
-  email: string,
-  fullName?: string,
-  settings?: Partial<ResumeSettings>,
-  template?: ResumeTemplateId
-): ResumeJson
 </file>
 
-<file path="libs/reactive-artboard/server/renderToHtml.ts">
-import path from 'path'
-import { promises as fs } from 'fs'
-import { ArtboardDocument } from '../types'
-import type { ResumeData, SectionKey } from '../schema'
-import { getTemplateRenderer } from '../templates'
-import { buildArtboardStyles } from '../styles'
-import { setArtboardResume, resetArtboardResume } from '../store/artboard'
+<file path="components/preview/PreviewContainer.tsx">
+import { usePreviewStore } from '@/stores/previewStore'
+import { cn } from '@/libs/utils'
+import {
+  DEFAULT_PAGE_FORMAT,
+  MM_TO_PX,
+  PAGE_SIZE_MM,
+  normalizePageFormat,
+  type PageFormat,
+} from '@/libs/reactive-artboard/constants/page'
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import type { ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
+interface PreviewContainerProps {
+  children: React.ReactNode
+  className?: string
+  pageFormat?: PageFormat
+  pageOffsets?: number[]
+  pageWidthPxOverride?: number
+  pageHeightPxOverride?: number
+}
 ⋮----
-async function loadTailwindCss(): Promise<string>
-export async function renderArtboardToHtml(
-  document: ArtboardDocument,
-  resumeData?: ResumeData
-): Promise<string>
-</file>
-
-<file path="libs/reactive-artboard/templates/onyx.tsx">
-import type {
-  Award,
-  Certification,
-  CustomSection,
-  CustomSectionGroup,
-  Interest,
-  Language,
-  Project,
-  Publication,
-  Reference,
-  SectionKey,
-  SectionWithItem,
-  Skill,
-  URL,
-} from "../schema";
-import type { Education, Experience, Volunteer } from "../schema";
-import { cn, isEmptyString, isUrl, sanitize } from "../utils";
-import get from "lodash/get";
-import React, { Fragment } from "react";
-import { BrandIcon } from "../components/BrandIcon";
-import { Picture } from "../components/Picture";
-import { useArtboardStore } from "../store/artboard";
-import type { TemplateProps } from "../types/template";
+// Drag state removed; panning handled by react-zoom-pan-pinch
 ⋮----
-<i className=
+const handleKeyDown = (event: KeyboardEvent) =>
+⋮----
+const handleScroll = () =>
 ⋮----
 className=
-⋮----
-<div key=
 </file>
 
-<file path="libs/repositories/normalizers.ts">
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "baseUrl": ".",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noImplicitAny": true,
+    "jsx": "preserve",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@dnd-kit/core": [
+        "libs/dnd-kit/core"
+      ],
+      "@dnd-kit/sortable": [
+        "libs/dnd-kit/sortable"
+      ],
+      "pdf-lib": [
+        "libs/vendor/pdf-lib"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "libs/ai/**/*.ts",
+    "libs/sanitization/**/*.ts",
+    "libs/validation/**/*.ts",
+    "libs/repositories/**/*.ts",
+    "libs/exporters/**/*.ts",
+    "stores/**/*.ts",
+    "types/**/*.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "agents",
+    "ai_docs",
+    "libs/reactive-artboard",
+    "libs/reactive-artboard/**/*"
+  ]
+}
+</file>
+
+<file path="app/(app)/editor/[id]/page.tsx">
+import { useParams } from 'next/navigation'
 import {
-  createDefaultAppearance,
-  createDefaultSettings,
-  type ResumeJson,
-  type ResumeTemplateId,
-  type SkillGroup,
-} from '@/types/resume'
-import { createDefaultCoverLetterAppearance, type CoverLetterJson } from '@/types/cover-letter'
-import type { ResumeGenerative } from '@/libs/validation/resume'
-⋮----
-function clampNumber(value: unknown, min: number, max: number): number
-function coerceTemplate(template: unknown): ResumeTemplateId
-function normalizeDate(value: unknown, allowPresent = false): string | undefined
-function normalizeString(value: unknown): string | undefined
-function normalizeStringArray(values: unknown): string[] | undefined
-function normalizeSkillGroup(group: unknown): SkillGroup | null
-function normalizeLanguages(languages: unknown): ResumeJson['languages']
-function normalizeWork(work: unknown): ResumeJson['work']
-function normalizeEducation(education: unknown): ResumeJson['education']
-function normalizeProjects(projects: unknown): ResumeJson['projects']
-function normalizeCertifications(certifications: unknown): ResumeJson['certifications']
-function normalizeAwards(awards: unknown): ResumeJson['awards']
-function normalizeExtras(extras: unknown): ResumeJson['extras']
-function normalizeProfile(profile: unknown): ResumeJson['profile']
-export function normalizeResumeData(data: ResumeGenerative | ResumeJson): ResumeJson
-export function normalizeCoverLetterData(data: CoverLetterJson): CoverLetterJson
-</file>
-
-<file path="components/ai/UnifiedAITool.tsx">
-import { useMemo, useState, startTransition, useEffect, useCallback } from 'react'
-import { useShallow } from 'zustand/react/shallow'
-import isEqual from 'lodash/isEqual'
-import JobDescriptionInput from './JobDescriptionInput'
-import PersonalInfoForm from './PersonalInfoForm'
-import StreamingIndicator from './StreamingIndicator'
+  User,
+  FileText,
+  Briefcase,
+  GraduationCap,
+  FolderGit2,
+  Code,
+  Award,
+  Trophy,
+  Languages,
+  Plus,
+  History,
+  Eye,
+  Palette,
+  BarChart3
+} from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { EditorLayout } from '@/components/editor/EditorLayout'
+import { EditorHeader } from '@/components/editor/EditorHeader'
+import { EditorSidebar } from '@/components/editor/EditorSidebar'
+import { EditorForm } from '@/components/editor/EditorForm'
+import { SectionAccordion } from '@/components/editor/SectionAccordion'
+import { VersionHistory } from '@/components/editor/VersionHistory'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { LivePreview } from '@/components/preview'
+import { UnifiedStreamOverlay } from '@/components/preview/UnifiedStreamOverlay'
+import { PreviewControls } from '@/components/preview/PreviewControls'
+import { CustomizationPanel } from '@/components/customization/CustomizationPanel'
+import UnifiedAITool from '@/components/ai/UnifiedAITool'
+import { useDocumentStore, useTemporalStore } from '@/stores/documentStore'
 import type { ResumeJson } from '@/types/resume'
-import type { CoverLetterJson } from '@/types/cover-letter'
-import { useDocumentStore } from '@/stores/documentStore'
-import { useCoverLetterStore } from '@/stores/coverLetterStore'
-import { useUnifiedAIStore } from '@/stores/unifiedAIStore'
-type DocType = 'resume' | 'cover-letter'
+import type { SaveStatus } from '@/components/editor/EditorHeader'
+import { ProfileSection } from '@/components/editor/sections/ProfileSection'
+import { SummarySection } from '@/components/editor/sections/SummarySection'
+import { WorkSection } from '@/components/editor/sections/WorkSection'
+import { EducationSection } from '@/components/editor/sections/EducationSection'
+import { ProjectsSection } from '@/components/editor/sections/ProjectsSection'
+import { SkillsSection } from '@/components/editor/sections/SkillsSection'
+import { CertificationsSection } from '@/components/editor/sections/CertificationsSection'
+import { AwardsSection } from '@/components/editor/sections/AwardsSection'
+import { LanguagesSection } from '@/components/editor/sections/LanguagesSection'
+import { ExtrasSection } from '@/components/editor/sections/ExtrasSection'
+import { ScorePanel } from '@/components/score/ScorePanel'
 ⋮----
-function summarizeSectionsForLog(data: any)
+const handleIntersection = (entries: IntersectionObserverEntry[]) =>
 ⋮----
-const safeLen = (value: any)
+const handleChange = (data: ResumeJson): void =>
+const handleSubmit = async (): Promise<void> =>
+const handleRestoreVersion = async (versionNumber: number): Promise<void> =>
+const handleSectionClick = (sectionId: string): void =>
 ⋮----
-interface UnifiedAIToolProps {
-  docType: DocType
-  editorData?: any
-}
+onTitleChange=
 ⋮----
-const onGenerate = async () =>
-const onApply = () =>
-⋮----
-const handleSaved = (event: Event) =>
-</file>
-
-<file path="libs/validation/resume.ts">
-import { z } from 'zod'
-⋮----
-export type ResumeGenerative = z.infer<typeof ResumeGenerativeSchema>
-export type ResumeGeneration = z.infer<typeof ResumeGenerationSchema>
-export type ResumeJsonInput = z.infer<typeof ResumeJsonSchema>
-export type ProfileInput = z.infer<typeof ProfileSchema>
-export type WorkExperienceInput = z.infer<typeof WorkExperienceSchema>
-export type EducationInput = z.infer<typeof EducationSchema>
-export type ProjectInput = z.infer<typeof ProjectSchema>
-export type SkillGroupInput = z.infer<typeof SkillGroupSchema>
-export type CertificationInput = z.infer<typeof CertificationSchema>
-export type AwardInput = z.infer<typeof AwardSchema>
-export type LanguageInput = z.infer<typeof LanguageSchema>
-export type ExtraInput = z.infer<typeof ExtraSchema>
-export type ResumeSettingsInput = z.infer<typeof ResumeSettingsSchema>
-export type CreateResumeInput = z.infer<typeof CreateResumeSchema>
-export type UpdateResumeInput = z.infer<typeof UpdateResumeSchema>
-export type ResumeListQuery = z.infer<typeof ResumeListQuerySchema>
-export type BulkOperationInput = z.infer<typeof BulkOperationSchema>
-export type RestoreVersionInput = z.infer<typeof RestoreVersionSchema>
-</file>
-
-<file path="libs/ai/prompts.ts">
-export interface PersonalInfo {
-  name?: string
-  email?: string
-  phone?: string
-  location?: string
-}
-export interface ResumePromptOptions {
-  jobDescription?: string
-  userInstructions?: string
-  editorData?: unknown
-  personalInfo?: PersonalInfo
-  tone?: 'default' | 'concise' | 'enthusiastic'
-}
-function formatPersonalInfo(info?: PersonalInfo): string
-function formatEditorDataSnippet(data: unknown): string
-function formatUserInstructions(text?: string): string
-export function buildResumePDFPrompt(options: ResumePromptOptions =
-export function buildResumeTextPrompt(options: ResumePromptOptions): string
-export function buildResumeEditorPrompt(options: ResumePromptOptions): string
-export function buildExtractionPrompt(text: string): string
-export function buildPDFExtractionPrompt(): string
-export function buildGenerationPrompt(jobDescription: string, personalInfo?: PersonalInfo): string
-/**
- * Context for bullet enhancement
- */
-export interface EnhancementContext {
-  role?: string;
-  industry?: string;
-}
-/**
- * Build enhancement prompt for improving a single bullet point
- * (Phase 4C)
- */
-export function buildBulletEnhancementPrompt(
-  bullet: string,
-  context?: EnhancementContext
-): string
-/**
- * Build summary generation prompt
- * (Phase 4C)
- */
-export function buildSummaryPrompt(context: {
-  name: string;
-  title?: string;
-  years: number;
-  topSkills: string[];
-  industries: string[];
-}): string
-/**
- * Build keyword extraction prompt
- * (Phase 4C)
- */
-export function buildKeywordExtractionPrompt(jobDescription: string): string
-/**
- * Build matching prompt for job description analysis
- * (Phase 4D - not implemented yet)
- */
-export function buildMatchingPrompt(
-  resume: string,
-  jobDescription: string
-): string
-</file>
-
-<file path="stores/unifiedAIStore.ts">
-import { create } from 'zustand'
-import type { ResumeJson } from '@/types/resume'
-import type { CoverLetterJson } from '@/types/cover-letter'
-import type { ResumeGenerationUsage } from '@/libs/ai/resumeGenerator'
-export type UnifiedDocType = 'resume' | 'cover-letter'
-interface StartArgs {
-  docType: UnifiedDocType
-  text?: string
-  personalInfo?: Record<string, unknown>
-  file?: File | null
-  editorData?: unknown
-}
-interface UnifiedCore {
-  docType: UnifiedDocType | null
-  isStreaming: boolean
-  progress: number
-  final: ResumeJson | CoverLetterJson | null
-  warnings: string[]
-  usage: ResumeGenerationUsage | null
-  error: string | null
-  abortController: AbortController | null
-  traceId: string | null
-  start: (args: StartArgs) => Promise<void>
-  cancel: () => void
-  reset: () => void
-}
-async function fileToBase64(file: File): Promise<string>
-⋮----
-// Avoid spread on typed arrays for compatibility with downlevel targets
-⋮----
-async start(
-cancel()
-reset()
-</file>
-
-<file path="app/api/v1/ai/unified/route.ts">
-import { z } from 'zod'
-import { createClient } from '@/libs/supabase/server'
-import { checkDailyQuota, incrementQuota } from '@/libs/ai/rateLimiter'
-import { calculateCost, createOperation } from '@/libs/repositories/aiOperations'
-import { buildResumePDFPrompt, buildResumeTextPrompt, buildResumeEditorPrompt, type PersonalInfo } from '@/libs/ai/prompts'
-import { buildCoverLetterGenerationPrompt } from '@/libs/ai/prompts/cover-letter'
-import { generateResume, generateCoverLetter, ResumeGenerationError, type ResumeGenerationUsage, type AIMessagePart } from '@/libs/ai/resumeGenerator'
-import type { ResumeJson } from '@/types/resume'
-import type { CoverLetterJson } from '@/types/cover-letter'
-⋮----
-function createTraceId(): string
-function serverLog(level: 'log' | 'warn' | 'error', traceId: string, event: string, payload: Record<string, unknown> =
-function obfuscateUserId(userId?: string | null): string | null
-function base64ToUint8Array(base64: string): Uint8Array
-function summarizeResume(resume: ResumeJson): Record<string, number>
-function collectResumeWarnings(resume: ResumeJson): string[]
-function collectCoverLetterWarnings(letter: CoverLetterJson): string[]
-async function persistUsage(
-  supabase: ReturnType<typeof createClient>,
-  userId: string,
-  operation: 'import' | 'generate',
-  usage: ResumeGenerationUsage,
-  durationMs: number,
-  success: boolean,
-  errorMessage?: string
-): Promise<void>
-async function handleResumeGeneration(
-  traceId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  parsed: z.infer<typeof UnifiedRequestSchema>,
-  startTime: number
-): Promise<Response>
-async function handleCoverLetterGeneration(
-  traceId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  parsed: z.infer<typeof UnifiedRequestSchema>,
-  startTime: number
-): Promise<Response>
-function jsonSuccess(payload: Record<string, unknown>, traceId: string): Response
-function jsonError(message: string, status: number, traceId: string): Response
-export async function POST(req: Request)
+<Tabs value=
 </file>
 
 <file path="components/preview/LivePreview.tsx">
@@ -1627,312 +809,184 @@ setPageSizePx(
 </files>
 
 <instruction>
-# AI Resume Generation Feature - Complete Rebuild Brief
-
-**Date**: 2025-10-11
-**Project**: ResumePair
-**Scope**: Complete removal and rebuild of AI resume generation system
-**Priority**: P0 - Critical (feature non-functional for 5+ days)
-
----
+# Preview System Refactoring - Context Pack
 
 ## Problem Statement
 
-The AI resume generation feature is **completely broken** and must be rebuilt from scratch:
+The preview system in the ResumePair application is fundamentally broken and needs a complete overhaul. The application shows a split-screen layout:
+- **Left side**: Form-based editor for inputting resume information
+- **Right side**: Live preview showing the formatted resume
 
-### Current Issues
-1. **Critical Bug**: Undefined variable `raw` at `libs/ai/resumeGenerator.ts:150` causes immediate crash on every generation attempt
-2. **Incomplete Output**: When it doesn't crash, output rarely exceeds 2 sections, sometimes returns nothing at all
-3. **Poor Architecture**: Implementation scattered across multiple files with no structure, patterns, or engineering principles
-4. **Rigid Schema**: Overly complicated schema with strict validation that rejects valid AI output
-5. **Restrictive Prompts**: Unnecessarily restrictive prompts that limit AI creativity and understanding
+### Critical Issues
 
-### Desired State
-User provides any combination of inputs (job description, PDF, personal info) → clicks "generate" → receives fully generated resume with all relevant sections populated → can apply to editor seamlessly.
+1. **Mouse/Scroll Events Apply to Whole Page**
+   - Scrolling inside the preview container affects the entire application page
+   - Zoom gestures (pinch, mouse wheel) are not isolated to the preview area
+   - Pan/drag interactions bleed out to the parent page
 
----
+2. **Multi-Page Logic Broken**
+   - Cannot scroll to subsequent pages when content overflows first page
+   - Page navigation appears stuck
+   - Initially shows only first two sections, zoomed in and fixed
+   - No way to navigate to page 2, 3, etc. even when content exists
 
-## User Flows (Target Behavior)
+3. **Preview Container Fixed/Locked**
+   - Preview appears "frozen" after initial load
+   - Cannot scroll within the preview viewport
+   - Cannot zoom or adjust view properly
+   - Preview does not respond to user interactions as expected
 
-### Flow 1: Traditional Editor (Working - Reference Only)
-User fills text fields → live preview renders on right → autosave → done.
+4. **No Proper Viewport Isolation**
+   - The preview content is not properly contained
+   - Scroll boundaries are not respected
+   - Transform/zoom operations affect parent containers
 
-### Flow 2: AI Generation (BROKEN - PRIMARY FIX TARGET)
-**Input Options** (must provide at least one):
-- Job description text (50-8000 chars)
-- PDF upload (max 10MB)
-- Personal information (name, email, phone, location)
+## Current Implementation Overview
 
-**Expected Behavior**:
-1. User provides inputs
-2. User clicks "Generate"
-3. System sends data to Gemini 2.5 Flash
-4. Gemini returns structured resume data matching our schema
-5. Preview renders complete resume
-6. User reviews and applies to editor
+### Architecture Components
 
-**Current Behavior**:
-- ❌ Crashes immediately with ReferenceError
-- ❌ When not crashing: incomplete output (1-2 sections)
-- ❌ When not crashing: validation failures reject valid data
-- ❌ Silent data loss through sanitization/normalization pipeline
-
-### Flow 3: Templates (Working - Reference Only)
-Multiple templates available, user selects template, resume renders with chosen template.
-
----
-
-## Technical Context
-
-### Architecture Overview
+**Preview Component Hierarchy:**
 ```
-User Input → API Route → Prompt Builder → Gemini API → Sanitization → Normalization → Validation → ResumeJson → ResumeData Adapter → Template Renderer → Preview
+LivePreview (components/preview/LivePreview.tsx)
+├── PreviewControls (zoom, page nav, viewport selector)
+└── PreviewContainer (components/preview/PreviewContainer.tsx)
+    └── TransformWrapper (react-zoom-pan-pinch)
+        └── TransformComponent
+            └── ArtboardFrame (components/preview/ArtboardFrame.tsx)
+                └── iframe
+                    └── ArtboardRenderer (libs/reactive-artboard/renderer/ArtboardRenderer.tsx)
+                        └── Page components (libs/reactive-artboard/components/Page.tsx)
 ```
 
-### Current Pipeline Issues
-1. **Triple Validation**: Data validated 3 times (sanitize → normalize → validate) with 60-80% data loss
-2. **Schema Mismatch**: AI uses ultra-permissive schema (`z.any().optional()`) but validation expects strict format
-3. **Missing Defaults**: Required fields (settings, appearance) never generated by AI
-4. **Silent Drops**: Invalid sections dropped without warnings
-5. **Rigid Formats**: Date validation only accepts YYYY-MM-DD, rejects YYYY and YYYY-MM
+**Key Technical Details:**
 
-### Key Files Involved
-- **AI Layer**: `libs/ai/resumeGenerator.ts` (CRITICAL BUG), `libs/ai/prompts.ts`, `libs/ai/provider.ts`
-- **API**: `app/api/v1/ai/unified/route.ts`
-- **Schemas**: `libs/validation/resume.ts`, `libs/reactive-artboard/schema/*`
-- **Data Pipeline**: `libs/sanitization/resume.ts`, `libs/repositories/normalizers.ts`
-- **Adapters**: `libs/reactive-artboard/adapters/resumeData.ts`
-- **Frontend**: `components/ai/UnifiedAITool.tsx`, `stores/unifiedAIStore.ts`
+1. **Iframe Isolation**: Uses iframe with `scrolling="no"` to isolate artboard styles
+2. **react-zoom-pan-pinch**: Third-party library for zoom/pan functionality
+3. **Dynamic Height**: iframe height calculated from `documentElement.scrollHeight`
+4. **Page Measurement**: Uses `data-page` attributes and `offsetTop` to track page positions
+5. **State Management**:
+   - `previewStore.ts` - zoom, pagination, viewport state
+   - `documentStore.ts` - resume data via Zustand + zundo (undo/redo)
 
----
+### Identified Problems in Current Code
 
-## Scope Intent
+1. **PreviewContainer.tsx (lines 217-251)**:
+   - Container has `overflow-auto` which competes with TransformWrapper
+   - TransformComponent panning is conditionally disabled based on zoom
+   - Scroll events handled both by container AND transform wrapper
+   - Conflicts between native scroll and library pan behavior
 
-This context pack includes **everything directly and indirectly touching** the AI resume generation feature:
+2. **ArtboardFrame.tsx (lines 105-117)**:
+   - iframe has `scrolling="no"` but parent container scrolls
+   - Height is dynamically set but may not account for transform scaling
+   - No communication about scroll boundaries to parent
 
-### Included
-✅ Complete AI integration layer (generation, prompts, provider)
-✅ All schema definitions (validation, template, database)
-✅ Full data processing pipeline (sanitization, normalization, adapters)
-✅ API routes and middleware
-✅ Frontend components and state management
-✅ Template system and preview rendering
-✅ Sample data and test scripts
-✅ Supporting infrastructure (rate limiting, quota tracking)
-✅ Relevant documentation from ai_docs/
+3. **LivePreview.tsx (lines 41-42)**:
+   - `pageOffsets` state tracks page positions
+   - But scrolling is handled by PreviewContainer, not LivePreview
+   - Disconnect between offset tracking and actual scroll behavior
 
-### Excluded
-❌ Cover letter generation (out of scope for now)
-❌ Unrelated features (scoring, export, auth)
-❌ Marketing site and blog
-❌ Database migrations (schema is stable)
+4. **Page.tsx (lines 31-32)**:
+   - Fixed height with `overflow: hidden` may clip content
+   - No pagination break logic visible
 
----
+## Scope of Changes
 
-## Evidence
+We are open to **complete reimplementation** if necessary. Priority is getting the preview working correctly over preserving existing code.
 
-### Critical Bug (ReferenceError)
-**Location**: `libs/ai/resumeGenerator.ts:150`
-```typescript
-// Line 150 - CRASHES HERE
-return {
-  resume,
-  raw,  // ❌ Variable 'raw' is not defined
-  usage: usageSummary,
-  warnings: [],
-}
-```
+### What Needs to Work
 
-### Schema Gap Example
-```typescript
-// PERMISSIVE (AI generation)
-ResumeGenerativeSchema = z.object({
-  profile: z.any().optional(),
-  work: z.any().optional(),
-  // ... all fields z.any().optional()
-}).passthrough()
+1. **Isolated Scroll/Zoom**:
+   - All mouse interactions (scroll, zoom, pan, pinch) must be contained within preview area
+   - Parent page must not scroll/zoom when interacting with preview
 
-// STRICT (validation)
-ResumeJsonSchema = z.object({
-  profile: ProfileSchema,  // email REQUIRED, must be valid
-  work: z.array(WorkExperienceSchema).optional(),  // strict dates
-  settings: ResumeSettingsSchema,  // REQUIRED (never generated)
-})
-```
+2. **Multi-Page Navigation**:
+   - Must be able to scroll through all pages of content
+   - Page boundaries should be visible and navigable
+   - Page navigation controls should accurately reflect current page
+   - Should handle dynamic content that flows to 2, 3, 4+ pages
 
-### Data Loss Example
-```typescript
-// normalizers.ts:119
-if (!company || !role || !startDate) return null  // ⚠️ Silent drop
-```
+3. **Zoom Controls**:
+   - Zoom in/out should work smoothly
+   - Fit-to-width mode should properly calculate and apply zoom
+   - Zoom should not break scrolling or pagination
 
-### Recent Commits (Git Status)
-```
-M app/api/v1/ai/unified/route.ts
-M libs/ai/prompts.ts
-M libs/reactive-artboard/renderer/ArtboardRenderer.tsx
-D libs/validation/resume-generation.ts
-?? libs/ai/resumeGenerator.ts
-?? libs/sanitization/
-```
+4. **Performance**:
+   - Preview updates must meet <120ms budget (per architecture docs)
+   - RAF batching for state updates
+   - Efficient page offset calculations
 
----
+## Evidence & Constraints
 
-## Constraints
+### Tech Stack (FIXED - Cannot Change)
+- Next.js 14 + React 18 + TypeScript (strict mode)
+- Zustand + zundo for state management
+- Tailwind CSS + shadcn/ui components
+- Current dependency: `react-zoom-pan-pinch` v3.7.0
 
-### Performance
-- **API timeout**: 60s max (Edge runtime limit)
-- **Preview latency**: <120ms p95 (user perception budget)
-- **Token cost**: <$0.001 per generation (Gemini 2.5 Flash pricing)
+### Performance Budgets
+- Preview update: p95 ≤ 120ms (keystroke to paint)
+- Template switch: ≤ 200ms
 
-### Compatibility
-- **Framework**: Next.js 14, React 18, TypeScript (strict mode)
-- **AI Provider**: Google Gemini 2.5 Flash (no model changes)
-- **State**: Zustand + zundo (undo/redo required)
-- **UI**: shadcn/ui + Tailwind CSS (no new libraries)
+### Design Constraints
+- Must maintain iframe isolation for artboard styles
+- Must support A4 and Letter page formats
+- Must work on desktop (primary) and tablet viewports
+- Preview is 50% of screen width in editor layout (EditorLayout.tsx)
 
-### Security
-- **RLS**: All database queries user-scoped
-- **Quota**: 100 operations per 24-hour period
-- **Sanitization**: All HTML content must be sanitized (XSS prevention)
-- **Validation**: Email, URL, phone validation required
+### Related Files Context
+- `app/(app)/editor/[id]/page.tsx` - Main editor page layout
+- `components/editor/EditorLayout.tsx` - 50/50 split sidebar/preview layout
+- `stores/previewStore.ts` - Zoom, pagination, viewport state
+- `stores/documentStore.ts` - Resume data (Zustand + zundo)
+- `libs/utils/previewUtils.ts` - RAF batching, scroll position utils
+- `libs/reactive-artboard/constants/page.ts` - Page size constants (A4/Letter)
 
-### Platform
-- **Deployment**: Vercel Edge + Node runtimes
-- **Database**: Supabase Postgres
-- **Auth**: Supabase Auth (session-based)
+## What We Need From You
 
----
+**Deliverable**: Complete refactored preview implementation OR detailed technical plan
 
-## What to Return
+**Format**:
+- If providing code: Unified diff format rooted at repo root
+- If providing plan: Step-by-step refactoring guide with specific code changes
 
-**Deliverable**: Complete implementation plan + code patches
+**Approach Options**:
+1. **Fix existing architecture**: Identify and patch the scroll/zoom/pagination issues
+2. **Replace react-zoom-pan-pinch**: Use alternative library or custom implementation
+3. **Redesign container structure**: New component hierarchy that properly isolates interactions
+4. **Hybrid**: Keep iframe isolation but redesign scroll/zoom handling
 
-### Required Outputs
-1. **Implementation Plan** (markdown document):
-   - Architecture redesign (simplified pipeline)
-   - Schema redesign (progressive validation)
-   - Prompt engineering strategy (few-shot examples)
-   - Data flow diagrams
-   - File structure changes
-   - Migration path from current code
+**Requirements**:
+- Explain the root cause(s) of current issues
+- Provide concrete implementation (code diffs or detailed pseudocode)
+- Ensure solution handles multi-page documents (2-5 pages typical)
+- Maintain performance budgets (<120ms updates)
+- Keep iframe-based style isolation
 
-2. **Code Patches** (unified diff format):
-   - Critical bug fix (P0: undefined `raw` variable)
-   - Schema changes (permissive AI schema, flexible validation)
-   - Prompt improvements (examples, simplified instructions)
-   - Pipeline optimization (single-pass validation)
-   - Error handling improvements (collect warnings, no silent drops)
-   - UI enhancements (preview before apply, retry mechanism)
+**If You Need More Context**:
+List exact file paths you need to see. We will re-pack with those additions. Available:
+- Any file from the full file tree (run `git ls-files` to see all)
+- Template implementations (`libs/reactive-artboard/templates/*.tsx`)
+- Additional component implementations
+- API routes or server-side rendering logic
 
-3. **Testing Strategy**:
-   - Unit tests for schemas (permissive input, strict output)
-   - Integration tests for full pipeline
-   - E2E test for API route
-   - Test cases with real job descriptions
+## Existing Logs/Symptoms (From User Report)
 
-### Formatting Requirements
-- **Patches**: Unified diff rooted at repo root
-- **File paths**: Absolute from project root
-- **Line numbers**: Include for all modifications
-- **Comments**: Explain all non-obvious changes
-- **Commit strategy**: Logical grouping (fix bug, refactor schema, update prompts, etc.)
+> "Any mouse moment like scroll, zoom, pinch when I try to do in the preview it applies to the whole page."
 
-### Success Criteria
-✅ All generations complete without crashes
-✅ 90%+ success rate (valid ResumeJson returned)
-✅ 80%+ completeness rate (≥6 sections populated)
-✅ Average 3-4 work experiences per resume
-✅ Preview renders complete resume in <120ms
-✅ No silent data loss (all drops logged as warnings)
+> "I can't scroll really to the next section. It's like whenever I first open the page I get to see the first two sections zoomed in. That's it. It's fixed."
 
----
+> "I can't really move. I can't scroll. If the content gets filled in the first page I can't really go to the second page."
 
-## If You Need More
+## Success Criteria
 
-If additional context is required, specify:
-- **Exact file paths** to add (e.g., `libs/exporters/pdfGenerator.ts`)
-- **Specific sections** of existing files (e.g., "lines 50-100 of X")
-- **Related functionality** not yet included (e.g., "cover letter prompts")
-
-We will re-pack with expanded scope and deliver updated `pack.xml`.
-
----
-
-## Key Design Principles (from ai_docs/standards/)
-
-### Architecture
-1. **Schema-driven**: One JSON powers everything
-2. **Repository pattern**: Pure functions with dependency injection
-3. **Layered boundaries**: Presentation → Application → Domain → Infrastructure
-4. **Type safety**: Make invalid states unrepresentable
-
-### Implementation
-1. **TypeScript strict**: No `any`, explicit types
-2. **API patterns**: Always use `withAuth`/`withApiHandler`
-3. **Design tokens**: Two systems (`--app-*` vs `--doc-*`)
-4. **No empty catch blocks**: Always log errors
-
-### Data Flow
-```
-ResumeJson (database/API) → sanitize → normalize → ResumeData (adapter) → Template → Preview
-```
-
-### Template System
-- Templates consume data from Zustand store (`useArtboardStore`)
-- All section items MUST include `id` (string) and `visible` (boolean)
-- HTML content MUST be sanitized before render (DOMPurify)
-- Layout structure: `pages[columns[sections]]` (3D array)
-
----
-
-## Context Pack Contents
-
-This pack contains **78 files** organized into:
-- Core AI generation code (7 files)
-- Schemas and validation (15 files)
-- Data processing pipeline (2 files)
-- Frontend components (8 files)
-- Preview and rendering (6 files)
-- Template system (4 files + 13 section schemas)
-- Adapters and mappers (4 files)
-- Sample data and tests (3 files)
-- Documentation (6 files)
-- Configuration (3 files)
-
-**Total**: Comprehensive coverage of all layers touching AI resume generation.
-
----
-
-## Recommended Approach
-
-### Phase 1: Emergency Fix (P0)
-1. Fix undefined `raw` variable (1 line)
-2. Make `settings` optional in schema
-3. Inject defaults before validation
-
-### Phase 2: Schema Redesign (P1)
-1. Progressive validation strategy
-2. Flexible date schema (accept YYYY, YYYY-MM, YYYY-MM-DD)
-3. Forgiving email schema
-
-### Phase 3: Prompt Engineering (P1)
-1. Add few-shot examples to prompts
-2. Simplify instructions
-3. Remove contradictions
-
-### Phase 4: Pipeline Optimization (P2)
-1. Single-pass validation
-2. Error recovery with partial results
-3. Detailed logging and warnings
-
-### Phase 5: UX Improvements (P2)
-1. Preview before applying
-2. Retry mechanism
-3. Better error messages
-
----
-
-**This brief is your single source of truth for rebuilding the AI resume generation feature.**
+After implementation:
+1. ✅ Scroll inside preview container stays within preview, does not affect parent page
+2. ✅ Zoom/pinch gestures isolated to preview area
+3. ✅ Can scroll through all pages when content overflows
+4. ✅ Page navigation accurately reflects current visible page
+5. ✅ Fit-to-width mode works correctly
+6. ✅ Preview updates within <120ms performance budget
+7. ✅ Works with dynamic content (1-5 pages typical range)
 
 </instruction>
