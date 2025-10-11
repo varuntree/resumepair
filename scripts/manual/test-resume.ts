@@ -51,22 +51,27 @@ Keep the JSON concise and do not duplicate entries.`;
     warnings: combinedResult.warnings,
   })
 
-  const pdfPath = path.resolve('agents/repos/Reactive-Resume/apps/client/public/sample-resumes/ditto.pdf')
-  const pdfBytes = fs.readFileSync(pdfPath)
-  const pdfPrompt = buildResumePDFPrompt({ userInstructions: 'Focus on recent experience and keep skills grouped.' })
-  const pdfResult = await generateResume({
-    traceId: 'manual-pdf',
-    parts: [
-      { type: 'text', text: pdfPrompt },
-      { type: 'file', data: new Uint8Array(pdfBytes.buffer, pdfBytes.byteOffset, pdfBytes.byteLength), mediaType: 'application/pdf' },
-    ],
-    maxOutputTokens: 4000,
-    temperature: 0,
-  })
-  console.log('PDF import generation complete:', {
-    work: pdfResult.resume.work?.length ?? 0,
-    warnings: pdfResult.warnings,
-  })
+  const pdfPath = path.resolve('agents/temp/temp_resume.pdf')
+  if (!fs.existsSync(pdfPath)) {
+    console.warn(`PDF fixture not found at ${pdfPath}; skipping PDF test.`)
+  } else {
+    const pdfBytes = fs.readFileSync(pdfPath)
+    const pdfPrompt = buildResumePDFPrompt({ userInstructions: 'Focus on recent experience and keep skills grouped.' })
+    const pdfResult = await generateResume({
+      traceId: 'manual-pdf',
+      parts: [
+        { type: 'text', text: pdfPrompt },
+        { type: 'file', data: new Uint8Array(pdfBytes.buffer, pdfBytes.byteOffset, pdfBytes.byteLength), mediaType: 'application/pdf' },
+      ],
+      maxOutputTokens: 4000,
+      temperature: 0,
+    })
+    console.log('PDF import generation complete:', {
+      work: pdfResult.resume.work?.length ?? 0,
+      warnings: pdfResult.warnings,
+      usage: pdfResult.usage,
+    })
+  }
 }
 
 run().catch((err) => {

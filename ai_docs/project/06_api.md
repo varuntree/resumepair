@@ -384,6 +384,8 @@ event: done
 data: {}
 ```
 
+> **Implementation note (2025-10)**: Resume generation now uses a single structured-output call to Gemini 2.5 Flash via the Vercel AI SDK. The server validates the response with `ResumeAIOutputSchema`, applies defaults, and returns warnings alongside the resulting `ResumeJson`. The former sanitize/normalize phases have been removed, reducing silent data loss.
+
 ### PDF Import (Phase 4.5 Refactored)
 
 **POST /api/v1/ai/import?stream=true**

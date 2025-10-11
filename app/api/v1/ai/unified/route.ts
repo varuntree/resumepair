@@ -203,21 +203,23 @@ async function handleResumeGeneration(
       },
     })
 
-    const warnings = collectResumeWarnings(result.resume)
+    const combinedWarnings = Array.from(
+      new Set([...(result.warnings ?? []), ...collectResumeWarnings(result.resume)])
+    )
     const durationMs = Date.now() - startTime
 
     await persistUsage(supabase, userId, fileData ? 'import' : 'generate', usage, durationMs, true)
 
     serverLog('log', traceId, 'response.success', {
       durationMs,
-      warnings: warnings.length,
+      warnings: combinedWarnings.length,
       summary: summarizeResume(result.resume),
     })
 
     return jsonSuccess(
       {
         data: result.resume,
-        warnings,
+        warnings: combinedWarnings,
         usage,
         summary: summarizeResume(result.resume),
         traceId,

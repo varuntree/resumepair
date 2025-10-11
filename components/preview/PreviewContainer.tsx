@@ -215,7 +215,10 @@ export function PreviewContainer({
   // Remove manual pointer-drag panning; handled by react-zoom-pan-pinch
 
   return (
-    <div ref={containerRef} className={cn('preview-container w-full h-full bg-gray-100', className)}>
+    <div
+      ref={containerRef}
+      className={cn('preview-container w-full h-full bg-gray-100 overflow-auto', className)}
+    >
       <TransformWrapper
         ref={transformRef}
         initialScale={zoomLevel}
@@ -224,6 +227,7 @@ export function PreviewContainer({
         limitToBounds={false}
         centerOnInit={true}
         panning={{ disabled: !isPanEnabled }}
+        wheel={{ disabled: !isPanEnabled, wheelDisabled: !isPanEnabled }}
         onTransformed={(ref) => {
           const scale = ref.state.scale
           // Reflect the current library scale into the store (fit-to-width effect also calls applyFitZoom)
