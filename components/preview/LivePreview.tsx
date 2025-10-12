@@ -38,15 +38,14 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
   const rafIdRef = React.useRef<number | null>(null)
   const [previewData, setPreviewData] = React.useState<ResumeJson | null>(null)
   const lastDocRef = React.useRef<ResumeJson | null>(null)
-  const [pageOffsets, setPageOffsets] = React.useState<number[]>([])
-  const [pageSizePx, setPageSizePx] = React.useState<{ width: number; height: number } | null>(null)
-
   // Shallow selector for document data
   const document = useDocumentStore(useShallow((state) => state.document))
-
   const isLoading = useDocumentStore((state) => state.isLoading)
   const setResumeData = useArtboardStore((state) => state.setResume)
   const setTotalPages = usePreviewStore((state) => state.setTotalPages)
+  const setPageOffsetsStore = usePreviewStore((state) => state.setPageOffsets)
+  const updatePaginationMetrics = usePreviewStore((state) => state.updatePaginationMetrics)
+  const resetPagination = usePreviewStore((state) => state.resetPagination)
 
   const artboardDocument = React.useMemo(() => {
     if (!previewData) return null
@@ -55,13 +54,11 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
 
   React.useEffect(() => {
     if (!artboardDocument) {
-      setTotalPages(1)
-      setPageOffsets([])
+      resetPagination()
       return
     }
     setTotalPages(artboardDocument.layout.length)
-    setPageOffsets([])
-  }, [artboardDocument, setTotalPages])
+  }, [artboardDocument, resetPagination, setTotalPages])
 
   // RAF-batched update handler
   React.useEffect(() => {
@@ -150,18 +147,17 @@ export function LivePreview({ showControls = true }: LivePreviewProps): React.Re
       <div ref={containerRef} className="w-full h-full flex flex-col min-h-0">
         {showControls && <div className="flex-shrink-0"><PreviewControls /></div>}
         <div className="flex-1 min-h-0">
-          <PreviewContainer
-            pageFormat={artboardDocument.metadata.page.format as PageFormat}
-            pageOffsets={pageOffsets}
-            pageWidthPxOverride={pageSizePx?.width}
-            pageHeightPxOverride={pageSizePx?.height}
-          >
+          <PreviewContainer pageFormat={artboardDocument.metadata.page.format as PageFormat}>
             <ArtboardFrame
               document={artboardDocument}
-              onPagesMeasured={setPageOffsets}
-              onFrameMetrics={({ offsets, pageWidth, pageHeight }) => {
-                setPageOffsets(offsets)
-                setPageSizePx({ width: pageWidth, height: pageHeight })
+              onPagesMeasured={setPageOffsetsStore}
+              onFrameMetrics={({ offsets, pageWidth, pageHeight, margin }) => {
+                updatePaginationMetrics({
+                  offsets,
+                  pageWidth,
+                  pageHeight,
+                  margin,
+                })
               }}
             />
           </PreviewContainer>

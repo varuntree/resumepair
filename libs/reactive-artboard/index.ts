@@ -1,5 +1,6 @@
 export * from './types'
 export { ArtboardRenderer } from './renderer/ArtboardRenderer'
+export { PaginatedArtboardRenderer } from './renderer/PaginatedArtboardRenderer'
 export { mapResumeToArtboardDocument, mapCoverLetterToArtboardDocument } from './mappers'
 export { useArtboardStore } from './store/artboard'
 export { mapResumeJsonToResumeData } from './adapters'

@@ -1,7 +1,9 @@
 /**
  * Preview Container
  *
- * Preview wrapper with layout, zoom transform, and overflow handling.
+ * Provides scroll + zoom surface for the resume preview with strict event isolation.
+ * Integrates with the preview store for fit-to-width behaviour, pagination metrics,
+ * and scroll ratio persistence.
  *
  * @module components/preview/PreviewContainer
  */
@@ -25,39 +27,36 @@ interface PreviewContainerProps {
   children: React.ReactNode
   className?: string
   pageFormat?: PageFormat
-  pageOffsets?: number[]
-  pageWidthPxOverride?: number
-  pageHeightPxOverride?: number
 }
 
-/**
- * Container wrapper for preview with zoom and scroll handling
- */
 export function PreviewContainer({
   children,
   className = '',
   pageFormat,
-  pageOffsets,
-  pageWidthPxOverride,
-  pageHeightPxOverride,
 }: PreviewContainerProps): React.ReactElement {
   const containerRef = React.useRef<HTMLDivElement>(null)
   const wrapperRef = React.useRef<HTMLDivElement>(null)
   const transformRef = React.useRef<ReactZoomPanPinchRef>(null)
+
   const zoomLevel = usePreviewStore((state) => state.zoomLevel)
-  // Drag state removed; panning handled by react-zoom-pan-pinch
   const isFitToWidth = usePreviewStore((state) => state.isFitToWidth)
   const applyFitZoom = usePreviewStore((state) => state.applyFitZoom)
   const resetZoom = usePreviewStore((state) => state.resetZoom)
-  const pendingScrollPage = usePreviewStore((state) => state.pendingScrollPage)
-  const syncCurrentPage = usePreviewStore((state) => state.syncCurrentPage)
   const clearPendingScroll = usePreviewStore((state) => state.clearPendingScroll)
+  const syncCurrentPage = usePreviewStore((state) => state.syncCurrentPage)
+  const pendingScrollPage = usePreviewStore((state) => state.pendingScrollPage)
+  const pendingScrollRatio = usePreviewStore((state) => state.pendingScrollRatio)
+  const pageOffsets = usePreviewStore((state) => state.pageOffsets)
+  const pageMetrics = usePreviewStore((state) => state.pageMetrics)
+  const syncZoomFromTransform = usePreviewStore((state) => state.syncZoomFromTransform)
+
   const resolvedFormat = normalizePageFormat(pageFormat ?? DEFAULT_PAGE_FORMAT)
-  const pageSize = PAGE_SIZE_MM[resolvedFormat]
-  const computedWidthPx = pageSize.width * MM_TO_PX
-  const computedHeightPx = pageSize.height * MM_TO_PX
-  const pageWidthPx = pageWidthPxOverride ?? computedWidthPx
-  const pageHeightPx = pageHeightPxOverride ?? computedHeightPx
+  const fallback = PAGE_SIZE_MM[resolvedFormat]
+  const fallbackWidthPx = fallback.width * MM_TO_PX
+  const fallbackHeightPx = fallback.height * MM_TO_PX
+  const pageWidthPx = pageMetrics?.widthPx ?? fallbackWidthPx
+  const pageHeightPx = pageMetrics?.heightPx ?? fallbackHeightPx
+  const basePageHeight = pageMetrics?.heightPx ?? fallbackHeightPx
   const isPanEnabled = zoomLevel > 1.01
 
   const getWrapperPadding = React.useCallback(() => {
@@ -67,9 +66,9 @@ export function PreviewContainer({
     }
     const styles = window.getComputedStyle(wrapper)
     return {
-      top: Number.parseFloat(styles.paddingTop ?? '0'),
-      left: Number.parseFloat(styles.paddingLeft ?? '0'),
-      right: Number.parseFloat(styles.paddingRight ?? '0'),
+      top: Number.parseFloat(styles.paddingTop || '0'),
+      left: Number.parseFloat(styles.paddingLeft || '0'),
+      right: Number.parseFloat(styles.paddingRight || '0'),
     }
   }, [])
 
@@ -77,37 +76,35 @@ export function PreviewContainer({
     if (!isFitToWidth) return
     const container = containerRef.current
     if (!container) return
-    // clientWidth excludes vertical scrollbar width
+
     let availableWidth = container.clientWidth
     const padding = getWrapperPadding()
-    availableWidth = availableWidth - padding.left - padding.right
+    availableWidth -= padding.left + padding.right
+
     if (!Number.isFinite(availableWidth) || availableWidth <= 0 || pageWidthPx <= 0) return
+
     const targetZoom = availableWidth / pageWidthPx
     transformRef.current?.setTransform(0, 0, targetZoom, 0)
     applyFitZoom(targetZoom)
   }, [applyFitZoom, getWrapperPadding, isFitToWidth, pageWidthPx])
 
   React.useLayoutEffect(() => {
-    if (!isFitToWidth) {
-      return
-    }
-
+    if (!isFitToWidth) return
     recomputeFitZoom()
 
     const target = containerRef.current
-    if (!target || typeof ResizeObserver === 'undefined') {
-      return
-    }
+    if (!target || typeof ResizeObserver === 'undefined') return
 
-    const observer = new ResizeObserver(() => {
-      recomputeFitZoom()
-    })
+    const observer = new ResizeObserver(() => recomputeFitZoom())
     observer.observe(target)
 
-    return () => {
-      observer.disconnect()
-    }
+    return () => observer.disconnect()
   }, [isFitToWidth, recomputeFitZoom])
+
+  React.useEffect(() => {
+    if (!isFitToWidth) return
+    recomputeFitZoom()
+  }, [isFitToWidth, recomputeFitZoom, pageWidthPx])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -125,49 +122,95 @@ export function PreviewContainer({
         resetZoom()
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [resetZoom])
 
   React.useEffect(() => {
-    if (pendingScrollPage === null) {
-      return
+    const container = containerRef.current
+    if (!container) return
+
+    const handleWheel = (event: WheelEvent) => {
+      event.stopPropagation()
+
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+        const delta = -event.deltaY / 100
+        if (delta > 0) {
+          transformRef.current?.zoomIn(0.1)
+        } else {
+          transformRef.current?.zoomOut(0.1)
+        }
+      }
     }
+
+    container.addEventListener('wheel', handleWheel, { passive: false, capture: true })
+    return () => {
+      container.removeEventListener('wheel', handleWheel, { capture: true } as any)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const preventGesture = (event: Event) => event.preventDefault()
+    container.addEventListener('gesturestart', preventGesture)
+    container.addEventListener('gesturechange', preventGesture)
+    container.addEventListener('gestureend', preventGesture)
+
+    return () => {
+      container.removeEventListener('gesturestart', preventGesture)
+      container.removeEventListener('gesturechange', preventGesture)
+      container.removeEventListener('gestureend', preventGesture)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (pendingScrollPage === null) return
 
     const container = containerRef.current
-    if (!container) {
-      return
-    }
-
-    if (!pageOffsets || pageOffsets.length === 0) {
+    if (!container) return
+    if (!pageOffsets.length) {
       clearPendingScroll()
       return
     }
 
     const index = Math.min(pageOffsets.length - 1, Math.max(0, pendingScrollPage - 1))
     const padding = getWrapperPadding()
-    const target = pageOffsets[index] * zoomLevel + padding.top
+    const start = pageOffsets[index] ?? 0
+    const end =
+      pageOffsets[index + 1] ??
+      (start + (pageMetrics?.heightPx ?? basePageHeight))
+    const span = Math.max(end - start, pageMetrics?.heightPx ?? basePageHeight)
+    const ratio = pendingScrollRatio ?? 0
+    const unscaledTarget = start + Math.min(Math.max(ratio, 0), 1) * span
+    const target = unscaledTarget * zoomLevel + padding.top
+
     container.scrollTo({ top: target, behavior: 'smooth' })
+    const rafId = requestAnimationFrame(() => clearPendingScroll())
 
-    const rafId = requestAnimationFrame(() => {
-      clearPendingScroll()
-    })
-
-    return () => {
-      cancelAnimationFrame(rafId)
-    }
-  }, [clearPendingScroll, getWrapperPadding, pageOffsets, pendingScrollPage, zoomLevel])
+    return () => cancelAnimationFrame(rafId)
+  }, [
+    basePageHeight,
+    clearPendingScroll,
+    getWrapperPadding,
+    pageMetrics?.heightPx,
+    pageOffsets,
+    pendingScrollPage,
+    pendingScrollRatio,
+    zoomLevel,
+  ])
 
   const lastAppliedZoomRef = React.useRef<number | null>(null)
-
   React.useEffect(() => {
-    // If external controls change the zoom (e.g., ZoomControl), reflect it in the transform wrapper
     if (isFitToWidth) return
     const api = transformRef.current
     if (!api) return
+
     const epsilon = 0.005
-    const last = lastAppliedZoomRef.current
-    if (last === null || Math.abs(last - zoomLevel) > epsilon) {
+    if (lastAppliedZoomRef.current === null || Math.abs(lastAppliedZoomRef.current - zoomLevel) > epsilon) {
       api.setTransform(0, 0, zoomLevel, 0)
       lastAppliedZoomRef.current = zoomLevel
     }
@@ -175,30 +218,33 @@ export function PreviewContainer({
 
   React.useEffect(() => {
     const container = containerRef.current
-    if (!container || !pageOffsets || pageOffsets.length === 0) return
+    if (!container) return
 
-    let frame = 0
-
+    let raf = 0
     const handleScroll = () => {
-      if (frame !== 0) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+
+        if (!pageOffsets.length) return
         const padding = getWrapperPadding()
-        const scrollTop = container.scrollTop - padding.top
-        if (scrollTop < 0) {
-          syncCurrentPage(1)
-          return
-        }
+        const contentTop = Math.max((container.scrollTop - padding.top) / zoomLevel, 0)
 
         let resolvedPage = 1
         for (let index = pageOffsets.length - 1; index >= 0; index -= 1) {
-          const threshold = pageOffsets[index] * zoomLevel
-          if (scrollTop + 4 >= threshold) {
+          if (contentTop + 0.5 >= pageOffsets[index]) {
             resolvedPage = index + 1
             break
           }
         }
-        syncCurrentPage(resolvedPage)
+
+        const start = pageOffsets[resolvedPage - 1] ?? 0
+        const end =
+          pageOffsets[resolvedPage] ??
+          (start + (pageMetrics?.heightPx ?? basePageHeight))
+        const span = Math.max(end - start, pageMetrics?.heightPx ?? basePageHeight)
+        const ratio = span > 0 ? (contentTop - start) / span : 0
+        syncCurrentPage(resolvedPage, Math.min(Math.max(ratio, 0), 1))
       })
     }
 
@@ -206,18 +252,26 @@ export function PreviewContainer({
 
     return () => {
       container.removeEventListener('scroll', handleScroll)
-      if (frame) {
-        cancelAnimationFrame(frame)
-      }
+      if (raf) cancelAnimationFrame(raf)
     }
-  }, [getWrapperPadding, pageOffsets, syncCurrentPage, zoomLevel])
-
-  // Remove manual pointer-drag panning; handled by react-zoom-pan-pinch
+  }, [
+    basePageHeight,
+    getWrapperPadding,
+    pageMetrics?.heightPx,
+    pageOffsets,
+    syncCurrentPage,
+    zoomLevel,
+  ])
 
   return (
     <div
       ref={containerRef}
-      className={cn('preview-container w-full h-full bg-gray-100 overflow-auto', className)}
+      className={cn('preview-container w-full h-full overflow-auto bg-gray-100', className)}
+      style={{
+        overscrollBehavior: 'contain',
+        touchAction: 'pan-y pinch-zoom',
+        scrollbarGutter: 'stable',
+      }}
     >
       <TransformWrapper
         ref={transformRef}
@@ -225,16 +279,22 @@ export function PreviewContainer({
         minScale={0.4}
         maxScale={2.0}
         limitToBounds={false}
-        centerOnInit={true}
+        centerOnInit
         panning={{ disabled: !isPanEnabled }}
-        wheel={{ disabled: !isPanEnabled, wheelDisabled: !isPanEnabled }}
-        onTransformed={(ref) => {
-          const scale = ref.state.scale
-          // Reflect the current library scale into the store (fit-to-width effect also calls applyFitZoom)
-          usePreviewStore.getState().setZoom(scale)
+        doubleClick={{ disabled: true }}
+        pinch={{ disabled: false }}
+        wheel={{ disabled: true }}
+        onTransformed={(refState) => {
+          const scale = refState.state.scale
+          syncZoomFromTransform(scale)
+          lastAppliedZoomRef.current = scale
         }}
       >
-        <TransformComponent wrapperClass="!w-full !h-full" contentClass="flex items-start justify-center min-h-full p-8">
+        <TransformComponent
+          wrapperClass="!w-full !min-h-full"
+          wrapperStyle={{ minHeight: '100%' }}
+          contentClass="flex min-h-full w-full items-start justify-center p-8"
+        >
           <div ref={wrapperRef} className="preview-content bg-white shadow-lg">
             <div
               style={{

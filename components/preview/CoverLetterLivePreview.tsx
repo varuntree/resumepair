@@ -25,12 +25,12 @@ export function CoverLetterLivePreview({ showControls = true }: CoverLetterLiveP
   const rafIdRef = React.useRef<number | null>(null)
   const [previewData, setPreviewData] = React.useState<CoverLetterJson | null>(null)
   const lastDocRef = React.useRef<CoverLetterJson | null>(null)
-  const [pageOffsets, setPageOffsets] = React.useState<number[]>([])
-  const [pageSizePx, setPageSizePx] = React.useState<{ width: number; height: number } | null>(null)
-
   const document = useCoverLetterStore(useShallow((state) => state.document))
   const isLoading = useCoverLetterStore((state) => state.isLoading)
   const setTotalPages = usePreviewStore((state) => state.setTotalPages)
+  const setPageOffsetsStore = usePreviewStore((state) => state.setPageOffsets)
+  const updatePaginationMetrics = usePreviewStore((state) => state.updatePaginationMetrics)
+  const resetPagination = usePreviewStore((state) => state.resetPagination)
 
   React.useEffect(() => {
     if (!document) return
@@ -77,13 +77,11 @@ export function CoverLetterLivePreview({ showControls = true }: CoverLetterLiveP
 
   React.useEffect(() => {
     if (!artboardDocument) {
-      setTotalPages(1)
-      setPageOffsets([])
+      resetPagination()
       return
     }
     setTotalPages(artboardDocument.layout.length)
-    setPageOffsets([])
-  }, [artboardDocument, setTotalPages])
+  }, [artboardDocument, resetPagination, setTotalPages])
 
   if (isLoading || !artboardDocument) {
     return (
@@ -102,18 +100,17 @@ export function CoverLetterLivePreview({ showControls = true }: CoverLetterLiveP
           </div>
         )}
         <div className="flex-1 min-h-0">
-          <PreviewContainer
-            pageFormat={artboardDocument.metadata.page.format as PageFormat}
-            pageOffsets={pageOffsets}
-            pageWidthPxOverride={pageSizePx?.width}
-            pageHeightPxOverride={pageSizePx?.height}
-          >
+          <PreviewContainer pageFormat={artboardDocument.metadata.page.format as PageFormat}>
             <ArtboardFrame
               document={artboardDocument}
-              onPagesMeasured={setPageOffsets}
-              onFrameMetrics={({ offsets, pageWidth, pageHeight }) => {
-                setPageOffsets(offsets)
-                setPageSizePx({ width: pageWidth, height: pageHeight })
+              onPagesMeasured={setPageOffsetsStore}
+              onFrameMetrics={({ offsets, pageWidth, pageHeight, margin }) => {
+                updatePaginationMetrics({
+                  offsets,
+                  pageWidth,
+                  pageHeight,
+                  margin,
+                })
               }}
             />
           </PreviewContainer>

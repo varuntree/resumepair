@@ -20,6 +20,8 @@ import React, { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot } from "../components/FlowRoot";
+import { FlowItem } from "../components/FlowItem";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -30,7 +32,7 @@ const Header = () => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
 
   return (
-    <div>
+    <FlowItem as="header" splittable={false}>
       <div
         className="p-custom flex items-center space-x-8"
         style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
@@ -107,7 +109,7 @@ const Header = () => {
           </div>
         )}
       </div>
-    </div>
+    </FlowItem>
   );
 };
 
@@ -191,10 +193,11 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid">
+    <FlowItem as="section" id={section.id} className="grid" splittable={visibleItems.length > 0}>
       <h4 className="mb-2 border-b border-primary text-left font-bold text-primary">
         {section.name}
       </h4>
@@ -203,37 +206,40 @@ const Section = <T,>({
         className="grid gap-x-6 gap-y-3"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey && get(item, urlKey)) as URL | undefined;
-            const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
-            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+        {visibleItems.map((item, index) => {
+          const url = (urlKey && get(item, urlKey)) as URL | undefined;
+          const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
+          const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+          const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-            return (
-              <div key={item.id} className={cn("space-y-2", className)}>
-                <div>{children?.(item as T)}</div>
+          return (
+            <div
+              key={item.id}
+              className={cn("space-y-2", className)}
+              data-flow-subitem="true"
+              data-flow-subitem-index={index}
+            >
+              <div>{children?.(item as T)}</div>
 
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
+              {summary !== undefined && !isEmptyString(summary) && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                  className="wysiwyg"
+                />
+              )}
 
-                {level !== undefined && level > 0 && <Rating level={level} />}
+              {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+              {keywords !== undefined && keywords.length > 0 && (
+                <p className="text-sm">{keywords.join(", ")}</p>
+              )}
 
-                {url !== undefined && section.separateLinks && <Link url={url} />}
-              </div>
-            );
-          })}
+              {url !== undefined && section.separateLinks && <Link url={url} />}
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -516,7 +522,7 @@ export const LeafishTemplate = ({ columns, isFirstPage = false }: TemplateProps)
   const [main, sidebar] = columns;
 
   return (
-    <div>
+    <FlowRoot>
       {isFirstPage && <Header />}
 
       <div className="p-custom grid grid-cols-2 items-start space-x-6">
@@ -532,6 +538,6 @@ export const LeafishTemplate = ({ columns, isFirstPage = false }: TemplateProps)
           ))}
         </div>
       </div>
-    </div>
+    </FlowRoot>
   );
 };

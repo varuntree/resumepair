@@ -4,38 +4,51 @@ import * as React from 'react'
 import { createRoot, Root } from 'react-dom/client'
 import { ArtboardRenderer, ArtboardDocument } from '@/libs/reactive-artboard'
 
-// eslint-disable-next-line no-unused-vars
-type PageOffsetsListener = (offsets: number[]) => void
-type FrameMetrics = { offsets: number[]; pageWidth: number; pageHeight: number }
-// eslint-disable-next-line no-unused-vars
-type FrameMetricsListener = (metrics: FrameMetrics) => void
+type FrameMetrics = {
+  offsets: number[]
+  pageWidth: number
+  pageHeight: number
+  margin: number
+}
 
 interface ArtboardFrameProps {
   document: ArtboardDocument
-  onPagesMeasured?: PageOffsetsListener
-  onFrameMetrics?: FrameMetricsListener
+  // eslint-disable-next-line no-unused-vars
+  onPagesMeasured?: (offsets: number[]) => void
+  // eslint-disable-next-line no-unused-vars
+  onFrameMetrics?: (metrics: FrameMetrics) => void
 }
 
-/**
- * Embeds the artboard renderer inside an iframe to isolate styles.
- * Auto-resizes the frame based on rendered content height.
- */
-export function ArtboardFrame({ document, onPagesMeasured, onFrameMetrics }: ArtboardFrameProps): React.ReactElement {
+export function ArtboardFrame({
+  document,
+  onPagesMeasured,
+  onFrameMetrics,
+}: ArtboardFrameProps): React.ReactElement {
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
   const rootRef = React.useRef<Root | null>(null)
   const [height, setHeight] = React.useState<number>(0)
-  const pagesMeasuredRef = React.useRef<PageOffsetsListener | undefined>(onPagesMeasured)
-  const frameMetricsRef = React.useRef<FrameMetricsListener | undefined>(onFrameMetrics)
 
-  // Keep latest callbacks without re-running the mount effect
+  // eslint-disable-next-line no-unused-vars
+  const pagesMeasuredRef = React.useRef<((offsets: number[]) => void) | undefined>(onPagesMeasured)
+  // eslint-disable-next-line no-unused-vars
+  const frameMetricsRef = React.useRef<((metrics: FrameMetrics) => void) | undefined>(onFrameMetrics)
+
   React.useEffect(() => {
     pagesMeasuredRef.current = onPagesMeasured
   }, [onPagesMeasured])
+
   React.useEffect(() => {
     frameMetricsRef.current = onFrameMetrics
   }, [onFrameMetrics])
 
-  // Mount React root inside the iframe
+  const handlePagesMeasured = React.useCallback((offsets: number[]) => {
+    pagesMeasuredRef.current?.(offsets)
+  }, [])
+
+  const handleFrameMetrics = React.useCallback((metrics: FrameMetrics) => {
+    frameMetricsRef.current?.(metrics)
+  }, [])
+
   React.useLayoutEffect(() => {
     const iframe = iframeRef.current
     if (!iframe) return
@@ -62,37 +75,32 @@ export function ArtboardFrame({ document, onPagesMeasured, onFrameMetrics }: Art
       rootRef.current = createRoot(mountNode)
     }
 
-    rootRef.current.render(<ArtboardRenderer document={document} />)
-
-    const measurePages = () => {
-      const pages = Array.from(doc.querySelectorAll('[data-page]')) as HTMLElement[]
-      const offsets = pages.map((page) => page.offsetTop)
-      pagesMeasuredRef.current?.(offsets)
-      const first = pages[0] as HTMLElement | undefined
-      const rect = first?.getBoundingClientRect()
-      const pageWidth = rect?.width ?? doc.documentElement.clientWidth
-      const pageHeight = rect?.height ?? doc.documentElement.clientHeight
-      frameMetricsRef.current?.({ offsets, pageWidth, pageHeight })
-    }
+    rootRef.current.render(
+      <ArtboardRenderer
+        document={document}
+        onPagesMeasured={handlePagesMeasured}
+        onFrameMetrics={handleFrameMetrics}
+      />
+    )
 
     const updateHeight = () => {
-      const next = doc.documentElement.scrollHeight
-      setHeight((prev) => (prev !== next ? next : prev))
-      measurePages()
+      const nextHeight = doc.documentElement.scrollHeight
+      setHeight((prev) => (prev !== nextHeight ? nextHeight : prev))
     }
 
     updateHeight()
 
-    const ResizeObserverCtor = (win as typeof window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver ?? ResizeObserver
+    const ResizeObserverCtor =
+      (win as typeof window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver ??
+      ResizeObserver
     const observer = new ResizeObserverCtor(() => updateHeight())
     observer.observe(doc.documentElement)
 
     return () => {
       observer.disconnect()
     }
-  }, [document])
+  }, [document, handleFrameMetrics, handlePagesMeasured])
 
-  // Cleanup React root once component unmounts
   React.useEffect(() => {
     return () => {
       if (rootRef.current) {
