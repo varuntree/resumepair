@@ -204,7 +204,7 @@ const Section = <T,>({
       </div>
 
       <div
-        className="col-span-4 grid gap-x-6 gap-y-3"
+        className="col-span-4 grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -216,7 +216,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("space-y-2", className)}
+              className={cn("space-y-doc-item", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -589,10 +589,10 @@ export const BronzorTemplate = ({ columns, isFirstPage = false }: TemplateProps)
   const [main, sidebar] = columns;
 
   return (
-    <FlowRoot className="p-custom space-y-4">
+    <FlowRoot className="p-custom space-y-doc-section">
       {isFirstPage && <Header />}
 
-      <div className="space-y-4">
+      <div className="space-y-doc-section">
         {main.map((section) => (
           <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
         ))}

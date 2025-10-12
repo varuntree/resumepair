@@ -22,6 +22,9 @@ module.exports = {
       },
       spacing: {
         custom: 'var(--margin)',
+        'doc-section': 'var(--doc-section-gap)',
+        'doc-item': 'var(--doc-item-gap)',
+        'doc-column': 'var(--doc-column-gap)',
       },
       lineHeight: {
         tight: 'calc(var(--line-height) - 0.5)',

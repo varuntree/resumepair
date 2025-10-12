@@ -103,7 +103,7 @@ const Summary = () => {
         <div className="size-1.5 rounded-full border border-primary" />
       </div>
 
-      <main className={cn("relative space-y-2", "border-l border-primary pl-4")}>
+      <main className={cn("relative space-y-doc-item", "border-l border-primary pl-4")}>
         <div className="absolute left-[-4.5px] top-[8px] hidden size-[8px] rounded-full bg-primary group-[.main]:block" />
 
         <div
@@ -211,7 +211,7 @@ const Section = <T,>({
       </div>
 
       <div
-        className="grid gap-x-6 gap-y-3 group-[.sidebar]:mx-auto group-[.sidebar]:text-center"
+        className="grid gap-x-doc-column gap-y-doc-item group-[.sidebar]:mx-auto group-[.sidebar]:text-center"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -224,7 +224,7 @@ const Section = <T,>({
             <div
               key={item.id}
               className={cn(
-                "relative space-y-2",
+                "relative space-y-doc-item",
                 "border-primary group-[.main]:border-l group-[.main]:pl-4",
                 className,
               )}
@@ -563,18 +563,18 @@ export const AzurillTemplate = ({ columns, isFirstPage = false }: TemplateProps)
   const [main, sidebar] = columns;
 
   return (
-    <FlowRoot className="p-custom space-y-3">
+    <FlowRoot className="p-custom space-y-doc-section">
       {isFirstPage && <Header />}
 
-      <div className="grid grid-cols-3 gap-x-4">
-        <div className="sidebar group space-y-4">
+      <div className="grid grid-cols-3 gap-x-doc-column">
+        <div className="sidebar group space-y-doc-section">
           {sidebar.map((section) => (
             <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
           ))}
         </div>
 
         <div
-          className={cn("main group space-y-4", sidebar.length > 0 ? "col-span-2" : "col-span-3")}
+          className={cn("main group space-y-doc-section", sidebar.length > 0 ? "col-span-2" : "col-span-3")}
         >
           {main.map((section) => (
             <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>

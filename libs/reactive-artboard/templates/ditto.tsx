@@ -212,7 +212,7 @@ const Section = <T,>({
       <h4 className="mb-2 text-base font-bold">{section.name}</h4>
 
       <div
-        className="grid gap-x-6 gap-y-3"
+        className="grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -224,7 +224,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("relative space-y-2 pl-4 group-[.sidebar]:pl-0", className)}
+              className={cn("relative space-y-doc-item pl-4 group-[.sidebar]:pl-0", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -612,7 +612,7 @@ export const DittoTemplate = ({ columns, isFirstPage = false }: TemplateProps) =
       )}
 
       <div className="grid grid-cols-3">
-        <div className="sidebar p-custom group space-y-4">
+        <div className="sidebar p-custom group space-y-doc-section">
           {sidebar.map((section) => (
             <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
           ))}
@@ -620,7 +620,7 @@ export const DittoTemplate = ({ columns, isFirstPage = false }: TemplateProps) =
 
         <div
           className={cn(
-            "main p-custom group space-y-4",
+            "main p-custom group space-y-doc-section",
             sidebar.length > 0 ? "col-span-2" : "col-span-3",
           )}
         >

@@ -30,10 +30,10 @@ export const metadataSchema = z.object({
   }),
   typography: z.object({
     font: z.object({
-      family: z.string().default("IBM Plex Serif"),
+      family: z.string().default("Inter"),
       subset: z.string().default("latin"),
       variants: z.array(z.string()).default(["regular"]),
-      size: z.number().default(14),
+      size: z.number().default(16),
     }),
     lineHeight: z.number().default(1.5),
     hideIcons: z.boolean().default(false),
@@ -68,10 +68,10 @@ export const defaultMetadata: Metadata = {
   },
   typography: {
     font: {
-      family: "IBM Plex Serif",
+      family: "Inter",
       subset: "latin",
       variants: ["regular", "italic", "600"],
-      size: 14,
+      size: 16,
     },
     lineHeight: 1.5,
     hideIcons: false,

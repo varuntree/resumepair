@@ -727,6 +727,10 @@ export function buildArtboardStyles(
   const borderHsl = toHslComponents(mixColors(metadata.colors.text, metadata.colors.background, 0.85))
   const mutedHsl = toHslComponents(mixColors(metadata.colors.text, metadata.colors.background, 0.6))
 
+  const sectionGap = metadata.spacing?.sectionGap ?? 16
+  const itemGap = metadata.spacing?.itemGap ?? 8
+  const columnGap = metadata.spacing?.columnGap ?? 24
+
   const root = `
     :root {
       --artboard-color-background: ${metadata.colors.background};
@@ -756,6 +760,9 @@ export function buildArtboardStyles(
       --accent: ${primaryHsl};
       --accent-foreground: ${toHslComponents(metadata.colors.background)};
       --border: ${borderHsl};
+      --doc-section-gap: ${sectionGap}px;
+      --doc-item-gap: ${itemGap}px;
+      --doc-column-gap: ${columnGap}px;
     }
   `
 
