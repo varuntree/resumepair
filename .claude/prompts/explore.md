@@ -6,7 +6,7 @@ PRIMARY INTENT
 - Make ZERO code changes and DO NOT plan solutions yet.
 
 WHEN RUN
-- Input provided will be only: “Task: …”.
+- Input provided will be only: “”.
 - Everything else must be discovered from the repo itself.
 
 ALLOWED ACTIONS (read-only)

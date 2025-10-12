@@ -28,6 +28,8 @@ import { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot } from "../components/FlowRoot";
+import { FlowItem } from "../components/FlowItem";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -35,7 +37,12 @@ const Header = () => {
   const basics = useArtboardStore((state) => state.resume.basics);
 
   return (
-    <div className="flex flex-col items-center space-y-4 text-center">
+    <FlowItem
+      as="header"
+      className="flex flex-col items-center space-y-4 text-center"
+      splittable={false}
+      groupId="header"
+    >
       <Picture />
 
       <div className="space-y-4">
@@ -82,7 +89,7 @@ const Header = () => {
           ))}
         </div>
       </div>
-    </div>
+    </FlowItem>
   );
 };
 
@@ -92,7 +99,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break">
+    <FlowItem as="section" id={section.id} splittable={false}>
       <h4 className="mb-2 border-b pb-0.5 text-sm font-bold">{section.name}</h4>
 
       <div
@@ -100,7 +107,7 @@ const Summary = () => {
         style={{ columns: section.columns }}
         className="wysiwyg"
       />
-    </section>
+    </FlowItem>
   );
 };
 
@@ -192,10 +199,11 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid">
+    <FlowItem as="section" id={section.id} className="grid" splittable={visibleItems.length > 0}>
       <h4 className="mb-2 border-b pb-0.5 text-sm font-bold group-[.sidebar]:text-primary">
         {section.name}
       </h4>
@@ -204,20 +212,23 @@ const Section = <T,>({
         className="grid gap-x-6 gap-y-3"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey && get(item, urlKey)) as URL | undefined;
-            const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
-            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+        {visibleItems.map((item, index) => {
+          const url = (urlKey && get(item, urlKey)) as URL | undefined;
+          const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
+          const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+          const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-            return (
-              <div key={item.id} className={cn("space-y-2", className)}>
-                <div>
-                  {children?.(item as T)}
-                  {url !== undefined && section.separateLinks && <Link url={url} />}
-                </div>
+          return (
+            <div
+              key={item.id}
+              className={cn("space-y-2", className)}
+              data-flow-subitem="true"
+              data-flow-subitem-index={index}
+            >
+              <div>
+                {children?.(item as T)}
+                {url !== undefined && section.separateLinks && <Link url={url} />}
+              </div>
 
                 {summary !== undefined && !isEmptyString(summary) && (
                   <div
@@ -228,14 +239,14 @@ const Section = <T,>({
 
                 {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
-              </div>
-            );
-          })}
+              {keywords !== undefined && keywords.length > 0 && (
+                <p className="text-sm">{keywords.join(", ")}</p>
+              )}
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -585,7 +596,7 @@ export const GlalieTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
 
   return (
-    <div className="grid min-h-[inherit] grid-cols-3">
+    <FlowRoot className="grid min-h-[inherit] grid-cols-3">
       <div
         className={cn("sidebar p-custom group space-y-4", sidebar.length === 0 && "hidden")}
         style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
@@ -607,6 +618,6 @@ export const GlalieTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
           <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
         ))}
       </div>
-    </div>
+    </FlowRoot>
   );
 };

@@ -23,6 +23,8 @@ import React, { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot } from "../components/FlowRoot";
+import { FlowItem } from "../components/FlowItem";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -30,7 +32,12 @@ const Header = () => {
   const basics = useArtboardStore((state) => state.resume.basics);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-2 pb-2 text-center">
+    <FlowItem
+      as="header"
+      className="flex flex-col items-center justify-center space-y-2 pb-2 text-center"
+      splittable={false}
+      groupId="header"
+    >
       <Picture />
 
       <div>
@@ -75,7 +82,7 @@ const Header = () => {
           </div>
         ))}
       </div>
-    </div>
+    </FlowItem>
   );
 };
 
@@ -85,7 +92,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break">
+    <FlowItem as="section" id={section.id} splittable={false}>
       <div className="mb-2 hidden font-bold text-primary group-[.main]:block">
         <h4>{section.name}</h4>
       </div>
@@ -105,7 +112,7 @@ const Summary = () => {
           className="wysiwyg"
         />
       </main>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -188,10 +195,11 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid">
+    <FlowItem as="section" id={section.id} className="grid" splittable={visibleItems.length > 0}>
       <div className="mb-2 hidden font-bold text-primary group-[.main]:block">
         <h4>{section.name}</h4>
       </div>
@@ -206,46 +214,46 @@ const Section = <T,>({
         className="grid gap-x-6 gap-y-3 group-[.sidebar]:mx-auto group-[.sidebar]:text-center"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey && get(item, urlKey)) as URL | undefined;
-            const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
-            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+        {visibleItems.map((item, index) => {
+          const url = (urlKey && get(item, urlKey)) as URL | undefined;
+          const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
+          const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+          const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  "relative space-y-2",
-                  "border-primary group-[.main]:border-l group-[.main]:pl-4",
-                  className,
-                )}
-              >
-                <div>{children?.(item as T)}</div>
+          return (
+            <div
+              key={item.id}
+              className={cn(
+                "relative space-y-2",
+                "border-primary group-[.main]:border-l group-[.main]:pl-4",
+                className,
+              )}
+              data-flow-subitem="true"
+              data-flow-subitem-index={index}
+            >
+              <div>{children?.(item as T)}</div>
 
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
+              {summary !== undefined && !isEmptyString(summary) && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                  className="wysiwyg"
+                />
+              )}
 
-                {level !== undefined && level > 0 && <Rating level={level} />}
+              {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+              {keywords !== undefined && keywords.length > 0 && (
+                <p className="text-sm">{keywords.join(", ")}</p>
+              )}
 
-                {url !== undefined && section.separateLinks && <Link url={url} />}
+              {url !== undefined && section.separateLinks && <Link url={url} />}
 
-                <div className="absolute left-[-4.5px] top-px hidden size-[8px] rounded-full bg-primary group-[.main]:block" />
-              </div>
-            );
-          })}
+              <div className="absolute left-[-4.5px] top-px hidden size-[8px] rounded-full bg-primary group-[.main]:block" />
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -555,7 +563,7 @@ export const AzurillTemplate = ({ columns, isFirstPage = false }: TemplateProps)
   const [main, sidebar] = columns;
 
   return (
-    <div className="p-custom space-y-3">
+    <FlowRoot className="p-custom space-y-3">
       {isFirstPage && <Header />}
 
       <div className="grid grid-cols-3 gap-x-4">
@@ -573,6 +581,6 @@ export const AzurillTemplate = ({ columns, isFirstPage = false }: TemplateProps)
           ))}
         </div>
       </div>
-    </div>
+    </FlowRoot>
   );
 };

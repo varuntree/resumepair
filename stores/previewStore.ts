@@ -32,6 +32,12 @@ export type ViewportMode = 'desktop' | 'tablet' | 'mobile' | 'print'
 /**
  * Preview state interface
  */
+type PageMetrics = {
+  widthPx: number
+  heightPx: number
+  marginPx: number
+}
+
 interface PreviewState {
   // View state
   zoomLevel: number
@@ -42,6 +48,10 @@ interface PreviewState {
   viewport: ViewportMode
   isFullscreen: boolean
   pendingScrollPage: number | null
+  pendingScrollRatio: number | null
+  pageOffsets: number[]
+  pageMetrics: PageMetrics | null
+  intraPageRatio: number
 
   // Actions
   setZoom: (level: number) => void
@@ -49,14 +59,23 @@ interface PreviewState {
   resetZoom: () => void
   setFitToWidth: (enabled: boolean) => void
   applyFitZoom: (level: number) => void
+  syncZoomFromTransform: (level: number) => void
   nextPage: () => void
   previousPage: () => void
   goToPage: (page: number) => void
-  syncCurrentPage: (page: number) => void
+  syncCurrentPage: (page: number, ratio?: number) => void
   clearPendingScroll: () => void
   setViewport: (mode: ViewportMode) => void
   toggleFullscreen: () => void
   setTotalPages: (total: number) => void
+  resetPagination: () => void
+  setPageOffsets: (offsets: number[]) => void
+  updatePaginationMetrics: (metrics: {
+    offsets: number[]
+    pageWidth: number
+    pageHeight: number
+    margin: number
+  }) => void
 
   // Computed getters
   canZoomIn: () => boolean
@@ -78,6 +97,10 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   viewport: 'desktop',
   isFullscreen: false,
   pendingScrollPage: null,
+  pendingScrollRatio: null,
+  pageOffsets: [],
+  pageMetrics: null,
+  intraPageRatio: 0,
 
   /**
    * Set zoom level manually (disables fit-to-width)
@@ -132,6 +155,18 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   },
 
   /**
+   * Sync zoom based on transform wrapper without toggling fit-to-width.
+   */
+  syncZoomFromTransform: (level: number) => {
+    const clamped = clampZoom(level)
+    const { isFitToWidth } = get()
+    set((state) => ({
+      zoomLevel: clamped,
+      lastManualZoom: isFitToWidth ? state.lastManualZoom : clamped,
+    }))
+  },
+
+  /**
    * Navigate to next page
    */
   nextPage: () => {
@@ -157,25 +192,33 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   goToPage: (page: number) => {
     const { totalPages } = get()
     const clamped = Math.min(Math.max(page, 1), totalPages)
-    set({ currentPage: clamped, pendingScrollPage: clamped })
+    set({
+      currentPage: clamped,
+      pendingScrollPage: clamped,
+      pendingScrollRatio: 0,
+      intraPageRatio: 0,
+    })
   },
 
   /**
    * Sync current page based on scroll position (no automatic scroll)
    */
-  syncCurrentPage: (page: number) => {
+  syncCurrentPage: (page: number, ratio: number = 0) => {
     const { totalPages, currentPage } = get()
     const clamped = Math.min(Math.max(page, 1), totalPages)
     if (clamped !== currentPage) {
       set({ currentPage: clamped })
     }
+    set({
+      intraPageRatio: Math.min(Math.max(ratio, 0), 1),
+    })
   },
 
   /**
    * Clear pending scroll request after viewport adjustment
    */
   clearPendingScroll: () => {
-    set({ pendingScrollPage: null })
+    set({ pendingScrollPage: null, pendingScrollRatio: null })
   },
 
   /**
@@ -186,8 +229,9 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   },
 
   /**
-   * Toggle fullscreen mode
+   * Record scroll ratio for current page (used for restore after repagination)
    */
+  // Toggle fullscreen mode
   toggleFullscreen: () => {
     set((state) => ({ isFullscreen: !state.isFullscreen }))
   },
@@ -205,6 +249,60 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
       totalPages: normalizedTotal,
       currentPage: clampedCurrent,
       pendingScrollPage,
+    })
+  },
+
+  /**
+   * Reset pagination metrics to defaults
+   */
+  resetPagination: () => {
+    set({
+      pageOffsets: [],
+      pageMetrics: null,
+      totalPages: 1,
+      currentPage: 1,
+      pendingScrollPage: null,
+      pendingScrollRatio: null,
+      intraPageRatio: 0,
+    })
+  },
+
+  /**
+   * Set page offsets (used when pagination metrics update from iframe)
+   */
+  setPageOffsets: (offsets: number[]) => {
+    const totalPages = Math.max(offsets.length, 1)
+    set((state) => {
+      const clamped = Math.min(Math.max(state.currentPage, 1), totalPages)
+      return {
+        pageOffsets: offsets,
+        totalPages,
+        currentPage: clamped,
+        pendingScrollPage: clamped,
+        pendingScrollRatio: state.intraPageRatio,
+      }
+    })
+  },
+
+  /**
+   * Update pagination metrics (width/height/margins + offsets)
+   */
+  updatePaginationMetrics: ({ offsets, pageWidth, pageHeight, margin }) => {
+    const totalPages = Math.max(offsets.length, 1)
+    set((state) => {
+      const clamped = Math.min(Math.max(state.currentPage, 1), totalPages)
+      return {
+        pageOffsets: offsets,
+        pageMetrics: {
+          widthPx: pageWidth,
+          heightPx: pageHeight,
+          marginPx: margin,
+        },
+        totalPages,
+        currentPage: clamped,
+        pendingScrollPage: clamped,
+        pendingScrollRatio: state.intraPageRatio,
+      }
     })
   },
 

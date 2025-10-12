@@ -20,6 +20,7 @@ import React, { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot, FlowItem } from "../components";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -28,7 +29,12 @@ const Header = () => {
   const profiles = useArtboardStore((state) => state.resume.sections.profiles);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-2 pb-2 text-center">
+    <FlowItem
+      as="div"
+      className="flex flex-col items-center justify-center space-y-2 pb-2 text-center"
+      splittable={false}
+      groupId="header"
+    >
       <Picture />
 
       <div>
@@ -92,7 +98,7 @@ const Header = () => {
             ))}
         </div>
       )}
-    </div>
+    </FlowItem>
   );
 };
 
@@ -102,7 +108,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break">
+    <FlowItem as="section" id={section.id} splittable={false}>
       <h4 className="mb-2 border-b border-primary text-center font-bold text-primary">
         {section.name}
       </h4>
@@ -112,7 +118,7 @@ const Summary = () => {
         style={{ columns: section.columns }}
         className="wysiwyg"
       />
-    </section>
+    </FlowItem>
   );
 };
 
@@ -196,10 +202,11 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid">
+    <FlowItem as="section" id={section.id} className="grid" splittable={visibleItems.length > 0}>
       <h4 className="mb-2 border-b border-primary text-center font-bold text-primary">
         {section.name}
       </h4>
@@ -208,37 +215,40 @@ const Section = <T,>({
         className="grid gap-x-6 gap-y-3"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey && get(item, urlKey)) as URL | undefined;
-            const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
-            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+        {visibleItems.map((item, index) => {
+          const url = (urlKey && get(item, urlKey)) as URL | undefined;
+          const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
+          const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+          const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-            return (
-              <div key={item.id} className={cn("space-y-2", className)}>
-                <div>{children?.(item as T)}</div>
+          return (
+            <div
+              key={item.id}
+              className={cn("space-y-2", className)}
+              data-flow-subitem="true"
+              data-flow-subitem-index={index}
+            >
+              <div>{children?.(item as T)}</div>
 
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
+              {summary !== undefined && !isEmptyString(summary) && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                  className="wysiwyg"
+                />
+              )}
 
-                {level !== undefined && level > 0 && <Rating level={level} />}
+              {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+              {keywords !== undefined && keywords.length > 0 && (
+                <p className="text-sm">{keywords.join(", ")}</p>
+              )}
 
-                {url !== undefined && section.separateLinks && <Link url={url} />}
-              </div>
-            );
-          })}
+              {url !== undefined && section.separateLinks && <Link url={url} />}
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -524,7 +534,7 @@ export const KakunaTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
   const [main, sidebar] = columns;
 
   return (
-    <div className="p-custom space-y-4">
+    <FlowRoot className="p-custom space-y-4">
       {isFirstPage && <Header />}
 
       <div className="space-y-4">
@@ -536,6 +546,6 @@ export const KakunaTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
           <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
         ))}
       </div>
-    </div>
+    </FlowRoot>
   );
 };

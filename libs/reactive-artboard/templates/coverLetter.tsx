@@ -1,5 +1,7 @@
 import * as React from 'react'
 import type { ArtboardRichTextBlock, ArtboardSection } from '../types'
+import { FlowRoot } from '../components/FlowRoot'
+import { FlowItem } from '../components/FlowItem'
 
 export function CoverLetterTemplate({ document }: { document?: any }): React.ReactElement {
   if (!document) return <div />
@@ -10,35 +12,49 @@ export function CoverLetterTemplate({ document }: { document?: any }): React.Rea
   const closing = findCustomSection(document.sections, 'closing')
 
   return (
-    <div className="artboard-page artboard-template-cover-letter" data-template="cover-letter">
-      <header className="cover-letter-header">
+    <FlowRoot className="artboard-page artboard-template-cover-letter" data-template="cover-letter">
+      <FlowItem as="header" className="cover-letter-header" splittable={false}>
         <div className="cover-letter-sender">
           {renderCustomBlocks(sender)}
         </div>
         <div className="cover-letter-meta">
           {renderCustomBlocks(meta)}
         </div>
-      </header>
+      </FlowItem>
 
       {recipient && (
-        <section className="doc-avoid-break cover-letter-recipient">
+        <FlowItem as="section" className="cover-letter-recipient" splittable={false}>
           {renderCustomBlocks(recipient)}
-        </section>
+        </FlowItem>
       )}
 
-      <section className="doc-avoid-break cover-letter-body">
+      <FlowItem as="section" className="cover-letter-body" splittable={true}>
         {document.profile.summary && (
-          <p className="cover-letter-salutation">{document.profile.summary}</p>
+          <p
+            className="cover-letter-salutation"
+            data-flow-subitem="true"
+            data-flow-subitem-index={0}
+          >
+            {document.profile.summary}
+          </p>
         )}
-        {body?.blocks.map((block, index) => renderBodyBlock(block, index))}
-      </section>
+        {body?.blocks.map((block, index) => (
+          <div
+            key={index}
+            data-flow-subitem="true"
+            data-flow-subitem-index={document.profile.summary ? index + 1 : index}
+          >
+            {renderBodyBlock(block)}
+          </div>
+        ))}
+      </FlowItem>
 
       {closing && (
-        <section className="doc-avoid-break cover-letter-closing">
+        <FlowItem as="section" className="cover-letter-closing" splittable={false}>
           {renderCustomBlocks(closing)}
-        </section>
+        </FlowItem>
       )}
-    </div>
+    </FlowRoot>
   )
 }
 
@@ -66,10 +82,10 @@ function renderCustomBlocks(section?: Extract<ArtboardSection, { type: 'custom' 
   ))
 }
 
-function renderBodyBlock(block: ArtboardRichTextBlock, index: number): React.ReactElement {
+function renderBodyBlock(block: ArtboardRichTextBlock): React.ReactElement {
   if (block.type === 'list') {
     return (
-      <ul key={index} className="cover-letter-list">
+      <ul className="cover-letter-list">
         {block.content.map((item, idx) => (
           <li key={idx}>{item}</li>
         ))}
@@ -78,7 +94,7 @@ function renderBodyBlock(block: ArtboardRichTextBlock, index: number): React.Rea
   }
 
   return (
-    <p key={index} className="cover-letter-paragraph">
+    <p className="cover-letter-paragraph">
       {block.content.join(' ')}
     </p>
   )

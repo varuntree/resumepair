@@ -21,6 +21,8 @@ import { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot } from "../components/FlowRoot";
+import { FlowItem } from "../components/FlowItem";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -28,7 +30,7 @@ const Header = () => {
   const basics = useArtboardStore((state) => state.resume.basics);
 
   return (
-    <div className="grid grid-cols-4 gap-x-6">
+    <FlowItem as="header" className="grid grid-cols-4 gap-x-6" splittable={false}>
       <div className="mt-1 space-y-2 text-right">
         <Picture className="ml-auto" />
       </div>
@@ -83,7 +85,7 @@ const Header = () => {
           ))}
         </div>
       </div>
-    </div>
+    </FlowItem>
   );
 };
 
@@ -93,7 +95,7 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid grid-cols-4 gap-x-6">
+    <FlowItem as="section" id={section.id} className="grid grid-cols-4 gap-x-6" splittable={false}>
       <div className="text-right">
         <h4 className="font-medium text-primary">{section.name}</h4>
       </div>
@@ -110,7 +112,7 @@ const Summary = () => {
           className="wysiwyg"
         />
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -180,12 +182,15 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section
+    <FlowItem
+      as="section"
       id={section.id}
-      className={cn('doc-avoid-break', 'grid', dateKey !== undefined && 'gap-y-4')}
+      className={cn('grid', dateKey !== undefined && 'gap-y-4')}
+      splittable={visibleItems.length > 0}
     >
       <div className="grid grid-cols-4 gap-x-6">
         <div className="text-right">
@@ -200,80 +205,83 @@ const Section = <T,>({
         </div>
       </div>
 
-      {dateKey !== undefined && (
+      {dateKey !== undefined ? (
         <div className="grid grid-cols-4 gap-x-6 gap-y-4">
-          {section.items
-            .filter((item) => item.visible)
-            .map((item) => {
-              const url = (urlKey && get(item, urlKey)) as URL | undefined;
-              const date = (dateKey && get(item, dateKey, "")) as string | undefined;
-              const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-              const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+          {visibleItems.map((item, index) => {
+            const url = (urlKey && get(item, urlKey)) as URL | undefined;
+            const date = (dateKey && get(item, dateKey, "")) as string | undefined;
+            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-              return (
-                <Fragment key={item.id}>
-                  <div className="text-right font-medium text-primary">{date}</div>
+            return (
+              <div
+                key={item.id}
+                className="contents"
+                data-flow-subitem="true"
+                data-flow-subitem-index={index}
+              >
+                <div className="text-right font-medium text-primary">{date}</div>
 
-                  <div className="col-span-3 space-y-1">
-                    {children?.(item as T)}
+                <div className="col-span-3 space-y-1">
+                  {children?.(item as T)}
 
-                    {url !== undefined && section.separateLinks && <Link url={url} />}
+                  {url !== undefined && section.separateLinks && <Link url={url} />}
 
-                    {summary !== undefined && !isEmptyString(summary) && (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                        className="wysiwyg"
-                      />
-                    )}
+                  {summary !== undefined && !isEmptyString(summary) && (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                      className="wysiwyg"
+                    />
+                  )}
 
-                    {keywords !== undefined && keywords.length > 0 && (
-                      <p className="text-sm">{keywords.join(", ")}</p>
-                    )}
-                  </div>
-                </Fragment>
-              );
-            })}
+                  {keywords !== undefined && keywords.length > 0 && (
+                    <p className="text-sm">{keywords.join(", ")}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      {dateKey === undefined && (
+      ) : (
         <div className="grid grid-cols-4 gap-x-6">
           <div
             className="col-span-3 col-start-2 grid gap-x-6 gap-y-3"
             style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
           >
-            {section.items
-              .filter((item) => item.visible)
-              .map((item) => {
-                const url = (urlKey && get(item, urlKey)) as URL | undefined;
-                const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-                const keywords = (keywordsKey && get(item, keywordsKey, [])) as
-                  | string[]
-                  | undefined;
+            {visibleItems.map((item, index) => {
+              const url = (urlKey && get(item, urlKey)) as URL | undefined;
+              const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+              const keywords = (keywordsKey && get(item, keywordsKey, [])) as
+                | string[]
+                | undefined;
 
-                return (
-                  <div key={item.id}>
-                    {children?.(item as T)}
+              return (
+                <div
+                  key={item.id}
+                  data-flow-subitem="true"
+                  data-flow-subitem-index={index}
+                >
+                  {children?.(item as T)}
 
-                    {url !== undefined && section.separateLinks && <Link url={url} />}
+                  {url !== undefined && section.separateLinks && <Link url={url} />}
 
-                    {summary !== undefined && !isEmptyString(summary) && (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                        className="wysiwyg"
-                      />
-                    )}
+                  {summary !== undefined && !isEmptyString(summary) && (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                      className="wysiwyg"
+                    />
+                  )}
 
-                    {keywords !== undefined && keywords.length > 0 && (
-                      <p className="text-sm">{keywords.join(", ")}</p>
-                    )}
-                  </div>
-                );
-              })}
+                  {keywords !== undefined && keywords.length > 0 && (
+                    <p className="text-sm">{keywords.join(", ")}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
-    </section>
+    </FlowItem>
   );
 };
 
@@ -578,7 +586,7 @@ export const NosepassTemplate = ({ columns, isFirstPage = false }: TemplateProps
   const [main, sidebar] = columns;
 
   return (
-    <div className="p-custom space-y-6">
+    <FlowRoot className="p-custom space-y-6">
       <div className="flex items-center justify-between">
         <img alt="Europass Logo" className="h-[42px]" src="/assets/europass.png" />
 
@@ -598,6 +606,6 @@ export const NosepassTemplate = ({ columns, isFirstPage = false }: TemplateProps
           <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
         ))}
       </div>
-    </div>
+    </FlowRoot>
   );
 };

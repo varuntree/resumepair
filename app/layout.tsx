@@ -1,14 +1,20 @@
 import { ReactNode } from "react";
 import { Viewport } from "next";
-import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import { getSEOTags } from "@/libs/seo";
 import ClientLayout from "@/components/LayoutClient";
 import config from "@/config";
 import "./globals.css";
 
 // Font configurations
-const inter = Inter({
-	subsets: ["latin"],
+const inter = localFont({
+	src: [
+		{
+			path: "../public/fonts/inter/Inter-Variable.woff2",
+			weight: "400 700",
+			style: "normal",
+		},
+	],
 	variable: "--font-inter",
 	display: "swap",
 	preload: true,
@@ -18,20 +24,32 @@ const inter = Inter({
 		"Segoe UI",
 		"Helvetica Neue",
 		"Arial",
-		"sans-serif"
+		"sans-serif",
 	],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-	subsets: ["latin"],
+const jetbrainsMono = localFont({
+	src: [
+		{
+			path: "../public/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2",
+			weight: "400",
+			style: "normal",
+		},
+	],
 	variable: "--font-jetbrains-mono",
 	display: "swap",
 	preload: true,
 	fallback: ["Consolas", "Monaco", "monospace"],
 });
 
-const sourceSerif = Source_Serif_4({
-	subsets: ["latin"],
+const sourceSerif = localFont({
+	src: [
+		{
+			path: "../public/fonts/source-serif-4/SourceSerif4-Variable.woff2",
+			weight: "400 700",
+			style: "normal",
+		},
+	],
 	variable: "--font-source-serif",
 	display: "swap",
 	preload: true,

@@ -39,8 +39,15 @@ export function Section<T>({
     return null
   }
 
+  const splittable = hasItems && items.length > 0
+
   return (
-    <section id={(section as any).id} className={className}>
+    <section
+      id={(section as any).id}
+      className={className}
+      data-flow-item="true"
+      data-flow-splittable={splittable ? 'true' : 'false'}
+    >
       <h4 className={cn('font-bold text-primary', headingClassName)}>{(section as any).name}</h4>
       {hasContent && !isEmptyString(content) && (
         <div
@@ -48,7 +55,15 @@ export function Section<T>({
           dangerouslySetInnerHTML={{ __html: sanitized }}
         />
       )}
-      {hasItems && children && items.map((item, index) => <div key={index}>{children(item)}</div>)}
+      {hasItems && children && (
+        <div>
+          {items.map((item, index) => (
+            <div key={index} data-flow-subitem="true" data-flow-subitem-index={index}>
+              {children(item)}
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

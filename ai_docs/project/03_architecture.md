@@ -119,6 +119,21 @@ migrations/                 # SQL files (file-only per process)
   phase2/
   ...
 
+### Preview System Breakdown
+
+The live preview stack is split across two layers:
+
+- **Interaction shell (client frame)**  
+  `components/preview/PreviewContainer.tsx` owns scroll/zoom, isolates wheel + pinch events, and maps paginator offsets to viewport scroll positions. Zoom state lives in `stores/previewStore.ts` (fit-to-width, discrete zoom levels, intra-page ratio restore).
+  `components/preview/ArtboardFrame.tsx` mounts an iframe, injects artboard CSS, and renders the paginated renderer while relaying height/offset metrics back to the store.
+
+- **Pagination renderer (iframe + server reuse)**  
+  `libs/reactive-artboard/components/FlowRoot.tsx` + template `data-flow-*` markers declare flow items.  
+  `libs/reactive-artboard/pagination/*` measures blocks and splits lists into sub-items with widow/orphan control.  
+  `libs/reactive-artboard/renderer/ArtboardRenderer.tsx` paginates inside the iframe; the same logic powers `libs/reactive-artboard/server/renderToHtml.ts` so PDF export (`libs/exporters/pdfGenerator.ts`) renders identical HTML and waits for `data-pagination-ready`.
+
+This separation keeps preview, exports, thumbnails, and internal QA routes in lockstep while guaranteeing scroll isolation in the editor.
+
 public/                     # Static assets
 components/                 # UI components
 types/                      # Shared TypeScript types

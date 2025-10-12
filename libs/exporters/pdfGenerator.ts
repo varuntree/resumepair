@@ -147,6 +147,10 @@ async function generatePdf<T>({ type, data, mapDocument, options }: GeneratorInp
     })
 
     await waitForImages(page)
+    await page.waitForFunction(
+      () => document.body.dataset.paginationReady === 'true',
+      { timeout: DEFAULT_TIMEOUT }
+    )
 
     const pageBuffers = await capturePageBuffers(page, artboardDocument.metadata)
     const quality = options.quality ?? 'standard'

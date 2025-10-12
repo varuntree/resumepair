@@ -21,6 +21,8 @@ import { Fragment } from "react";
 
 import { BrandIcon } from "../components/BrandIcon";
 import { Picture } from "../components/Picture";
+import { FlowRoot } from "../components/FlowRoot";
+import { FlowItem } from "../components/FlowItem";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
@@ -28,7 +30,12 @@ const Header = () => {
   const basics = useArtboardStore((state) => state.resume.basics);
 
   return (
-    <div className="p-custom space-y-4 bg-primary text-background">
+    <FlowItem
+      as="header"
+      className="p-custom space-y-4 bg-primary text-background"
+      splittable={false}
+      groupId="header"
+    >
       <Picture className="border-background" />
 
       <div>
@@ -75,7 +82,7 @@ const Header = () => {
           </Fragment>
         ))}
       </div>
-    </div>
+    </FlowItem>
   );
 };
 
@@ -86,15 +93,19 @@ const Summary = () => {
   if (!section.visible || isEmptyString(section.content)) return null;
 
   return (
-    <div className="p-custom space-y-4" style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}>
-      <section id={section.id} className="doc-avoid-break">
-        <div
-          dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
-          style={{ columns: section.columns }}
-          className="wysiwyg"
-        />
-      </section>
-    </div>
+    <FlowItem
+      as="section"
+      id={section.id}
+      className="p-custom space-y-4"
+      style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
+      splittable={false}
+    >
+      <div
+        dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
+        style={{ columns: section.columns }}
+        className="wysiwyg"
+      />
+    </FlowItem>
   );
 };
 
@@ -184,48 +195,52 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
-  if (!section.visible || section.items.filter((item) => item.visible).length === 0) return null;
+  const visibleItems = section.items.filter((item) => item.visible);
+  if (!section.visible || visibleItems.length === 0) return null;
 
   return (
-    <section id={section.id} className="doc-avoid-break grid">
+    <FlowItem as="section" id={section.id} className="grid" splittable={visibleItems.length > 0}>
       <h4 className="mb-2 border-b border-primary text-base font-bold">{section.name}</h4>
 
       <div
         className="grid gap-x-6 gap-y-3"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey && get(item, urlKey)) as URL | undefined;
-            const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
-            const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
-            const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
+        {visibleItems.map((item, index) => {
+          const url = (urlKey && get(item, urlKey)) as URL | undefined;
+          const level = (levelKey && get(item, levelKey, 0)) as number | undefined;
+          const summary = (summaryKey && get(item, summaryKey, "")) as string | undefined;
+          const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
-            return (
-              <div key={item.id} className={cn("space-y-2", className)}>
-                <div>
-                  {children?.(item as T)}
-                  {url !== undefined && section.separateLinks && <Link url={url} />}
-                </div>
-
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
-
-                {level !== undefined && level > 0 && <Rating level={level} />}
-
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+          return (
+            <div
+              key={item.id}
+              className={cn("space-y-2", className)}
+              data-flow-subitem="true"
+              data-flow-subitem-index={index}
+            >
+              <div>
+                {children?.(item as T)}
+                {url !== undefined && section.separateLinks && <Link url={url} />}
               </div>
-            );
-          })}
+
+              {summary !== undefined && !isEmptyString(summary) && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                  className="wysiwyg"
+                />
+              )}
+
+              {level !== undefined && level > 0 && <Rating level={level} />}
+
+              {keywords !== undefined && keywords.length > 0 && (
+                <p className="text-sm">{keywords.join(", ")}</p>
+              )}
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </FlowItem>
   );
 };
 
@@ -572,7 +587,7 @@ export const GengarTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
 
   return (
-    <div className="grid min-h-[inherit] grid-cols-3">
+    <FlowRoot className="grid min-h-[inherit] grid-cols-3">
       <div
         className={cn(
           "sidebar group flex flex-col",
@@ -600,6 +615,6 @@ export const GengarTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
           ))}
         </div>
       </div>
-    </div>
+    </FlowRoot>
   );
 };
