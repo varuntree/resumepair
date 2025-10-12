@@ -24,7 +24,7 @@ export function Page({ mode = 'preview', pageNumber, children }: PageProps) {
   return (
     <div
       data-page={pageNumber}
-      className={cn('relative bg-background text-foreground', mode === 'builder' && 'shadow-2xl')}
+      className={cn('relative bg-background text-foreground')}
       style={{
         width: `${size.width * MM_TO_PX}px`,
         minHeight: `${size.height * MM_TO_PX}px`,
@@ -33,6 +33,12 @@ export function Page({ mode = 'preview', pageNumber, children }: PageProps) {
         overflow: 'hidden',
         backgroundColor: 'var(--artboard-color-background)',
         color: 'var(--artboard-color-text)',
+        boxShadow:
+          mode === 'preview'
+            ? '0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08)'
+            : 'none',
+        border: mode === 'preview' ? '1px solid rgba(0,0,0,0.06)' : undefined,
+        borderRadius: mode === 'preview' ? '4px' : undefined,
       }}
     >
       {mode === 'builder' && page.options.pageNumbers && (

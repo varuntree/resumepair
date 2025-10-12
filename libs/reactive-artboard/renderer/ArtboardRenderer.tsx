@@ -9,7 +9,7 @@ import type { SectionKey } from '../schema'
 import { FlowRoot } from '../components/FlowRoot'
 import { measureFlowItems } from '../pagination/measure'
 import { paginate } from '../pagination/paginate'
-import { PAGE_SIZE_MM, MM_TO_PX } from '../constants/page'
+import { PAGE_SIZE_MM, MM_TO_PX, PREVIEW_PAGE_GAP_PX } from '../constants/page'
 import { FlowSlice, PaginatedPage } from '../pagination/blockTypes'
 
 type ArtboardRendererProps = {
@@ -20,6 +20,7 @@ type ArtboardRendererProps = {
     pageWidth: number
     pageHeight: number
     margin: number
+    gap: number
   }) => void
 }
 
@@ -108,13 +109,14 @@ export function ArtboardRenderer({
 
         setPages(clonePages(result.pages))
 
-        const offsets = result.pages.map((_, index) => index * pageHeightPx)
+        const offsets = result.pages.map((_, index) => index * (pageHeightPx + PREVIEW_PAGE_GAP_PX))
         onPagesMeasured?.(offsets)
         onFrameMetrics?.({
           offsets,
           pageWidth: pageWidthPx,
           pageHeight: pageHeightPx,
           margin,
+          gap: PREVIEW_PAGE_GAP_PX,
         })
 
         if (isDev) {
@@ -152,7 +154,7 @@ export function ArtboardRenderer({
   const firstPageColumns = (document.layout[0] ?? []) as SectionKey[][]
 
   return (
-    <div className="artboard-root" style={{ backgroundColor: 'var(--artboard-color-background)' }}>
+    <div className="artboard-root" style={{ backgroundColor: 'transparent' }}>
       <style dangerouslySetInnerHTML={{ __html: style }} />
 
       {/* Hidden FlowRoot for measurement */}
@@ -170,27 +172,40 @@ export function ArtboardRenderer({
       </FlowRoot>
 
       {/* Render paginated clones */}
-      {pages.length > 0 ? (
-        pages.map((elements, pageIndex) => (
-          <Page key={pageIndex} mode="preview" pageNumber={pageIndex + 1}>
-            <div style={{ padding: `${margin}px` }}>
-              {elements.map((el, elementIndex) => (
-                <div key={elementIndex} dangerouslySetInnerHTML={{ __html: el.outerHTML }} />
-              ))}
+      <div
+        className="artboard-page-stack flex w-full flex-col items-center"
+        style={{ gap: `${PREVIEW_PAGE_GAP_PX}px`, paddingBottom: `${PREVIEW_PAGE_GAP_PX}px` }}
+      >
+        {pages.length > 0 ? (
+          pages.map((elements, pageIndex) => (
+            <div
+              key={`artboard-page-${pageIndex}`}
+              className="artboard-page-wrapper w-full max-w-full px-2"
+              style={{ display: 'flex', justifyContent: 'center' }}
+            >
+              <Page mode="preview" pageNumber={pageIndex + 1}>
+                <div style={{ padding: `${margin}px` }}>
+                  {elements.map((el, elementIndex) => (
+                    <div key={elementIndex} dangerouslySetInnerHTML={{ __html: el.outerHTML }} />
+                  ))}
+                </div>
+              </Page>
             </div>
-          </Page>
-        ))
-      ) : (
-        <Page mode="preview" pageNumber={1}>
-          <div style={{ padding: `${margin}px` }}>
-            <Template
-              columns={firstPageColumns.length ? firstPageColumns : measurementColumns}
-              isFirstPage
-              document={document}
-            />
+          ))
+        ) : (
+          <div className="artboard-page-wrapper w-full max-w-full px-2" style={{ display: 'flex', justifyContent: 'center' }}>
+            <Page mode="preview" pageNumber={1}>
+              <div style={{ padding: `${margin}px` }}>
+                <Template
+                  columns={firstPageColumns.length ? firstPageColumns : measurementColumns}
+                  isFirstPage
+                  document={document}
+                />
+              </div>
+            </Page>
           </div>
-        </Page>
-      )}
+        )}
+      </div>
     </div>
   )
 }

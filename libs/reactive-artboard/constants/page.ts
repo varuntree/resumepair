@@ -9,6 +9,8 @@ export type PageFormat = keyof typeof PAGE_SIZE_MM
 
 export const DEFAULT_PAGE_FORMAT: PageFormat = 'a4'
 
+export const PREVIEW_PAGE_GAP_PX = 32
+
 export function normalizePageFormat(format: string | undefined | null): PageFormat {
   const normalized = (format ?? DEFAULT_PAGE_FORMAT).toString().trim().toLowerCase()
   if (normalized in PAGE_SIZE_MM) {

@@ -9,7 +9,11 @@ type FrameMetrics = {
   pageWidth: number
   pageHeight: number
   margin: number
+  gap: number
 }
+
+// eslint-disable-next-line no-unused-vars
+type PreviewZoomBridge = (delta: number) => void
 
 interface ArtboardFrameProps {
   document: ArtboardDocument
@@ -90,6 +94,28 @@ export function ArtboardFrame({
 
     updateHeight()
 
+    const wheelHandler = (event: WheelEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return
+      event.preventDefault()
+      try {
+        const parentWindow = (win.parent ?? window.parent) as typeof window & {
+          __resumePreviewZoom?: PreviewZoomBridge
+        }
+        parentWindow?.__resumePreviewZoom?.(event.deltaY)
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[ArtboardFrame] modifier wheel handling failed', error)
+        }
+      }
+    }
+
+    const preventGesture = (event: Event) => event.preventDefault()
+
+    doc.addEventListener('wheel', wheelHandler, { passive: false })
+    doc.addEventListener('gesturestart', preventGesture)
+    doc.addEventListener('gesturechange', preventGesture)
+    doc.addEventListener('gestureend', preventGesture)
+
     const ResizeObserverCtor =
       (win as typeof window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver ??
       ResizeObserver
@@ -98,6 +124,10 @@ export function ArtboardFrame({
 
     return () => {
       observer.disconnect()
+      doc.removeEventListener('wheel', wheelHandler)
+      doc.removeEventListener('gesturestart', preventGesture)
+      doc.removeEventListener('gesturechange', preventGesture)
+      doc.removeEventListener('gestureend', preventGesture)
     }
   }, [document, handleFrameMetrics, handlePagesMeasured])
 

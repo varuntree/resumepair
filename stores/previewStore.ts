@@ -36,6 +36,7 @@ type PageMetrics = {
   widthPx: number
   heightPx: number
   marginPx: number
+  gapPx: number
 }
 
 interface PreviewState {
@@ -43,6 +44,7 @@ interface PreviewState {
   zoomLevel: number
   lastManualZoom: number
   isFitToWidth: boolean
+  initialFitApplied: boolean
   currentPage: number // 1-indexed
   totalPages: number
   viewport: ViewportMode
@@ -60,6 +62,7 @@ interface PreviewState {
   setFitToWidth: (enabled: boolean) => void
   applyFitZoom: (level: number) => void
   syncZoomFromTransform: (level: number) => void
+  markInitialFitApplied: () => void
   nextPage: () => void
   previousPage: () => void
   goToPage: (page: number) => void
@@ -75,6 +78,7 @@ interface PreviewState {
     pageWidth: number
     pageHeight: number
     margin: number
+    gap: number
   }) => void
 
   // Computed getters
@@ -91,7 +95,8 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   // Initial state
   zoomLevel: 1.0,
   lastManualZoom: 1.0,
-  isFitToWidth: false,
+  isFitToWidth: true,
+  initialFitApplied: false,
   currentPage: 1,
   totalPages: 1,
   viewport: 'desktop',
@@ -132,7 +137,7 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
    */
   setFitToWidth: (enabled: boolean) => {
     if (enabled) {
-      set({ isFitToWidth: true })
+      set({ isFitToWidth: true, initialFitApplied: false })
       return
     }
 
@@ -164,6 +169,10 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
       zoomLevel: clamped,
       lastManualZoom: isFitToWidth ? state.lastManualZoom : clamped,
     }))
+  },
+
+  markInitialFitApplied: () => {
+    set({ initialFitApplied: true })
   },
 
   /**
@@ -264,6 +273,7 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
       pendingScrollPage: null,
       pendingScrollRatio: null,
       intraPageRatio: 0,
+      initialFitApplied: false,
     })
   },
 
@@ -287,7 +297,7 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
   /**
    * Update pagination metrics (width/height/margins + offsets)
    */
-  updatePaginationMetrics: ({ offsets, pageWidth, pageHeight, margin }) => {
+  updatePaginationMetrics: ({ offsets, pageWidth, pageHeight, margin, gap }) => {
     const totalPages = Math.max(offsets.length, 1)
     set((state) => {
       const clamped = Math.min(Math.max(state.currentPage, 1), totalPages)
@@ -297,6 +307,7 @@ export const usePreviewStore = create<PreviewState>()((set, get) => ({
           widthPx: pageWidth,
           heightPx: pageHeight,
           marginPx: margin,
+          gapPx: gap,
         },
         totalPages,
         currentPage: clamped,

@@ -11,7 +11,7 @@
 'use client'
 
 import * as React from 'react'
-import { usePreviewStore } from '@/stores/previewStore'
+import { usePreviewStore, MIN_ZOOM, MAX_ZOOM } from '@/stores/previewStore'
 import { cn } from '@/libs/utils'
 import {
   DEFAULT_PAGE_FORMAT,
@@ -29,6 +29,9 @@ interface PreviewContainerProps {
   pageFormat?: PageFormat
 }
 
+// eslint-disable-next-line no-unused-vars
+type PreviewZoomCallback = (delta: number) => void
+
 export function PreviewContainer({
   children,
   className = '',
@@ -40,8 +43,10 @@ export function PreviewContainer({
 
   const zoomLevel = usePreviewStore((state) => state.zoomLevel)
   const isFitToWidth = usePreviewStore((state) => state.isFitToWidth)
+  const initialFitApplied = usePreviewStore((state) => state.initialFitApplied)
   const applyFitZoom = usePreviewStore((state) => state.applyFitZoom)
   const resetZoom = usePreviewStore((state) => state.resetZoom)
+  const markInitialFitApplied = usePreviewStore((state) => state.markInitialFitApplied)
   const clearPendingScroll = usePreviewStore((state) => state.clearPendingScroll)
   const syncCurrentPage = usePreviewStore((state) => state.syncCurrentPage)
   const pendingScrollPage = usePreviewStore((state) => state.pendingScrollPage)
@@ -57,7 +62,32 @@ export function PreviewContainer({
   const pageWidthPx = pageMetrics?.widthPx ?? fallbackWidthPx
   const pageHeightPx = pageMetrics?.heightPx ?? fallbackHeightPx
   const basePageHeight = pageMetrics?.heightPx ?? fallbackHeightPx
+  const pageGapPx = pageMetrics?.gapPx ?? 0
   const isPanEnabled = zoomLevel > 1.01
+
+  const accumulatedDeltaRef = React.useRef(0)
+  const zoomRafRef = React.useRef<number | null>(null)
+  const handleModifierZoom = React.useCallback((deltaY: number) => {
+    const store = usePreviewStore.getState()
+    if (store.isFitToWidth) {
+      usePreviewStore.setState((state) => ({
+        isFitToWidth: false,
+        lastManualZoom: state.zoomLevel,
+      }))
+    }
+    accumulatedDeltaRef.current += deltaY
+    if (zoomRafRef.current !== null) return
+    zoomRafRef.current = requestAnimationFrame(() => {
+      const delta = accumulatedDeltaRef.current
+      accumulatedDeltaRef.current = 0
+      zoomRafRef.current = null
+      const current = (transformRef.current?.state?.scale as number | undefined) ?? zoomLevel
+      const sensitivity = 0.002
+      const factor = Math.exp(-delta * sensitivity)
+      const target = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, current * factor))
+      transformRef.current?.centerView(target, 80)
+    })
+  }, [zoomLevel])
 
   const getWrapperPadding = React.useCallback(() => {
     const wrapper = wrapperRef.current
@@ -84,9 +114,12 @@ export function PreviewContainer({
     if (!Number.isFinite(availableWidth) || availableWidth <= 0 || pageWidthPx <= 0) return
 
     const targetZoom = availableWidth / pageWidthPx
-    transformRef.current?.setTransform(0, 0, targetZoom, 0)
+    transformRef.current?.centerView(targetZoom, 0)
     applyFitZoom(targetZoom)
-  }, [applyFitZoom, getWrapperPadding, isFitToWidth, pageWidthPx])
+    if (!initialFitApplied) {
+      markInitialFitApplied()
+    }
+  }, [applyFitZoom, getWrapperPadding, initialFitApplied, isFitToWidth, markInitialFitApplied, pageWidthPx])
 
   React.useLayoutEffect(() => {
     if (!isFitToWidth) return
@@ -99,12 +132,12 @@ export function PreviewContainer({
     observer.observe(target)
 
     return () => observer.disconnect()
-  }, [isFitToWidth, recomputeFitZoom])
+  }, [initialFitApplied, isFitToWidth, recomputeFitZoom])
 
   React.useEffect(() => {
     if (!isFitToWidth) return
     recomputeFitZoom()
-  }, [isFitToWidth, recomputeFitZoom, pageWidthPx])
+  }, [initialFitApplied, isFitToWidth, recomputeFitZoom, pageWidthPx])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -136,12 +169,7 @@ export function PreviewContainer({
 
       if (event.ctrlKey || event.metaKey) {
         event.preventDefault()
-        const delta = -event.deltaY / 100
-        if (delta > 0) {
-          transformRef.current?.zoomIn(0.1)
-        } else {
-          transformRef.current?.zoomOut(0.1)
-        }
+        handleModifierZoom(event.deltaY)
       }
     }
 
@@ -149,7 +177,21 @@ export function PreviewContainer({
     return () => {
       container.removeEventListener('wheel', handleWheel, { capture: true } as any)
     }
-  }, [])
+  }, [handleModifierZoom])
+
+  React.useEffect(() => {
+    const globalWindow = window as typeof window & {
+      __resumePreviewZoom?: PreviewZoomCallback
+    }
+
+    globalWindow.__resumePreviewZoom = handleModifierZoom
+
+    return () => {
+      if (globalWindow.__resumePreviewZoom === handleModifierZoom) {
+        delete globalWindow.__resumePreviewZoom
+      }
+    }
+  }, [handleModifierZoom])
 
   React.useEffect(() => {
     const container = containerRef.current
@@ -180,10 +222,11 @@ export function PreviewContainer({
     const index = Math.min(pageOffsets.length - 1, Math.max(0, pendingScrollPage - 1))
     const padding = getWrapperPadding()
     const start = pageOffsets[index] ?? 0
-    const end =
-      pageOffsets[index + 1] ??
-      (start + (pageMetrics?.heightPx ?? basePageHeight))
-    const span = Math.max(end - start, pageMetrics?.heightPx ?? basePageHeight)
+    const baseSpan = pageMetrics?.heightPx ?? basePageHeight
+    const nextOffset = pageOffsets[index + 1]
+    const end = nextOffset ?? (start + baseSpan)
+    const expectedSpan = baseSpan + (nextOffset !== undefined ? pageGapPx : 0)
+    const span = Math.max(end - start, expectedSpan)
     const ratio = pendingScrollRatio ?? 0
     const unscaledTarget = start + Math.min(Math.max(ratio, 0), 1) * span
     const target = unscaledTarget * zoomLevel + padding.top
@@ -197,6 +240,7 @@ export function PreviewContainer({
     clearPendingScroll,
     getWrapperPadding,
     pageMetrics?.heightPx,
+    pageGapPx,
     pageOffsets,
     pendingScrollPage,
     pendingScrollRatio,
@@ -239,10 +283,11 @@ export function PreviewContainer({
         }
 
         const start = pageOffsets[resolvedPage - 1] ?? 0
-        const end =
-          pageOffsets[resolvedPage] ??
-          (start + (pageMetrics?.heightPx ?? basePageHeight))
-        const span = Math.max(end - start, pageMetrics?.heightPx ?? basePageHeight)
+        const baseSpan = pageMetrics?.heightPx ?? basePageHeight
+        const nextOffset = pageOffsets[resolvedPage]
+        const end = nextOffset ?? (start + baseSpan)
+        const expectedSpan = baseSpan + (nextOffset !== undefined ? pageGapPx : 0)
+        const span = Math.max(end - start, expectedSpan)
         const ratio = span > 0 ? (contentTop - start) / span : 0
         syncCurrentPage(resolvedPage, Math.min(Math.max(ratio, 0), 1))
       })
@@ -258,6 +303,7 @@ export function PreviewContainer({
     basePageHeight,
     getWrapperPadding,
     pageMetrics?.heightPx,
+    pageGapPx,
     pageOffsets,
     syncCurrentPage,
     zoomLevel,
@@ -269,7 +315,7 @@ export function PreviewContainer({
       className={cn('preview-container w-full h-full overflow-auto bg-gray-100', className)}
       style={{
         overscrollBehavior: 'contain',
-        touchAction: 'pan-y pinch-zoom',
+        touchAction: 'none',
         scrollbarGutter: 'stable',
       }}
     >
@@ -295,7 +341,11 @@ export function PreviewContainer({
           wrapperStyle={{ minHeight: '100%' }}
           contentClass="flex min-h-full w-full items-start justify-center p-8"
         >
-          <div ref={wrapperRef} className="preview-content bg-white shadow-lg">
+          <div
+            ref={wrapperRef}
+            className="preview-content"
+            style={{ marginLeft: 'auto', marginRight: 'auto', backgroundColor: 'transparent' }}
+          >
             <div
               style={{
                 width: `${pageWidthPx}px`,

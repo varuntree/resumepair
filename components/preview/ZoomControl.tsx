@@ -39,6 +39,16 @@ export function ZoomControl(): React.ReactElement {
   }
 
   const currentPercent = Math.round(zoomLevel * 100)
+  const zoomValue = zoomLevel.toFixed(2)
+  const zoomOptions = React.useMemo(() => {
+    const optionMap = new Map<string, number>()
+    optionMap.set(zoomValue, zoomLevel)
+    ZOOM_LEVELS.forEach((value) => {
+      optionMap.set(value.toFixed(2), value)
+    })
+    return Array.from(optionMap.entries())
+  }, [zoomValue, zoomLevel])
+  const selectValue = isFitToWidth ? 'fit' : zoomValue
 
   return (
     <div className="flex items-center gap-2">
@@ -53,15 +63,15 @@ export function ZoomControl(): React.ReactElement {
       >
         <Minus className="h-4 w-4" />
       </Button>
-      <Select value={isFitToWidth ? 'fit' : zoomLevel.toFixed(2)} onValueChange={handleSelect}>
+      <Select value={selectValue} onValueChange={handleSelect}>
         <SelectTrigger className="w-[120px]" aria-label="Zoom level">
           <SelectValue placeholder={`${currentPercent}%`} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="fit">Fit to width</SelectItem>
-          {ZOOM_LEVELS.map((value) => (
-            <SelectItem key={value} value={value.toFixed(2)}>
-              {`${Math.round(value * 100)}%`}
+          {zoomOptions.map(([valueKey, numericValue]) => (
+            <SelectItem key={valueKey} value={valueKey}>
+              {`${Math.round(numericValue * 100)}%`}
             </SelectItem>
           ))}
         </SelectContent>

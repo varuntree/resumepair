@@ -6,6 +6,7 @@ import { ArtboardDocument } from '../types'
 import type { SectionKey } from '../schema'
 import { buildArtboardStyles } from '../styles'
 import { Page, MM_TO_PX, PAGE_SIZE_MM } from '../components/Page'
+import { PREVIEW_PAGE_GAP_PX } from '../constants/page'
 import { getTemplateRenderer } from '../templates'
 import { paginate } from '../pagination/paginate'
 import { measureFlowItems } from '../pagination/measure'
@@ -117,7 +118,7 @@ export function PaginatedArtboardRenderer({
     <div
       className="artboard-root"
       style={{
-        backgroundColor: 'var(--artboard-color-background)',
+        backgroundColor: 'transparent',
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: style }} />
@@ -128,24 +129,32 @@ export function PaginatedArtboardRenderer({
           isFirstPage
         />
       </div>
-      {pageHtml.length === 0 ? (
-        <Page mode="preview" pageNumber={1}>
-          <div
-            className="artboard-page"
-            style={{ padding: `${pageMetrics.margin}px` }}
-          />
-        </Page>
-      ) : (
-        pageHtml.map((html, index) => (
-          <Page key={`page-${index + 1}`} mode="preview" pageNumber={index + 1}>
+      <div
+        className="artboard-page-stack flex w-full flex-col items-center"
+        style={{
+          gap: `${PREVIEW_PAGE_GAP_PX}px`,
+          paddingBottom: `${PREVIEW_PAGE_GAP_PX}px`,
+        }}
+      >
+        {pageHtml.length === 0 ? (
+          <Page mode="preview" pageNumber={1}>
             <div
               className="artboard-page"
               style={{ padding: `${pageMetrics.margin}px` }}
-              dangerouslySetInnerHTML={{ __html: html }}
             />
           </Page>
-        ))
-      )}
+        ) : (
+          pageHtml.map((html, index) => (
+            <Page key={`page-${index + 1}`} mode="preview" pageNumber={index + 1}>
+              <div
+                className="artboard-page"
+                style={{ padding: `${pageMetrics.margin}px` }}
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </Page>
+          ))
+        )}
+      </div>
     </div>
   )
 }

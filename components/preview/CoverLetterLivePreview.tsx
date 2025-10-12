@@ -104,12 +104,13 @@ export function CoverLetterLivePreview({ showControls = true }: CoverLetterLiveP
             <ArtboardFrame
               document={artboardDocument}
               onPagesMeasured={setPageOffsetsStore}
-              onFrameMetrics={({ offsets, pageWidth, pageHeight, margin }) => {
+              onFrameMetrics={({ offsets, pageWidth, pageHeight, margin, gap }) => {
                 updatePaginationMetrics({
                   offsets,
                   pageWidth,
                   pageHeight,
                   margin,
+                  gap,
                 })
               }}
             />
