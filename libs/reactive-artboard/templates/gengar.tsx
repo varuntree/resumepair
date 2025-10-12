@@ -203,7 +203,7 @@ const Section = <T,>({
       <h4 className="mb-2 border-b border-primary text-base font-bold">{section.name}</h4>
 
       <div
-        className="grid gap-x-6 gap-y-3"
+        className="grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -215,7 +215,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("space-y-2", className)}
+              className={cn("space-y-doc-item", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -597,7 +597,7 @@ export const GengarTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
         {isFirstPage && <Header />}
 
         <div
-          className="p-custom flex-1 space-y-4"
+          className="p-custom flex-1 space-y-doc-section"
           style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
         >
           {sidebar.map((section) => (
@@ -609,7 +609,7 @@ export const GengarTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
       <div className={cn("main group", sidebar.length > 0 ? "col-span-2" : "col-span-3")}>
         {isFirstPage && <Summary />}
 
-        <div className="p-custom space-y-4">
+        <div className="p-custom space-y-doc-section">
           {main.map((section) => (
             <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
           ))}

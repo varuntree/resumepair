@@ -197,7 +197,7 @@ const Section = <T,>({
       <h4 className="mb-2 border-b pb-0.5 text-sm font-bold">{section.name}</h4>
 
       <div
-        className="grid gap-x-6 gap-y-3"
+        className="grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -209,7 +209,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("space-y-2", className)}
+              className={cn("space-y-doc-item", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -584,7 +584,7 @@ export const ChikoritaTemplate = ({ columns, isFirstPage = false }: TemplateProp
     <FlowRoot className="grid min-h-[inherit] grid-cols-3">
       <div
         className={cn(
-          "main p-custom group space-y-4",
+          "main p-custom group space-y-doc-section",
           sidebar.length > 0 ? "col-span-2" : "col-span-3",
         )}
       >
@@ -597,7 +597,7 @@ export const ChikoritaTemplate = ({ columns, isFirstPage = false }: TemplateProp
 
       <div
         className={cn(
-          "sidebar p-custom group h-full space-y-4 bg-primary text-background",
+          "sidebar p-custom group h-full space-y-doc-section bg-primary text-background",
           sidebar.length === 0 && "hidden",
         )}
       >

@@ -224,7 +224,7 @@ const Section = <T,>({
       <h4 className="mb-2 border-b border-primary text-base font-bold">{section.name}</h4>
 
       <div
-        className="grid gap-x-6 gap-y-3"
+        className="grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -236,7 +236,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("space-y-2", className)}
+              className={cn("space-y-doc-item", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -610,7 +610,7 @@ export const PikachuTemplate = ({ columns, isFirstPage = false }: TemplateProps)
 
   return (
     <FlowRoot className="p-custom grid grid-cols-3 space-x-6">
-      <div className="sidebar group space-y-4">
+      <div className="sidebar group space-y-doc-section">
         {isFirstPage && <Picture className="w-full !max-w-none" />}
 
         {sidebar.map((section) => (
@@ -618,7 +618,7 @@ export const PikachuTemplate = ({ columns, isFirstPage = false }: TemplateProps)
         ))}
       </div>
 
-      <div className={cn("main group space-y-4", sidebar.length > 0 ? "col-span-2" : "col-span-3")}>
+      <div className={cn("main group space-y-doc-section", sidebar.length > 0 ? "col-span-2" : "col-span-3")}>
         {isFirstPage && <Header />}
 
         {main.map((section) => (

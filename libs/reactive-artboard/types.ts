@@ -20,6 +20,11 @@ export type ArtboardMetadata = {
     margin: number
     showPageNumbers: boolean
   }
+  spacing?: {
+    sectionGap: number
+    itemGap: number
+    columnGap: number
+  }
   customCss?: string
 }
 

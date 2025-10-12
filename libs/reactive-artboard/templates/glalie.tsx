@@ -209,7 +209,7 @@ const Section = <T,>({
       </h4>
 
       <div
-        className="grid gap-x-6 gap-y-3"
+        className="grid gap-x-doc-column gap-y-doc-item"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {visibleItems.map((item, index) => {
@@ -221,7 +221,7 @@ const Section = <T,>({
           return (
             <div
               key={item.id}
-              className={cn("space-y-2", className)}
+              className={cn("space-y-doc-item", className)}
               data-flow-subitem="true"
               data-flow-subitem-index={index}
             >
@@ -598,7 +598,7 @@ export const GlalieTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
   return (
     <FlowRoot className="grid min-h-[inherit] grid-cols-3">
       <div
-        className={cn("sidebar p-custom group space-y-4", sidebar.length === 0 && "hidden")}
+        className={cn("sidebar p-custom group space-y-doc-section", sidebar.length === 0 && "hidden")}
         style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
       >
         {isFirstPage && <Header />}
@@ -610,7 +610,7 @@ export const GlalieTemplate = ({ columns, isFirstPage = false }: TemplateProps) 
 
       <div
         className={cn(
-          "main p-custom group space-y-4",
+          "main p-custom group space-y-doc-section",
           sidebar.length > 0 ? "col-span-2" : "col-span-3",
         )}
       >

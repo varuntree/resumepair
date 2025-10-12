@@ -18,7 +18,15 @@ const COLOR_THEMES: Record<string, typeof DEFAULT_COLORS> = {
 const FONT_FAMILY_MAP: Record<string, string> = {
   inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   'source sans 3': '"Source Sans 3", system-ui, sans-serif',
-  georgia: 'Georgia, serif',
+  roboto: 'Roboto, system-ui, -apple-system, sans-serif',
+  'open sans': '"Open Sans", system-ui, -apple-system, sans-serif',
+  lato: 'Lato, system-ui, -apple-system, sans-serif',
+  georgia: 'Georgia, "Times New Roman", Times, serif',
+  merriweather: 'Merriweather, Georgia, "Times New Roman", serif',
+  'source serif 4': '"Source Serif 4", Georgia, serif',
+  'playfair display': '"Playfair Display", Georgia, serif',
+  'ibm plex mono': '"IBM Plex Mono", "Courier New", Courier, monospace',
+  'jetbrains mono': '"JetBrains Mono", "Courier New", Courier, monospace',
 }
 
 export function mapResumeToArtboardDocument(resume: ResumeJson): ArtboardDocument {
@@ -137,7 +145,7 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
   const typography = appearance.typography ?? {
     fontFamily: 'Inter, system-ui',
     fontSize: Math.round(16 * (resume.settings.fontSizeScale || 1)),
-    lineHeight: resume.settings.lineSpacing || 1.4,
+    lineHeight: resume.settings.lineSpacing || 1.5,
   }
   const layout = appearance.layout_settings ?? {
     pageFormat: resume.settings.pageSize || DEFAULT_PAGE_FORMAT,
@@ -166,7 +174,7 @@ function createMetadata(resume: ResumeJson): ArtboardMetadata {
     typography: {
       fontFamily: fallbackFontFamily,
       fontSize: typography.fontSize ?? Math.round(16 * (resume.settings.fontSizeScale || 1)),
-      lineHeight: typography.lineHeight ?? (resume.settings.lineSpacing || 1.4),
+      lineHeight: typography.lineHeight ?? (resume.settings.lineSpacing || 1.5),
     },
     page: {
       format: normalizePageFormat(layout.pageFormat ?? DEFAULT_PAGE_FORMAT),
